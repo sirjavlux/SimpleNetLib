@@ -1,0 +1,17 @@
+{
+	"Zones": 
+	[
+		{
+			"Name": "top_left"
+		},
+		{
+			"Name": "top_right"
+		},
+		{
+			"Name": "bottom_left"
+		},
+		{
+			"Name": "bottom_right"
+		}
+	]
+}

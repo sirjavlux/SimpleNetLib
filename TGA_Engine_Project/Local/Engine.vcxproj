@@ -1,0 +1,419 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Retail|x64">
+      <Configuration>Retail</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{DBC7D3B0-C769-FE86-B024-12DB9C6585D7}</ProjectGuid>
+    <IgnoreWarnCompileDuplicatedFilename>true</IgnoreWarnCompileDuplicatedFilename>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>Engine</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Retail|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Retail|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>..\Lib\</OutDir>
+    <IntDir>..\Temp\Engine\Debug\</IntDir>
+    <TargetName>Engine_Debug</TargetName>
+    <TargetExt>.lib</TargetExt>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>..\Lib\</OutDir>
+    <IntDir>..\Temp\Engine\Release\</IntDir>
+    <TargetName>Engine_Release</TargetName>
+    <TargetExt>.lib</TargetExt>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Retail|x64'">
+    <OutDir>..\Lib\</OutDir>
+    <IntDir>..\Temp\Engine\Retail\</IntDir>
+    <TargetName>Engine_Retail</TargetName>
+    <TargetExt>.lib</TargetExt>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
+      <WarningLevel>Level4</WarningLevel>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <PreprocessorDefinitions>_DEBUG;WIN32;_CRT_SECURE_NO_WARNINGS;_LIB;_WIN32_WINNT=0x0601;TGE_SYSTEM_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\Source\Engine;..\Source\External;..\Source\External\imgui;..\Source\External\DirectXTex;..\Source\External\ffmpeg-2.0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <Optimization>Disabled</Optimization>
+      <MinimalRebuild>false</MinimalRebuild>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <SDLCheck>true</SDLCheck>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <ExternalWarningLevel>Level3</ExternalWarningLevel>
+    </ClCompile>
+    <FxCompile>
+      <ShaderModel>5.0</ShaderModel>
+    </FxCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <Lib>
+      <AdditionalDependencies>DXGI.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
+      <WarningLevel>Level4</WarningLevel>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <PreprocessorDefinitions>_RELEASE;WIN32;_CRT_SECURE_NO_WARNINGS;_LIB;_WIN32_WINNT=0x0601;TGE_SYSTEM_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\Source\Engine;..\Source\External;..\Source\External\imgui;..\Source\External\DirectXTex;..\Source\External\ffmpeg-2.0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <Optimization>Full</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <MinimalRebuild>false</MinimalRebuild>
+      <StringPooling>true</StringPooling>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <SDLCheck>true</SDLCheck>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <ExternalWarningLevel>Level3</ExternalWarningLevel>
+    </ClCompile>
+    <FxCompile>
+      <ShaderModel>5.0</ShaderModel>
+    </FxCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+    <Lib>
+      <AdditionalDependencies>DXGI.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Retail|x64'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
+      <WarningLevel>Level4</WarningLevel>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <PreprocessorDefinitions>_RETAIL;WIN32;_CRT_SECURE_NO_WARNINGS;_LIB;_WIN32_WINNT=0x0601;TGE_SYSTEM_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\Source\Engine;..\Source\External;..\Source\External\imgui;..\Source\External\DirectXTex;..\Source\External\ffmpeg-2.0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <Optimization>Full</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <MinimalRebuild>false</MinimalRebuild>
+      <StringPooling>true</StringPooling>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <SDLCheck>true</SDLCheck>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <ExternalWarningLevel>Level3</ExternalWarningLevel>
+    </ClCompile>
+    <FxCompile>
+      <ShaderModel>5.0</ShaderModel>
+    </FxCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+    <Lib>
+      <AdditionalDependencies>DXGI.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Source\Engine\resource.h" />
+    <ClInclude Include="..\Source\Engine\stdafx.h" />
+    <ClInclude Include="..\Source\Engine\targetver.h" />
+    <ClInclude Include="..\Source\Engine\tge\EngineDefines.h" />
+    <ClInclude Include="..\Source\Engine\tge\EngineMacros.h" />
+    <ClInclude Include="..\Source\Engine\tge\EngineUtilities.h" />
+    <ClInclude Include="..\Source\Engine\tge\StepTimer.h" />
+    <ClInclude Include="..\Source\Engine\tge\Timer.h" />
+    <ClInclude Include="..\Source\Engine\tge\animation\Animation.h" />
+    <ClInclude Include="..\Source\Engine\tge\animation\AnimationPlayer.h" />
+    <ClInclude Include="..\Source\Engine\tge\animation\Math\MathFunc.h" />
+    <ClInclude Include="..\Source\Engine\tge\animation\Pose.h" />
+    <ClInclude Include="..\Source\Engine\tge\animation\Skeleton.h" />
+    <ClInclude Include="..\Source\Engine\tge\audio\audio.h" />
+    <ClInclude Include="..\Source\Engine\tge\audio\audio_out.h" />
+    <ClInclude Include="..\Source\Engine\tge\debugging\MemoryTracker.h" />
+    <ClInclude Include="..\Source\Engine\tge\debugging\StackTrace.h" />
+    <ClInclude Include="..\Source\Engine\tge\drawers\CustomShapeDrawer.h" />
+    <ClInclude Include="..\Source\Engine\tge\drawers\DebugDrawer.h" />
+    <ClInclude Include="..\Source\Engine\tge\drawers\DebugPerformanceGraph.h" />
+    <ClInclude Include="..\Source\Engine\tge\drawers\LineDrawer.h" />
+    <ClInclude Include="..\Source\Engine\tge\drawers\ModelDrawer.h" />
+    <ClInclude Include="..\Source\Engine\tge\drawers\SpriteDrawer.h" />
+    <ClInclude Include="..\Source\Engine\tge\editor\CommandManager\AbstractCommand.h" />
+    <ClInclude Include="..\Source\Engine\tge\editor\CommandManager\CommandManager.h" />
+    <ClInclude Include="..\Source\Engine\tge\engine.h" />
+    <ClInclude Include="..\Source\Engine\tge\error\ErrorManager.h" />
+    <ClInclude Include="..\Source\Engine\tge\filewatcher\FileWatcher.h" />
+    <ClInclude Include="..\Source\Engine\tge\graphics\AmbientLight.h" />
+    <ClInclude Include="..\Source\Engine\tge\graphics\Camera.h" />
+    <ClInclude Include="..\Source\Engine\tge\graphics\DX11.h" />
+    <ClInclude Include="..\Source\Engine\tge\graphics\DepthBuffer.h" />
+    <ClInclude Include="..\Source\Engine\tge\graphics\DirectionalLight.h" />
+    <ClInclude Include="..\Source\Engine\tge\graphics\FullscreenEffect.h" />
+    <ClInclude Include="..\Source\Engine\tge\graphics\FullscreenPixelateEffect.h" />
+    <ClInclude Include="..\Source\Engine\tge\graphics\GraphicsEngine.h" />
+    <ClInclude Include="..\Source\Engine\tge\graphics\Light.h" />
+    <ClInclude Include="..\Source\Engine\tge\graphics\PointLight.h" />
+    <ClInclude Include="..\Source\Engine\tge\graphics\RenderStateManager.h" />
+    <ClInclude Include="..\Source\Engine\tge\graphics\RenderTarget.h" />
+    <ClInclude Include="..\Source\Engine\tge\graphics\TextureResource.h" />
+    <ClInclude Include="..\Source\Engine\tge\graphics\Vertex.h" />
+    <ClInclude Include="..\Source\Engine\tge\imguiinterface\ImGuiInterface.h" />
+    <ClInclude Include="..\Source\Engine\tge\input\InputManager.h" />
+    <ClInclude Include="..\Source\Engine\tge\input\XInput.h" />
+    <ClInclude Include="..\Source\Engine\tge\light\LightManager.h" />
+    <ClInclude Include="..\Source\Engine\tge\loaders\tgaloader.h" />
+    <ClInclude Include="..\Source\Engine\tge\math\CommonMath.h" />
+    <ClInclude Include="..\Source\Engine\tge\math\FMath.h" />
+    <ClInclude Include="..\Source\Engine\tge\math\Matrix.h" />
+    <ClInclude Include="..\Source\Engine\tge\math\Matrix2x2.h" />
+    <ClInclude Include="..\Source\Engine\tge\math\Matrix3x3.h" />
+    <ClInclude Include="..\Source\Engine\tge\math\Matrix4x4.h" />
+    <ClInclude Include="..\Source\Engine\tge\math\Quaternion.h" />
+    <ClInclude Include="..\Source\Engine\tge\math\Transform.h" />
+    <ClInclude Include="..\Source\Engine\tge\math\Vector.h" />
+    <ClInclude Include="..\Source\Engine\tge\math\Vector3.h" />
+    <ClInclude Include="..\Source\Engine\tge\math\color.h" />
+    <ClInclude Include="..\Source\Engine\tge\math\vector2.h" />
+    <ClInclude Include="..\Source\Engine\tge\math\vector4.h" />
+    <ClInclude Include="..\Source\Engine\tge\model\AnimatedModelInstance.h" />
+    <ClInclude Include="..\Source\Engine\tge\model\Model.h" />
+    <ClInclude Include="..\Source\Engine\tge\model\ModelFactory.h" />
+    <ClInclude Include="..\Source\Engine\tge\model\ModelInstance.h" />
+    <ClInclude Include="..\Source\Engine\tge\model\ModelInstancer.h" />
+    <ClInclude Include="..\Source\Engine\tge\noise\PerlinNoise.h" />
+    <ClInclude Include="..\Source\Engine\tge\primitives\CustomShape.h" />
+    <ClInclude Include="..\Source\Engine\tge\primitives\LinePrimitive.h" />
+    <ClInclude Include="..\Source\Engine\tge\render\RenderCommon.h" />
+    <ClInclude Include="..\Source\Engine\tge\render\RenderObject.h" />
+    <ClInclude Include="..\Source\Engine\tge\settings\settings.h" />
+    <ClInclude Include="..\Source\Engine\tge\shaders\InstancedModelShader.h" />
+    <ClInclude Include="..\Source\Engine\tge\shaders\ModelShader.h" />
+    <ClInclude Include="..\Source\Engine\tge\shaders\ShaderCommon.h" />
+    <ClInclude Include="..\Source\Engine\tge\shaders\SpriteShader.h" />
+    <ClInclude Include="..\Source\Engine\tge\shaders\shader.h" />
+    <ClInclude Include="..\Source\Engine\tge\sprite\sprite.h" />
+    <ClInclude Include="..\Source\Engine\tge\text\TextService.h" />
+    <ClInclude Include="..\Source\Engine\tge\text\fontfile.h" />
+    <ClInclude Include="..\Source\Engine\tge\text\parser.h" />
+    <ClInclude Include="..\Source\Engine\tge\text\text.h" />
+    <ClInclude Include="..\Source\Engine\tge\text\textfile.h" />
+    <ClInclude Include="..\Source\Engine\tge\text\token.h" />
+    <ClInclude Include="..\Source\Engine\tge\texture\TextureManager.h" />
+    <ClInclude Include="..\Source\Engine\tge\texture\texture.h" />
+    <ClInclude Include="..\Source\Engine\tge\util\StringCast.h" />
+    <ClInclude Include="..\Source\Engine\tge\videoplayer\VideoAudio.h" />
+    <ClInclude Include="..\Source\Engine\tge\videoplayer\video.h" />
+    <ClInclude Include="..\Source\Engine\tge\videoplayer\videoplayer.h" />
+    <ClInclude Include="..\Source\Engine\tge\windows\WindowsWindow.h" />
+    <ClInclude Include="..\Source\Engine\version.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\Source\Engine\stdafx.cpp">
+      <PrecompiledHeader>Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\Source\Engine\tge\Timer.cpp" />
+    <ClCompile Include="..\Source\Engine\tge\animation\AnimationPlayer.cpp" />
+    <ClCompile Include="..\Source\Engine\tge\animation\Math\MathFunc.cpp" />
+    <ClCompile Include="..\Source\Engine\tge\animation\Skeleton.cpp" />
+    <ClCompile Include="..\Source\Engine\tge\audio\audio.cpp" />
+    <ClCompile Include="..\Source\Engine\tge\audio\audio_out.cpp" />
+    <ClCompile Include="..\Source\Engine\tge\debugging\MemoryTracker.cpp" />
+    <ClCompile Include="..\Source\Engine\tge\debugging\StackTrace.cpp" />
+    <ClCompile Include="..\Source\Engine\tge\drawers\CustomShapeDrawer.cpp" />
+    <ClCompile Include="..\Source\Engine\tge\drawers\DebugDrawer.cpp" />
+    <ClCompile Include="..\Source\Engine\tge\drawers\DebugPerformanceGraph.cpp" />
+    <ClCompile Include="..\Source\Engine\tge\drawers\LineDrawer.cpp" />
+    <ClCompile Include="..\Source\Engine\tge\drawers\ModelDrawer.cpp" />
+    <ClCompile Include="..\Source\Engine\tge\drawers\SpriteDrawer.cpp" />
+    <ClCompile Include="..\Source\Engine\tge\editor\CommandManager\CommandManager.cpp" />
+    <ClCompile Include="..\Source\Engine\tge\engine.cpp" />
+    <ClCompile Include="..\Source\Engine\tge\error\ErrorManager.cpp" />
+    <ClCompile Include="..\Source\Engine\tge\filewatcher\FileWatcher.cpp" />
+    <ClCompile Include="..\Source\Engine\tge\graphics\AmbientLight.cpp" />
+    <ClCompile Include="..\Source\Engine\tge\graphics\Camera.cpp" />
+    <ClCompile Include="..\Source\Engine\tge\graphics\DX11.cpp" />
+    <ClCompile Include="..\Source\Engine\tge\graphics\DepthBuffer.cpp" />
+    <ClCompile Include="..\Source\Engine\tge\graphics\FullscreenEffect.cpp" />
+    <ClCompile Include="..\Source\Engine\tge\graphics\FullscreenPixelateEffect.cpp" />
+    <ClCompile Include="..\Source\Engine\tge\graphics\GraphicsEngine.cpp" />
+    <ClCompile Include="..\Source\Engine\tge\graphics\Light.cpp" />
+    <ClCompile Include="..\Source\Engine\tge\graphics\PointLight.cpp" />
+    <ClCompile Include="..\Source\Engine\tge\graphics\RenderStateManager.cpp" />
+    <ClCompile Include="..\Source\Engine\tge\graphics\RenderTarget.cpp" />
+    <ClCompile Include="..\Source\Engine\tge\graphics\TextureResource.cpp" />
+    <ClCompile Include="..\Source\Engine\tge\imguiinterface\ImGuiInterface.cpp" />
+    <ClCompile Include="..\Source\Engine\tge\input\InputManager.cpp" />
+    <ClCompile Include="..\Source\Engine\tge\input\XInput.cpp" />
+    <ClCompile Include="..\Source\Engine\tge\light\LightManager.cpp" />
+    <ClCompile Include="..\Source\Engine\tge\loaders\tgaloader.cpp" />
+    <ClCompile Include="..\Source\Engine\tge\math\CommonMath.cpp" />
+    <ClCompile Include="..\Source\Engine\tge\math\FMath.cpp" />
+    <ClCompile Include="..\Source\Engine\tge\math\Transform.cpp" />
+    <ClCompile Include="..\Source\Engine\tge\model\AnimatedModelInstance.cpp" />
+    <ClCompile Include="..\Source\Engine\tge\model\Model.cpp" />
+    <ClCompile Include="..\Source\Engine\tge\model\ModelFactory.cpp" />
+    <ClCompile Include="..\Source\Engine\tge\model\ModelInstance.cpp" />
+    <ClCompile Include="..\Source\Engine\tge\model\ModelInstancer.cpp" />
+    <ClCompile Include="..\Source\Engine\tge\noise\PerlinNoise.cpp" />
+    <ClCompile Include="..\Source\Engine\tge\primitives\CustomShape.cpp" />
+    <ClCompile Include="..\Source\Engine\tge\render\RenderObject.cpp" />
+    <ClCompile Include="..\Source\Engine\tge\settings\settings.cpp" />
+    <ClCompile Include="..\Source\Engine\tge\shaders\InstancedModelShader.cpp" />
+    <ClCompile Include="..\Source\Engine\tge\shaders\ModelShader.cpp" />
+    <ClCompile Include="..\Source\Engine\tge\shaders\SpriteShader.cpp" />
+    <ClCompile Include="..\Source\Engine\tge\shaders\shader.cpp" />
+    <ClCompile Include="..\Source\Engine\tge\text\TextService.cpp" />
+    <ClCompile Include="..\Source\Engine\tge\text\fontfile.cpp" />
+    <ClCompile Include="..\Source\Engine\tge\text\parser.cpp" />
+    <ClCompile Include="..\Source\Engine\tge\text\text.cpp" />
+    <ClCompile Include="..\Source\Engine\tge\text\textfile.cpp" />
+    <ClCompile Include="..\Source\Engine\tge\text\token.cpp" />
+    <ClCompile Include="..\Source\Engine\tge\texture\TextureManager.cpp" />
+    <ClCompile Include="..\Source\Engine\tge\texture\texture.cpp" />
+    <ClCompile Include="..\Source\Engine\tge\videoplayer\VideoAudio.cpp" />
+    <ClCompile Include="..\Source\Engine\tge\videoplayer\video.cpp" />
+    <ClCompile Include="..\Source\Engine\tge\videoplayer\videoplayer.cpp" />
+    <ClCompile Include="..\Source\Engine\tge\windows\WindowsWindow.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="..\Source\Engine\tge\shaders\AnimatedPbrModelShaderVS.hlsl">
+      <ShaderType>Vertex</ShaderType>
+      <ObjectFileOutput>../Bin/Shaders/AnimatedPbrModelShaderVS.cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="..\Source\Engine\tge\shaders\PbrModelShaderPS.hlsl">
+      <ShaderType>Pixel</ShaderType>
+      <ObjectFileOutput>../Bin/Shaders/PbrModelShaderPS.cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="..\Source\Engine\tge\shaders\PbrModelShaderVs.hlsl">
+      <ShaderType>Vertex</ShaderType>
+      <ObjectFileOutput>../Bin/Shaders/PbrModelShaderVs.cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="..\Source\Engine\tge\shaders\PostprocessCopyPS.hlsl">
+      <ShaderType>Pixel</ShaderType>
+      <ObjectFileOutput>../Bin/Shaders/PostprocessCopyPS.cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="..\Source\Engine\tge\shaders\PostprocessGaussianH_PS.hlsl">
+      <ShaderType>Pixel</ShaderType>
+      <ObjectFileOutput>../Bin/Shaders/PostprocessGaussianH_PS.cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="..\Source\Engine\tge\shaders\PostprocessGaussianV_PS.hlsl">
+      <ShaderType>Pixel</ShaderType>
+      <ObjectFileOutput>../Bin/Shaders/PostprocessGaussianV_PS.cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="..\Source\Engine\tge\shaders\PostprocessPixelate_PS.hlsl">
+      <ShaderType>Pixel</ShaderType>
+      <ObjectFileOutput>../Bin/Shaders/PostprocessPixelate_PS.cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="..\Source\Engine\tge\shaders\PostprocessTonemapPS.hlsl">
+      <ShaderType>Pixel</ShaderType>
+      <ObjectFileOutput>../Bin/Shaders/PostprocessTonemapPS.cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="..\Source\Engine\tge\shaders\PostprocessVS.hlsl">
+      <ShaderType>Vertex</ShaderType>
+      <ObjectFileOutput>../Bin/Shaders/PostprocessVS.cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="..\Source\Engine\tge\shaders\animated_model_shader_VS.hlsl">
+      <ShaderType>Vertex</ShaderType>
+      <ObjectFileOutput>../Bin/Shaders/animated_model_shader_VS.cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="..\Source\Engine\tge\shaders\custom_shape_PS.hlsl">
+      <ShaderType>Pixel</ShaderType>
+      <ObjectFileOutput>../Bin/Shaders/custom_shape_PS.cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="..\Source\Engine\tge\shaders\custom_shape_VS.hlsl">
+      <ShaderType>Vertex</ShaderType>
+      <ObjectFileOutput>../Bin/Shaders/custom_shape_VS.cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="..\Source\Engine\tge\shaders\instanced_model_shader_PS.hlsl">
+      <ShaderType>Pixel</ShaderType>
+      <ObjectFileOutput>../Bin/Shaders/instanced_model_shader_PS.cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="..\Source\Engine\tge\shaders\instanced_model_shader_VS.hlsl">
+      <ShaderType>Vertex</ShaderType>
+      <ObjectFileOutput>../Bin/Shaders/instanced_model_shader_VS.cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="..\Source\Engine\tge\shaders\instanced_sprite_shader_VS.hlsl">
+      <ShaderType>Vertex</ShaderType>
+      <ObjectFileOutput>../Bin/Shaders/instanced_sprite_shader_VS.cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="..\Source\Engine\tge\shaders\lineshader_PS.hlsl">
+      <ShaderType>Pixel</ShaderType>
+      <ObjectFileOutput>../Bin/Shaders/lineshader_PS.cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="..\Source\Engine\tge\shaders\lineshader_VS.hlsl">
+      <ShaderType>Vertex</ShaderType>
+      <ObjectFileOutput>../Bin/Shaders/lineshader_VS.cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="..\Source\Engine\tge\shaders\model_shader_PS.hlsl">
+      <ShaderType>Pixel</ShaderType>
+      <ObjectFileOutput>../Bin/Shaders/model_shader_PS.cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="..\Source\Engine\tge\shaders\model_shader_VS.hlsl">
+      <ShaderType>Vertex</ShaderType>
+      <ObjectFileOutput>../Bin/Shaders/model_shader_VS.cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="..\Source\Engine\tge\shaders\sprite_shader_PS.hlsl">
+      <ShaderType>Pixel</ShaderType>
+      <ObjectFileOutput>../Bin/Shaders/sprite_shader_PS.cso</ObjectFileOutput>
+    </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\Source\Engine\tge\shaders\PBRFunctions.hlsli" />
+    <None Include="..\Source\Engine\tge\shaders\PostprocessStructs.hlsli" />
+    <None Include="..\Source\Engine\tge\shaders\common.hlsli" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

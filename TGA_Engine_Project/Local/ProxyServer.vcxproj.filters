@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\Source\ProxyServer\source\ProxyServer.cpp" />
+    <ClCompile Include="..\Source\ProxyServer\source\ServerInstance.cpp" />
+    <ClCompile Include="..\Source\ProxyServer\source\main.cpp" />
+    <ClCompile Include="..\Source\Server\source\Server.cpp">
+      <Filter>ServerLinked</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Server\source\ClientInstance.cpp">
+      <Filter>ServerLinked</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Source\ProxyServer\source\ProxyServer.h" />
+    <ClInclude Include="..\Source\ProxyServer\source\ServerInstance.h" />
+    <ClInclude Include="..\Source\Server\source\Server.h">
+      <Filter>ServerLinked</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Server\source\ClientInstance.h">
+      <Filter>ServerLinked</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="ServerLinked">
+      <UniqueIdentifier>{f8bececc-e033-4293-952e-35d698b40208}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

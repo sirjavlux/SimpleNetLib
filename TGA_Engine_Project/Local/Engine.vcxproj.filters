@@ -1,0 +1,621 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="tge">
+      <UniqueIdentifier>{05AE880B-71B7-887C-FA32-9F7C663B947C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tge\animation">
+      <UniqueIdentifier>{5491ECB0-C051-68E7-898C-B164F50BADC3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tge\animation\Math">
+      <UniqueIdentifier>{ADEADE27-99CE-9F7D-022F-9AD0EE318AFF}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tge\audio">
+      <UniqueIdentifier>{E6FB759C-5266-2A13-9BA4-DBB8074E0868}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tge\debugging">
+      <UniqueIdentifier>{207648B8-8C36-C4EE-5571-0D6CC1F008CB}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tge\drawers">
+      <UniqueIdentifier>{2C12A571-98C7-1D67-21BC-173E8D70146B}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tge\editor">
+      <UniqueIdentifier>{BB675933-A71F-9B80-1027-74DCFCFD3571}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tge\editor\CommandManager">
+      <UniqueIdentifier>{845639C2-F018-6D4C-39C9-FBD8A5CA452A}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tge\error">
+      <UniqueIdentifier>{1EF5BC9C-8A5F-7113-D39D-22B93F474F68}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tge\filewatcher">
+      <UniqueIdentifier>{82384792-EEC3-B456-F7D4-374B63DF1057}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tge\graphics">
+      <UniqueIdentifier>{05A88F6A-F10A-1F0F-9A90-57C586D2EA91}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tge\imguiinterface">
+      <UniqueIdentifier>{005374A8-EC36-35FE-5597-2F51419A1F80}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tge\input">
+      <UniqueIdentifier>{E41D039D-5088-B713-99C6-68B905709568}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tge\light">
+      <UniqueIdentifier>{8C81369D-F8EB-EA13-412A-9CB9ADD3C868}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tge\loaders">
+      <UniqueIdentifier>{1E136DD2-8AC8-E5C7-13BD-DF9E7F71DCCB}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tge\math">
+      <UniqueIdentifier>{1E2A5F71-0AF7-B97C-3310-A8241F3CEF0A}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tge\model">
+      <UniqueIdentifier>{25D74B9D-9141-0014-DA7F-B1B94629DE68}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tge\noise">
+      <UniqueIdentifier>{B2065E9D-1E71-1214-67AF-C3B9D358F068}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tge\primitives">
+      <UniqueIdentifier>{E062B8EF-CC30-ACF5-B5C4-1C1CA131885A}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tge\render">
+      <UniqueIdentifier>{F408C151-E0C0-029F-49C8-DBFA359F9D8F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tge\settings">
+      <UniqueIdentifier>{E5948BC1-D1F7-1A66-7A7D-531C66BFE6E8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tge\shaders">
+      <UniqueIdentifier>{FE9FF0DC-6A55-69D2-F349-63A95FFE5FD6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tge\sprite">
+      <UniqueIdentifier>{CB87DF54-B73F-21A2-2047-FAFD0C1EBC92}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tge\text">
+      <UniqueIdentifier>{59126371-45DF-BD7C-6EF8-AB245A24F30A}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tge\texture">
+      <UniqueIdentifier>{85A09424-F155-0D1A-7A4A-07F1E6FE031E}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tge\util">
+      <UniqueIdentifier>{92DC6371-7EA9-BE7C-A7C2-AC2493EEF30A}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tge\videoplayer">
+      <UniqueIdentifier>{78EBC8FE-E476-36C3-ED87-B9B7599292C3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tge\windows">
+      <UniqueIdentifier>{5F251A14-CBDA-9209-54CF-8CE0C083890D}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Source\Engine\resource.h" />
+    <ClInclude Include="..\Source\Engine\stdafx.h" />
+    <ClInclude Include="..\Source\Engine\targetver.h" />
+    <ClInclude Include="..\Source\Engine\tge\EngineDefines.h">
+      <Filter>tge</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\EngineMacros.h">
+      <Filter>tge</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\EngineUtilities.h">
+      <Filter>tge</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\StepTimer.h">
+      <Filter>tge</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\Timer.h">
+      <Filter>tge</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\animation\Animation.h">
+      <Filter>tge\animation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\animation\AnimationPlayer.h">
+      <Filter>tge\animation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\animation\Math\MathFunc.h">
+      <Filter>tge\animation\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\animation\Pose.h">
+      <Filter>tge\animation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\animation\Skeleton.h">
+      <Filter>tge\animation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\audio\audio.h">
+      <Filter>tge\audio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\audio\audio_out.h">
+      <Filter>tge\audio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\debugging\MemoryTracker.h">
+      <Filter>tge\debugging</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\debugging\StackTrace.h">
+      <Filter>tge\debugging</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\drawers\CustomShapeDrawer.h">
+      <Filter>tge\drawers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\drawers\DebugDrawer.h">
+      <Filter>tge\drawers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\drawers\DebugPerformanceGraph.h">
+      <Filter>tge\drawers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\drawers\LineDrawer.h">
+      <Filter>tge\drawers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\drawers\ModelDrawer.h">
+      <Filter>tge\drawers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\drawers\SpriteDrawer.h">
+      <Filter>tge\drawers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\editor\CommandManager\AbstractCommand.h">
+      <Filter>tge\editor\CommandManager</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\editor\CommandManager\CommandManager.h">
+      <Filter>tge\editor\CommandManager</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\engine.h">
+      <Filter>tge</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\error\ErrorManager.h">
+      <Filter>tge\error</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\filewatcher\FileWatcher.h">
+      <Filter>tge\filewatcher</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\graphics\AmbientLight.h">
+      <Filter>tge\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\graphics\Camera.h">
+      <Filter>tge\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\graphics\DX11.h">
+      <Filter>tge\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\graphics\DepthBuffer.h">
+      <Filter>tge\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\graphics\DirectionalLight.h">
+      <Filter>tge\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\graphics\FullscreenEffect.h">
+      <Filter>tge\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\graphics\FullscreenPixelateEffect.h">
+      <Filter>tge\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\graphics\GraphicsEngine.h">
+      <Filter>tge\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\graphics\Light.h">
+      <Filter>tge\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\graphics\PointLight.h">
+      <Filter>tge\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\graphics\RenderStateManager.h">
+      <Filter>tge\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\graphics\RenderTarget.h">
+      <Filter>tge\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\graphics\TextureResource.h">
+      <Filter>tge\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\graphics\Vertex.h">
+      <Filter>tge\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\imguiinterface\ImGuiInterface.h">
+      <Filter>tge\imguiinterface</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\input\InputManager.h">
+      <Filter>tge\input</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\input\XInput.h">
+      <Filter>tge\input</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\light\LightManager.h">
+      <Filter>tge\light</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\loaders\tgaloader.h">
+      <Filter>tge\loaders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\math\CommonMath.h">
+      <Filter>tge\math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\math\FMath.h">
+      <Filter>tge\math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\math\Matrix.h">
+      <Filter>tge\math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\math\Matrix2x2.h">
+      <Filter>tge\math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\math\Matrix3x3.h">
+      <Filter>tge\math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\math\Matrix4x4.h">
+      <Filter>tge\math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\math\Quaternion.h">
+      <Filter>tge\math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\math\Transform.h">
+      <Filter>tge\math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\math\Vector.h">
+      <Filter>tge\math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\math\Vector3.h">
+      <Filter>tge\math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\math\color.h">
+      <Filter>tge\math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\math\vector2.h">
+      <Filter>tge\math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\math\vector4.h">
+      <Filter>tge\math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\model\AnimatedModelInstance.h">
+      <Filter>tge\model</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\model\Model.h">
+      <Filter>tge\model</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\model\ModelFactory.h">
+      <Filter>tge\model</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\model\ModelInstance.h">
+      <Filter>tge\model</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\model\ModelInstancer.h">
+      <Filter>tge\model</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\noise\PerlinNoise.h">
+      <Filter>tge\noise</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\primitives\CustomShape.h">
+      <Filter>tge\primitives</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\primitives\LinePrimitive.h">
+      <Filter>tge\primitives</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\render\RenderCommon.h">
+      <Filter>tge\render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\render\RenderObject.h">
+      <Filter>tge\render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\settings\settings.h">
+      <Filter>tge\settings</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\shaders\InstancedModelShader.h">
+      <Filter>tge\shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\shaders\ModelShader.h">
+      <Filter>tge\shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\shaders\ShaderCommon.h">
+      <Filter>tge\shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\shaders\SpriteShader.h">
+      <Filter>tge\shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\shaders\shader.h">
+      <Filter>tge\shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\sprite\sprite.h">
+      <Filter>tge\sprite</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\text\TextService.h">
+      <Filter>tge\text</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\text\fontfile.h">
+      <Filter>tge\text</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\text\parser.h">
+      <Filter>tge\text</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\text\text.h">
+      <Filter>tge\text</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\text\textfile.h">
+      <Filter>tge\text</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\text\token.h">
+      <Filter>tge\text</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\texture\TextureManager.h">
+      <Filter>tge\texture</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\texture\texture.h">
+      <Filter>tge\texture</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\util\StringCast.h">
+      <Filter>tge\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\videoplayer\VideoAudio.h">
+      <Filter>tge\videoplayer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\videoplayer\video.h">
+      <Filter>tge\videoplayer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\videoplayer\videoplayer.h">
+      <Filter>tge\videoplayer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\tge\windows\WindowsWindow.h">
+      <Filter>tge\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Engine\version.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\Source\Engine\stdafx.cpp" />
+    <ClCompile Include="..\Source\Engine\tge\Timer.cpp">
+      <Filter>tge</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Engine\tge\animation\AnimationPlayer.cpp">
+      <Filter>tge\animation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Engine\tge\animation\Math\MathFunc.cpp">
+      <Filter>tge\animation\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Engine\tge\animation\Skeleton.cpp">
+      <Filter>tge\animation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Engine\tge\audio\audio.cpp">
+      <Filter>tge\audio</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Engine\tge\audio\audio_out.cpp">
+      <Filter>tge\audio</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Engine\tge\debugging\MemoryTracker.cpp">
+      <Filter>tge\debugging</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Engine\tge\debugging\StackTrace.cpp">
+      <Filter>tge\debugging</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Engine\tge\drawers\CustomShapeDrawer.cpp">
+      <Filter>tge\drawers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Engine\tge\drawers\DebugDrawer.cpp">
+      <Filter>tge\drawers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Engine\tge\drawers\DebugPerformanceGraph.cpp">
+      <Filter>tge\drawers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Engine\tge\drawers\LineDrawer.cpp">
+      <Filter>tge\drawers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Engine\tge\drawers\ModelDrawer.cpp">
+      <Filter>tge\drawers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Engine\tge\drawers\SpriteDrawer.cpp">
+      <Filter>tge\drawers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Engine\tge\editor\CommandManager\CommandManager.cpp">
+      <Filter>tge\editor\CommandManager</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Engine\tge\engine.cpp">
+      <Filter>tge</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Engine\tge\error\ErrorManager.cpp">
+      <Filter>tge\error</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Engine\tge\filewatcher\FileWatcher.cpp">
+      <Filter>tge\filewatcher</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Engine\tge\graphics\AmbientLight.cpp">
+      <Filter>tge\graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Engine\tge\graphics\Camera.cpp">
+      <Filter>tge\graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Engine\tge\graphics\DX11.cpp">
+      <Filter>tge\graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Engine\tge\graphics\DepthBuffer.cpp">
+      <Filter>tge\graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Engine\tge\graphics\FullscreenEffect.cpp">
+      <Filter>tge\graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Engine\tge\graphics\FullscreenPixelateEffect.cpp">
+      <Filter>tge\graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Engine\tge\graphics\GraphicsEngine.cpp">
+      <Filter>tge\graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Engine\tge\graphics\Light.cpp">
+      <Filter>tge\graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Engine\tge\graphics\PointLight.cpp">
+      <Filter>tge\graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Engine\tge\graphics\RenderStateManager.cpp">
+      <Filter>tge\graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Engine\tge\graphics\RenderTarget.cpp">
+      <Filter>tge\graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Engine\tge\graphics\TextureResource.cpp">
+      <Filter>tge\graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Engine\tge\imguiinterface\ImGuiInterface.cpp">
+      <Filter>tge\imguiinterface</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Engine\tge\input\InputManager.cpp">
+      <Filter>tge\input</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Engine\tge\input\XInput.cpp">
+      <Filter>tge\input</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Engine\tge\light\LightManager.cpp">
+      <Filter>tge\light</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Engine\tge\loaders\tgaloader.cpp">
+      <Filter>tge\loaders</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Engine\tge\math\CommonMath.cpp">
+      <Filter>tge\math</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Engine\tge\math\FMath.cpp">
+      <Filter>tge\math</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Engine\tge\math\Transform.cpp">
+      <Filter>tge\math</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Engine\tge\model\AnimatedModelInstance.cpp">
+      <Filter>tge\model</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Engine\tge\model\Model.cpp">
+      <Filter>tge\model</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Engine\tge\model\ModelFactory.cpp">
+      <Filter>tge\model</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Engine\tge\model\ModelInstance.cpp">
+      <Filter>tge\model</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Engine\tge\model\ModelInstancer.cpp">
+      <Filter>tge\model</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Engine\tge\noise\PerlinNoise.cpp">
+      <Filter>tge\noise</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Engine\tge\primitives\CustomShape.cpp">
+      <Filter>tge\primitives</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Engine\tge\render\RenderObject.cpp">
+      <Filter>tge\render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Engine\tge\settings\settings.cpp">
+      <Filter>tge\settings</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Engine\tge\shaders\InstancedModelShader.cpp">
+      <Filter>tge\shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Engine\tge\shaders\ModelShader.cpp">
+      <Filter>tge\shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Engine\tge\shaders\SpriteShader.cpp">
+      <Filter>tge\shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Engine\tge\shaders\shader.cpp">
+      <Filter>tge\shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Engine\tge\text\TextService.cpp">
+      <Filter>tge\text</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Engine\tge\text\fontfile.cpp">
+      <Filter>tge\text</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Engine\tge\text\parser.cpp">
+      <Filter>tge\text</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Engine\tge\text\text.cpp">
+      <Filter>tge\text</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Engine\tge\text\textfile.cpp">
+      <Filter>tge\text</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Engine\tge\text\token.cpp">
+      <Filter>tge\text</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Engine\tge\texture\TextureManager.cpp">
+      <Filter>tge\texture</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Engine\tge\texture\texture.cpp">
+      <Filter>tge\texture</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Engine\tge\videoplayer\VideoAudio.cpp">
+      <Filter>tge\videoplayer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Engine\tge\videoplayer\video.cpp">
+      <Filter>tge\videoplayer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Engine\tge\videoplayer\videoplayer.cpp">
+      <Filter>tge\videoplayer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Engine\tge\windows\WindowsWindow.cpp">
+      <Filter>tge\windows</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="..\Source\Engine\tge\shaders\AnimatedPbrModelShaderVS.hlsl">
+      <Filter>tge\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Source\Engine\tge\shaders\PbrModelShaderPS.hlsl">
+      <Filter>tge\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Source\Engine\tge\shaders\PbrModelShaderVs.hlsl">
+      <Filter>tge\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Source\Engine\tge\shaders\PostprocessCopyPS.hlsl">
+      <Filter>tge\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Source\Engine\tge\shaders\PostprocessGaussianH_PS.hlsl">
+      <Filter>tge\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Source\Engine\tge\shaders\PostprocessGaussianV_PS.hlsl">
+      <Filter>tge\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Source\Engine\tge\shaders\PostprocessPixelate_PS.hlsl">
+      <Filter>tge\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Source\Engine\tge\shaders\PostprocessTonemapPS.hlsl">
+      <Filter>tge\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Source\Engine\tge\shaders\PostprocessVS.hlsl">
+      <Filter>tge\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Source\Engine\tge\shaders\animated_model_shader_VS.hlsl">
+      <Filter>tge\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Source\Engine\tge\shaders\custom_shape_PS.hlsl">
+      <Filter>tge\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Source\Engine\tge\shaders\custom_shape_VS.hlsl">
+      <Filter>tge\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Source\Engine\tge\shaders\instanced_model_shader_PS.hlsl">
+      <Filter>tge\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Source\Engine\tge\shaders\instanced_model_shader_VS.hlsl">
+      <Filter>tge\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Source\Engine\tge\shaders\instanced_sprite_shader_VS.hlsl">
+      <Filter>tge\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Source\Engine\tge\shaders\lineshader_PS.hlsl">
+      <Filter>tge\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Source\Engine\tge\shaders\lineshader_VS.hlsl">
+      <Filter>tge\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Source\Engine\tge\shaders\model_shader_PS.hlsl">
+      <Filter>tge\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Source\Engine\tge\shaders\model_shader_VS.hlsl">
+      <Filter>tge\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Source\Engine\tge\shaders\sprite_shader_PS.hlsl">
+      <Filter>tge\shaders</Filter>
+    </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\Source\Engine\tge\shaders\PBRFunctions.hlsli">
+      <Filter>tge\shaders</Filter>
+    </None>
+    <None Include="..\Source\Engine\tge\shaders\PostprocessStructs.hlsli">
+      <Filter>tge\shaders</Filter>
+    </None>
+    <None Include="..\Source\Engine\tge\shaders\common.hlsli">
+      <Filter>tge\shaders</Filter>
+    </None>
+  </ItemGroup>
+</Project>

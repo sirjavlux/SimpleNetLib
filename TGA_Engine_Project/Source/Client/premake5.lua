@@ -61,7 +61,7 @@ project "Client"
 		--buildoptions { "/permissive" }
 		flags { 
 		--	"FatalWarnings", -- would be both compile and lib, the original didn't set lib
-			"FatalCompileWarnings",
+		--	"FatalCompileWarnings",
 			"MultiProcessorCompile"
 		}
 		

@@ -18,7 +18,6 @@ include (dirs.enhetstest)
 include (dirs.client)
 include (dirs.server)
 include (dirs.external)
--- include (dirs.simple_net_api)
 include (dirs.engine)
 
 
@@ -76,7 +75,7 @@ project "Game"
 		--buildoptions { "/permissive" }
 		flags { 
 		--	"FatalWarnings", -- would be both compile and lib, the original didn't set lib
-			"FatalCompileWarnings",
+		--	"FatalCompileWarnings",
 			"MultiProcessorCompile"
 		}
 		

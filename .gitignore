@@ -62,8 +62,8 @@ Lib/*Game_Debug.*
 Lib/*Game_Release.*
 Lib/*Game_Retail.*
 
-*/Debug
-*/Release
+x32/
+x64/
 
 .vs
 .idea

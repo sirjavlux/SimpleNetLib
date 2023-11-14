@@ -1,0 +1,1 @@
+C:\Users\chris\Documents\GitHub\SimpleNetAPI\SimpleNetAPI\UnitTesting\x64\Debug\UnitTesting.vcxproj.CopyComplete

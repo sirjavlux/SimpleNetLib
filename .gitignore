@@ -63,3 +63,4 @@ Lib/*Game_Release.*
 Lib/*Game_Retail.*
 
 .vs
+.idea

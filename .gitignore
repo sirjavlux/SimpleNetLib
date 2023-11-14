@@ -62,5 +62,8 @@ Lib/*Game_Debug.*
 Lib/*Game_Release.*
 Lib/*Game_Retail.*
 
+*/Debug
+*/Release
+
 .vs
 .idea

@@ -3,7 +3,7 @@
 
 #define DEFAULT_NET_TAG "None"
 
-class NET_API NetTag
+class NET_LIB NetTag
 {
 public:
 	explicit NetTag(const char InCharArray[]);

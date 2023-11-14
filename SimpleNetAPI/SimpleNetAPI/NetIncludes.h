@@ -12,4 +12,4 @@
 #include <vector>
 #include <functional>
 
-#define NET_API __declspec(dllexport)
+#define NET_LIB __declspec(dllexport)

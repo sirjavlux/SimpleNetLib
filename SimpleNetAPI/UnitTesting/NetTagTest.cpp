@@ -15,5 +15,11 @@ TEST(InitializationAndDeletion, NetTagTest)
       oldTag = newTag;
    }
 
+   for (int i = 0; i < 100000; ++i)
+   {
+       const NetTag invalidTag;
+       EXPECT_TRUE(!invalidTag.IsValid());
+   }
+   
    std::cout << oldTag.ToCStr() << std::endl;
 }

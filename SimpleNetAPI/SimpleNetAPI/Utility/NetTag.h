@@ -1,13 +1,15 @@
 #pragma once
 #include "../NetIncludes.h"
 
-#define DEFAULT_NET_TAG "None"
+#define INVALID_NET_TAG NetTag("None")
 
 class NET_LIB_EXPORT NetTag
 {
 public:
 	const char* ToCStr() const;
 	std::string ToStr() const;
+
+	bool IsValid() const;
 	
 	explicit NetTag(const char InCharArray[]);
 	NetTag(const NetTag& InTag);

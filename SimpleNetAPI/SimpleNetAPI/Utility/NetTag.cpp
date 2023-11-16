@@ -10,6 +10,11 @@ std::string NetTag::ToStr() const
 	return std::string { ToCStr(), size_ };
 }
 
+bool NetTag::IsValid() const
+{
+	return *this == INVALID_NET_TAG;
+}
+
 NetTag::NetTag(const char InCharArray[])
 {
 	SetCharArray(InCharArray, strlen(InCharArray));
@@ -20,9 +25,9 @@ NetTag::NetTag(const NetTag& InTag)
 	*this = InTag;
 }
 
-NetTag::NetTag()
+NetTag::NetTag() : NetTag(INVALID_NET_TAG)
 {
-	SetCharArray(DEFAULT_NET_TAG, sizeof(DEFAULT_NET_TAG));
+	
 }
 
 NetTag::~NetTag()

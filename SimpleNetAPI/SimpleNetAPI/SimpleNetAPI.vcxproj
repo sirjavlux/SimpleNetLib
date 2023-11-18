@@ -131,6 +131,8 @@
     <ClInclude Include="NetTarget.h" />
     <ClInclude Include="Packet\Packet.h" />
     <ClInclude Include="Packet\PacketComponent.h" />
+    <ClInclude Include="Packet\PacketComponentFactory.h" />
+    <ClInclude Include="Packet\PacketDefinitions.h" />
     <ClInclude Include="SimpleNetAPI.h" />
     <ClInclude Include="Utility\NetTag.h" />
   </ItemGroup>
@@ -138,6 +140,7 @@
     <ClCompile Include="NetTarget.cpp" />
     <ClCompile Include="Packet\Packet.cpp" />
     <ClCompile Include="Packet\PacketComponent.cpp" />
+    <ClCompile Include="Packet\PacketComponentFactory.cpp" />
     <ClCompile Include="Utility\NetTag.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

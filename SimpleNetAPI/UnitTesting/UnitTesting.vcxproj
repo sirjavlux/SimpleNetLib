@@ -37,6 +37,7 @@
   <PropertyGroup Label="UserMacros" />
   <ItemGroup>
     <ClCompile Include="NetTagTest.cpp" />
+    <ClCompile Include="PacketTest.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

@@ -12,4 +12,8 @@
 #include <vector>
 #include <functional>
 
+#include <Windows.h>
+
+#include "Packet/PacketDefinitions.h"
+
 #define NET_LIB_EXPORT __declspec(dllexport)

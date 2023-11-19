@@ -40,7 +40,11 @@ public:
     
     EAddComponentResult AddComponent(const PacketComponent& InPacketComponent);
     
+    void GetComponents(std::vector<PacketComponent*>& OutComponents);
+    
 private:
+    void ExtractComponent(std::vector<PacketComponent*>& OutComponents, int& Iterator);
+    
     EPacketPacketType packetType_ = EPacketPacketType::None;
     EPacketHandlingType packetHandlingType_ = EPacketHandlingType::None;
     

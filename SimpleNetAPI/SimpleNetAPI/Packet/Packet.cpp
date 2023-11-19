@@ -28,16 +28,35 @@ EAddComponentResult Packet::AddComponent(const PacketComponent& InPacketComponen
     }
     
     const uint16_t componentSize = InPacketComponent.GetSize();
-    const uint16_t totalMemSize = sizeof(componentSize) + componentSize;
-    if (packetDataIter_ + totalMemSize >= PACKET_COMPONENT_TOTAL_SPACE)
+    if (packetDataIter_ + componentSize >= PACKET_COMPONENT_TOTAL_SPACE)
     {
         return EAddComponentResult::SizeOutOfBounds;
     }
-
-    const PacketComponentData componentData = { componentSize, &InPacketComponent };
-    memmove(&data_[packetDataIter_], &componentData, totalMemSize);
     
-    packetDataIter_ += totalMemSize;
+    std::memmove(&data_[packetDataIter_], &InPacketComponent, componentSize);
+    
+    packetDataIter_ += componentSize;
     
     return EAddComponentResult::Success;
+}
+
+void Packet::GetComponents(std::vector<PacketComponent*>& OutComponents)
+{
+    int iterator = 0;
+    ExtractComponent(OutComponents, iterator);
+}
+
+void Packet::ExtractComponent(std::vector<PacketComponent*>& OutComponents, int& Iterator)
+{
+    if (data_[Iterator] == '\0')
+    {
+        return;    
+    }
+
+    PacketComponent* componentExtracted = reinterpret_cast<PacketComponent*>(&data_[Iterator]);
+    const uint16_t componentSize = componentExtracted->GetSize();
+    OutComponents.push_back(componentExtracted);
+    
+    Iterator += componentSize;
+    ExtractComponent(OutComponents, Iterator);
 }

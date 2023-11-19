@@ -12,6 +12,7 @@ public:
 	bool IsValid() const;
 
 	uint16_t GetSize() const { return size_; }
+	uint16_t GetIdentifier() const { return identifier_; }
 	
 	bool operator!=(const PacketComponent& InPacketComponent) const;
 	bool operator==(const PacketComponent& InPacketComponent) const;

@@ -13,11 +13,6 @@ PacketComponent::PacketComponent(const PacketComponent& InPacketComponent)
 
 PacketComponent::~PacketComponent() = default;
 
-bool PacketComponent::IsValid() const
-{
-    return size_ > DEFAULT_PACKET_COMPONENT_SIZE && identifier_ > -1;
-}
-
 bool PacketComponent::operator!=(const PacketComponent& InPacketComponent) const
 {
     return identifier_ != InPacketComponent.identifier_;

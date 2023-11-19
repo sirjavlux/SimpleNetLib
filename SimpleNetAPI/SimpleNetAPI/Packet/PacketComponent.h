@@ -9,7 +9,10 @@ public:
 	PacketComponent(const PacketComponent& InPacketComponent);
 	~PacketComponent();
 	
-	bool IsValid() const;
+	constexpr bool IsValid() const
+	{
+		return size_ > DEFAULT_PACKET_COMPONENT_SIZE && identifier_ > -1;
+	}
 
 	uint16_t GetSize() const { return size_; }
 	uint16_t GetIdentifier() const { return identifier_; }

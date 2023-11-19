@@ -11,6 +11,8 @@
 #include <string>
 #include <vector>
 #include <functional>
+#include <assert.h>
+#include <stdexcept>
 
 #include <Windows.h>
 

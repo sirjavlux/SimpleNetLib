@@ -12,12 +12,7 @@ public:
     int integerValue = 0;
 };
 
-void TestFunction(const TestComponent& InPacketComponent)
-{
-    std::cout << InPacketComponent.integerValue << std::endl;
-}
-
-TEST(PacketCreation, PacketTests)
+TEST(PacketTests, PacketCreation)
 {
     Packet packet = Packet(
         EPacketPacketType::ClientToServer, EPacketHandlingType::None);
@@ -42,13 +37,50 @@ TEST(PacketCreation, PacketTests)
 
         ++iter;
     }
+}
 
+void TestFunction(const TestComponent& InPacketComponent)
+{
+    EXPECT_EQ(InPacketComponent.integerValue, 20);
+    std::cout << InPacketComponent.integerValue << std::endl;
+}
+
+TEST(PacketDelegateTests, HandleDelegate)
+{
     PacketComponentHandleDelegator delegator;
+    TestComponent component;
+    component.integerValue = 20;
     
     delegator.MapComponentHandleDelegate<TestComponent>(&TestFunction);
 
-    for (const PacketComponent* component : outComponents)
+    delegator.HandleComponent(component);
+}
+
+class DynamicDelegateHandleClass
+{
+public:
+    int testInt = 0;
+    
+    void TestFunction(const TestComponent& InPacketComponent)
     {
-        delegator.HandleComponent(*component);
+        EXPECT_EQ(InPacketComponent.integerValue, 20);
+        EXPECT_EQ(testInt, 30);
+        std::cout << InPacketComponent.integerValue << std::endl;
+        std::cout << testInt << std::endl;
     }
+};
+
+TEST(PacketDelegateTests, DynamicHandleDelegate)
+{
+    PacketComponentHandleDelegator delegator;
+
+    DynamicDelegateHandleClass delegateOwner;
+    delegateOwner.testInt = 30;
+    
+    TestComponent component;
+    component.integerValue = 20;
+    
+    delegator.MapComponentHandleDelegateDynamic<DynamicDelegateHandleClass, TestComponent>(&delegateOwner, &DynamicDelegateHandleClass::TestFunction);
+
+    delegator.HandleComponent(component);
 }

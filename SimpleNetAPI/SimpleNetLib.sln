@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.33627.172
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SimpleNetAPI", "SimpleNetAPI\SimpleNetAPI.vcxproj", "{1DEE73A1-9E2B-4637-9842-EE67F120EF6D}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SimpleNetLib", "SimpleNetLib\SimpleNetLib.vcxproj", "{1DEE73A1-9E2B-4637-9842-EE67F120EF6D}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "UnitTesting", "UnitTesting\UnitTesting.vcxproj", "{07B94E4C-5A39-4776-ACC4-0BDCD66220CE}"
 	ProjectSection(ProjectDependencies) = postProject

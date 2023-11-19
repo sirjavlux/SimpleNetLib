@@ -1,4 +1,4 @@
-﻿#include "../SimpleNetAPI/Utility/NetTag.h"
+﻿#include "../SimpleNetLib/Utility/NetTag.h"
 #include "gtest/gtest.h"
 
 TEST(InitializationAndDeletion, NetTagTest)

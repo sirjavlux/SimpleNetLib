@@ -13,7 +13,7 @@
 #include <functional>
 #include <assert.h>
 #include <stdexcept>
-
+#include <winsock.h>
 #include <Windows.h>
 
 #include "Packet/PacketDefinitions.h"

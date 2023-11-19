@@ -43,9 +43,9 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\SimpleNetAPI\SimpleNetAPI.vcxproj">
+    <ProjectReference Include="..\SimpleNetLib\SimpleNetLib.vcxproj">
       <Project>{1dee73a1-9e2b-4637-9842-ee67f120ef6d}</Project>
-      <Name>SimpleNetAPI</Name>
+      <Name>SimpleNetLib</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemDefinitionGroup />

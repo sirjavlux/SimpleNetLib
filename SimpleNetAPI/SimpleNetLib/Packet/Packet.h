@@ -11,12 +11,14 @@ enum class NET_LIB_EXPORT EPacketHandlingType : uint8_t
     AckReturn	= 2,
 };
 
+/*
 enum class NET_LIB_EXPORT EPacketPacketType : uint8_t
 {
     None			= 0,
     ClientToServer	= 1,
     ServerToClient	= 2,
 };
+*/
 
 enum class NET_LIB_EXPORT EAddComponentResult : uint8_t
 {
@@ -34,7 +36,7 @@ struct NET_LIB_EXPORT PacketComponentData
 class NET_LIB_EXPORT Packet
 {
 public:
-    Packet(EPacketPacketType InPacketType, EPacketHandlingType InPacketHandlingType);
+    Packet(EPacketHandlingType InPacketHandlingType);
 
     bool IsValid() const;
     
@@ -45,7 +47,6 @@ public:
 private:
     void ExtractComponent(std::vector<PacketComponent*>& OutComponents, int& Iterator);
     
-    EPacketPacketType packetType_ = EPacketPacketType::None;
     EPacketHandlingType packetHandlingType_ = EPacketHandlingType::None;
     
     int8_t data_[PACKET_COMPONENT_TOTAL_SPACE];

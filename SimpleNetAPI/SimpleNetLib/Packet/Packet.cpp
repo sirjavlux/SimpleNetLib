@@ -2,15 +2,15 @@
 
 #include "PacketComponent.h"
 
-Packet::Packet(const EPacketPacketType InPacketType, const EPacketHandlingType InPacketHandlingType)
-    : packetType_(InPacketType), packetHandlingType_(InPacketHandlingType), packetIdentifier_(GenerateIdentifier())
+Packet::Packet(const EPacketHandlingType InPacketHandlingType)
+    : packetHandlingType_(InPacketHandlingType), packetIdentifier_(GenerateIdentifier())
 {
     SecureZeroMemory(data_, sizeof(data_));
 }
 
 bool Packet::IsValid() const
 {
-    return packetType_ != EPacketPacketType::None && packetIdentifier_ > INT32_MIN;
+    return packetIdentifier_ > INT32_MIN;
 }
 
 int32_t Packet::GenerateIdentifier()

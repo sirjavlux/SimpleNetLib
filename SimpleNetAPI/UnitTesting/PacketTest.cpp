@@ -1,7 +1,7 @@
-﻿#include "../SimpleNetAPI/Packet/Packet.h"
-#include "../SimpleNetAPI/Packet/PacketComponent.h"
-#include "../SimpleNetAPI/Packet/PacketComponentHandleDelegator.h"
-#include "../SimpleNetAPI/Packet/PacketManager.h"
+﻿#include "../SimpleNetLib/Packet/Packet.h"
+#include "../SimpleNetLib/Packet/PacketComponent.h"
+#include "../SimpleNetLib/Packet/PacketComponentHandleDelegator.h"
+#include "../SimpleNetLib/Packet/PacketManager.h"
 #include "gtest/gtest.h"
 
 class TestComponent : public PacketComponent
@@ -22,8 +22,7 @@ public:
 
 TEST(PacketTests, PacketCreation)
 {
-    Packet packet = Packet(
-        EPacketPacketType::ClientToServer, EPacketHandlingType::None);
+    Packet packet = Packet(EPacketHandlingType::None);
 
     for (int i = 0; i < 20; ++i)
     {
@@ -140,7 +139,10 @@ TEST(PacketTests, SendPacket)
     {
         TestComponent testComponent;
         testComponent.integerValue = i;
+
+        sockaddr testAddress;
+        testAddress.sa_family = AF_INET;
         
-        EXPECT_TRUE(packetManager->SendPacketComponent<TestComponent>(testComponent));
+        EXPECT_TRUE(packetManager->SendPacketComponent<TestComponent>(testComponent, testAddress));
     }
 }

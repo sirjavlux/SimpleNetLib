@@ -31,9 +31,11 @@ inline bool operator<(const sockaddr& InLhs, const sockaddr& InRhs)
         if (lhs.sin_addr.s_addr < rhs.sin_addr.s_addr) {
             return true;
         } 
-
-        // Compare port numbers
-        return lhs.sin_port < rhs.sin_port;
+        if (lhs.sin_addr.s_addr == rhs.sin_addr.s_addr)
+        {
+            // Compare port numbers
+            return lhs.sin_port < rhs.sin_port;
+        }
     }
 
     return false;

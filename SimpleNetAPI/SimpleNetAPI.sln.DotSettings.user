@@ -8,6 +8,8 @@
       &lt;TestId&gt;GTest::07B94E4C-5A39-4776-ACC4-0BDCD66220CE::Windows,Version=v10.0.22000::PacketDelegateTests.DynamicHandleDelegate&lt;/TestId&gt;&#xD;
       &lt;TestId&gt;GTest::07B94E4C-5A39-4776-ACC4-0BDCD66220CE::Windows,Version=v10.0.22000::PacketDelegateTests.HandleDelegate&lt;/TestId&gt;&#xD;
       &lt;TestId&gt;GTest::07B94E4C-5A39-4776-ACC4-0BDCD66220CE::Windows,Version=v10.0.22000::PacketTests.PacketCreation&lt;/TestId&gt;&#xD;
+      &lt;TestId&gt;GTest::07B94E4C-5A39-4776-ACC4-0BDCD66220CE::Windows,Version=v10.0.22000::PacketTests.PacketManagerComponentRegestring&lt;/TestId&gt;&#xD;
+      &lt;TestId&gt;GTest::07B94E4C-5A39-4776-ACC4-0BDCD66220CE::Windows,Version=v10.0.22000::PacketTests.SendPacket&lt;/TestId&gt;&#xD;
     &lt;/TestAncestor&gt;&#xD;
   &lt;/Or&gt;&#xD;
 &lt;/SessionState&gt;</s:String></wpf:ResourceDictionary>

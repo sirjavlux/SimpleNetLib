@@ -12,8 +12,8 @@ public:
     template<typename ComponentType>
     void MapComponentHandleDelegate(const std::function<void(const ComponentType&)>& InFunction);
 
-    template<typename OwningObject, typename ComponentType>
-    void MapComponentHandleDelegateDynamic(OwningObject* InOwner, const std::function<void(OwningObject*, const ComponentType&)>& InFunction);
+    template <typename ComponentType, typename OwningObject>
+    void MapComponentHandleDelegateDynamic(const std::function<void(OwningObject*, const ComponentType&)>& InFunction, OwningObject* InOwner);
     
 private:
     std::map<uint16_t, std::function<void(const PacketComponent&)>> delegates_;
@@ -30,16 +30,16 @@ void PacketComponentHandleDelegator::MapComponentHandleDelegate(const std::funct
     };
 
     const ComponentType componentDefaultObject = ComponentType();
-    if (!componentDefaultObject.IsValid()) {
+    if (!componentDefaultObject.IsValid())
+    {
         throw std::runtime_error("ComponentType isn't a valid PacketComponent. Make sure identifier and size is set.");
     }
     
     delegates_.emplace(componentDefaultObject.GetIdentifier(), wrapper);
 }
 
-template <typename OwningObject, typename ComponentType>
-void PacketComponentHandleDelegator::MapComponentHandleDelegateDynamic(OwningObject* InOwner,
-    const std::function<void(OwningObject*, const ComponentType&)>& InFunction)
+template <typename ComponentType, typename OwningObject>
+void PacketComponentHandleDelegator::MapComponentHandleDelegateDynamic(const std::function<void(OwningObject*, const ComponentType&)>& InFunction, OwningObject* InOwner)
 {
     static_assert(std::is_base_of_v<PacketComponent, ComponentType>, "ComponentType must be derived from PacketComponent");
 

@@ -1,6 +1,7 @@
 ﻿#include "../SimpleNetAPI/Packet/Packet.h"
 #include "../SimpleNetAPI/Packet/PacketComponent.h"
 #include "../SimpleNetAPI/Packet/PacketComponentHandleDelegator.h"
+#include "../SimpleNetAPI/Packet/PacketManager.h"
 #include "gtest/gtest.h"
 
 class TestComponent : public PacketComponent
@@ -10,6 +11,13 @@ public:
     { }
     
     int integerValue = 0;
+};
+
+class InvalidComponent : public PacketComponent
+{
+public:
+    InvalidComponent() : PacketComponent(0, 0)
+    { }
 };
 
 TEST(PacketTests, PacketCreation)
@@ -39,10 +47,47 @@ TEST(PacketTests, PacketCreation)
     }
 }
 
-void TestFunction(const TestComponent& InPacketComponent)
+void TestComponentFunction(const TestComponent& InPacketComponent)
 {
     EXPECT_EQ(InPacketComponent.integerValue, 20);
     std::cout << InPacketComponent.integerValue << std::endl;
+}
+
+void InvalidComponentFunction(const InvalidComponent& InPacketComponent)
+{
+    
+}
+
+TEST(PacketTests, PacketManagerComponentRegestring)
+{
+    PacketManager* packetManager = PacketManager::Initialize(EPacketManagerType::Client);
+    
+    TestComponent validComponent;
+    InvalidComponent invalidComponent;
+
+    bool failed = false;
+    try
+    {
+        packetManager->RegisterPacketComponent<InvalidComponent>(EPacketHandlingType::None, &InvalidComponentFunction);
+    }
+    catch (...)
+    {
+        failed = true;
+    }
+
+    EXPECT_TRUE(failed);
+
+    failed = false;
+    try
+    {
+        packetManager->RegisterPacketComponent<TestComponent>(EPacketHandlingType::None, &TestComponentFunction);
+    }
+    catch (...)
+    {
+        failed = true;
+    }
+
+    EXPECT_FALSE(failed);
 }
 
 TEST(PacketDelegateTests, HandleDelegate)
@@ -51,7 +96,7 @@ TEST(PacketDelegateTests, HandleDelegate)
     TestComponent component;
     component.integerValue = 20;
     
-    delegator.MapComponentHandleDelegate<TestComponent>(&TestFunction);
+    delegator.MapComponentHandleDelegate<TestComponent>(&TestComponentFunction);
 
     delegator.HandleComponent(component);
 }
@@ -61,7 +106,7 @@ class DynamicDelegateHandleClass
 public:
     int testInt = 0;
     
-    void TestFunction(const TestComponent& InPacketComponent)
+    void TestComponentFunction(const TestComponent& InPacketComponent)
     {
         EXPECT_EQ(InPacketComponent.integerValue, 20);
         EXPECT_EQ(testInt, 30);
@@ -80,7 +125,22 @@ TEST(PacketDelegateTests, DynamicHandleDelegate)
     TestComponent component;
     component.integerValue = 20;
     
-    delegator.MapComponentHandleDelegateDynamic<DynamicDelegateHandleClass, TestComponent>(&delegateOwner, &DynamicDelegateHandleClass::TestFunction);
+    delegator.MapComponentHandleDelegateDynamic<TestComponent, DynamicDelegateHandleClass>(&DynamicDelegateHandleClass::TestComponentFunction, &delegateOwner);
 
     delegator.HandleComponent(component);
+}
+
+TEST(PacketTests, SendPacket)
+{
+    PacketManager* packetManager = PacketManager::Initialize(EPacketManagerType::Client);
+
+    packetManager->RegisterPacketComponent<TestComponent>(EPacketHandlingType::None, &TestComponentFunction);
+    
+    for (int i = 0; i < 100000; ++i)
+    {
+        TestComponent testComponent;
+        testComponent.integerValue = i;
+        
+        EXPECT_TRUE(packetManager->SendPacketComponent<TestComponent>(testComponent));
+    }
 }

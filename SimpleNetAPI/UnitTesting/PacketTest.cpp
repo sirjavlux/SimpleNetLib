@@ -44,13 +44,8 @@ TEST(PacketCreation, PacketTests)
     }
 
     PacketComponentHandleDelegator delegator;
-
-    // Use a lambda function as a wrapper with the correct signature
-    auto wrapper = [](const PacketComponent& packetComponent) {
-        TestFunction(static_cast<const TestComponent&>(packetComponent));
-    }; // Need solution for this
     
-    delegator.MapComponentHandleDelegate(TestComponent(), wrapper);
+    delegator.MapComponentHandleDelegate<TestComponent>(&TestFunction);
 
     for (const PacketComponent* component : outComponents)
     {

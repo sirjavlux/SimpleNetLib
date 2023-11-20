@@ -4,8 +4,9 @@
 
 #include "Packet.h"
 #include "PacketComponent.h"
-#include "../NetIncludes.h"
+#include "NetStructs.hpp"
 #include "PacketComponentHandleDelegator.h"
+#include "NetHandler.h"
 
 enum class EPacketHandlingType : uint8_t;
 
@@ -13,11 +14,6 @@ enum class EPacketManagerType
 {
     Server  = 0,
     Client  = 1,
-};
-
-struct PacketComponentAssociatedData
-{
-    EPacketHandlingType handlingType;
 };
 
 inline bool operator<(const sockaddr& InLhs, const sockaddr& InRhs)
@@ -34,7 +30,7 @@ inline bool operator<(const sockaddr& InLhs, const sockaddr& InRhs)
         if (lhs.sin_addr.s_addr == rhs.sin_addr.s_addr)
         {
             // Compare port numbers
-            return lhs.sin_port < rhs.sin_port;
+            return ntohs(lhs.sin_port) < ntohs(rhs.sin_port);
         }
     }
 
@@ -74,9 +70,9 @@ private:
 class PacketManager
 {
 public:
-    PacketManager(const EPacketManagerType InPacketManagerType);
+    PacketManager(const EPacketManagerType InPacketManagerType, const NetSettings& InNetSettings);
 
-    static PacketManager* Initialize(const EPacketManagerType InPacketManagerType);
+    static PacketManager* Initialize(const EPacketManagerType InPacketManagerType, const NetSettings& InNetSettings);
     static PacketManager* Get();
 
     void Update();
@@ -91,6 +87,8 @@ public:
     void RegisterPacketComponent(EPacketHandlingType InHandlingType,
         const std::function<void(OwningObject*, const ComponentType&)>& InFunction, OwningObject* InOwnerObject);
 
+    EPacketManagerType GetManagerType() const { return managerType_; }
+    
 private:
     void FixedUpdate(); // TODO: Implement this
     std::chrono::steady_clock::time_point lastUpdateTime_;
@@ -105,6 +103,8 @@ private:
     const EPacketManagerType managerType_;
     
     static PacketManager* instance_;
+
+    NetHandler netHandler_;
     
     PacketComponentHandleDelegator packetComponentHandleDelegator_;
     std::map<uint16_t, PacketComponentAssociatedData> packetComponentAssociatedData_;

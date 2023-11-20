@@ -1,5 +1,12 @@
 #pragma once
 
+#ifdef _WIN32
+#include <WinSock2.h>
+#include <WS2tcpip.h>
+#pragma comment(lib, "ws2_32.lib")
+#endif
+
+#include <stdio.h>
 #include <cstdint>
 #include <algorithm>
 #include <array>
@@ -13,8 +20,8 @@
 #include <functional>
 #include <assert.h>
 #include <stdexcept>
-#include <winsock.h>
 #include <Windows.h>
+#include <iostream>
 
 #include "Packet/PacketDefinitions.h"
 

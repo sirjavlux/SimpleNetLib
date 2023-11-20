@@ -2,16 +2,17 @@
 
 PacketManager* PacketManager::instance_ = nullptr;
 
-PacketManager::PacketManager(const EPacketManagerType InPacketManagerType) : managerType_(InPacketManagerType)
+PacketManager::PacketManager(const EPacketManagerType InPacketManagerType, const NetSettings& InNetSettings)
+    : managerType_(InPacketManagerType), netHandler_(InNetSettings)
 {
     
 }
 
-PacketManager* PacketManager::Initialize(const EPacketManagerType InPacketManagerType)
+PacketManager* PacketManager::Initialize(const EPacketManagerType InPacketManagerType, const NetSettings& InNetSettings)
 {
     if (instance_ == nullptr)
     {
-        instance_ = new PacketManager(InPacketManagerType);
+        instance_ = new PacketManager(InPacketManagerType, InNetSettings);
     }
     
     return instance_;

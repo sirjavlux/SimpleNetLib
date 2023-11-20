@@ -129,6 +129,8 @@
   <ItemGroup>
     <ClInclude Include="NetIncludes.h" />
     <ClInclude Include="NetTarget.h" />
+    <ClInclude Include="Packet\NetHandler.h" />
+    <ClInclude Include="Packet\NetStructs.hpp" />
     <ClInclude Include="Packet\Packet.h" />
     <ClInclude Include="Packet\PacketComponent.h" />
     <ClInclude Include="Packet\PacketComponentHandleDelegator.h" />
@@ -139,6 +141,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="NetTarget.cpp" />
+    <ClCompile Include="Packet\NetHandler.cpp" />
     <ClCompile Include="Packet\Packet.cpp" />
     <ClCompile Include="Packet\PacketComponent.cpp" />
     <ClCompile Include="Packet\PacketComponentHandleDelegator.cpp" />

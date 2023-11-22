@@ -60,7 +60,7 @@ void InvalidComponentFunction(const InvalidComponent& InPacketComponent)
 TEST(PacketTests, PacketManagerComponentRegestring)
 {
     const NetSettings settings; // Left empty acting as server with no parent server
-    PacketManager* packetManager = PacketManager::Initialize(EPacketManagerType::Server, settings);
+    PacketManager* packetManager = PacketManager::Initialize(ENetworkHandleType::Server, settings);
     
     TestComponent validComponent;
     InvalidComponent invalidComponent;
@@ -133,7 +133,7 @@ TEST(PacketDelegateTests, DynamicHandleDelegate)
 TEST(PacketTests, SendPacket)
 {
     const NetSettings settings; // Left empty acting as server with no parent server
-    PacketManager* packetManager = PacketManager::Initialize(EPacketManagerType::Client, settings);
+    PacketManager* packetManager = PacketManager::Initialize(ENetworkHandleType::Client, settings);
 
     packetManager->RegisterPacketComponent<TestComponent>(EPacketHandlingType::None, &TestComponentFunction);
     

@@ -36,6 +36,7 @@
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros" />
   <ItemGroup>
+    <ClCompile Include="NetHandlerTest.cpp" />
     <ClCompile Include="NetTagTest.cpp" />
     <ClCompile Include="PacketTest.cpp" />
   </ItemGroup>

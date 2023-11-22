@@ -6,11 +6,11 @@
 #include "PacketComponent.h"
 #include "NetStructs.hpp"
 #include "PacketComponentHandleDelegator.h"
-#include "NetHandler.h"
 
+class NetHandler;
 enum class EPacketHandlingType : uint8_t;
 
-enum class EPacketManagerType
+enum class ENetworkHandleType
 {
     Server  = 0,
     Client  = 1,
@@ -70,9 +70,10 @@ private:
 class PacketManager
 {
 public:
-    PacketManager(const EPacketManagerType InPacketManagerType, const NetSettings& InNetSettings);
-
-    static PacketManager* Initialize(const EPacketManagerType InPacketManagerType, const NetSettings& InNetSettings);
+    PacketManager(const ENetworkHandleType InPacketManagerType, const NetSettings& InNetSettings);
+    ~PacketManager();
+    
+    static PacketManager* Initialize(const ENetworkHandleType InPacketManagerType, const NetSettings& InNetSettings);
     static PacketManager* Get();
 
     void Update();
@@ -87,7 +88,7 @@ public:
     void RegisterPacketComponent(EPacketHandlingType InHandlingType,
         const std::function<void(OwningObject*, const ComponentType&)>& InFunction, OwningObject* InOwnerObject);
 
-    EPacketManagerType GetManagerType() const { return managerType_; }
+    ENetworkHandleType GetManagerType() const { return managerType_; }
     
 private:
     void FixedUpdate(); // TODO: Implement this
@@ -100,11 +101,11 @@ private:
     template <typename ComponentType>
     void RegisterAssociatedData(const EPacketHandlingType InHandlingType);
     
-    const EPacketManagerType managerType_;
+    const ENetworkHandleType managerType_;
     
     static PacketManager* instance_;
 
-    NetHandler netHandler_;
+    NetHandler* netHandler_;
     
     PacketComponentHandleDelegator packetComponentHandleDelegator_;
     std::map<uint16_t, PacketComponentAssociatedData> packetComponentAssociatedData_;

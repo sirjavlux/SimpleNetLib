@@ -1,18 +1,25 @@
 ﻿#include "PacketManager.h"
 
+#include "NetHandler.h"
+
 PacketManager* PacketManager::instance_ = nullptr;
 
-PacketManager::PacketManager(const EPacketManagerType InPacketManagerType, const NetSettings& InNetSettings)
-    : managerType_(InPacketManagerType), netHandler_(InNetSettings)
+PacketManager::PacketManager(const ENetworkHandleType InPacketManagerType, const NetSettings& InNetSettings)
+    : managerType_(InPacketManagerType), netHandler_(nullptr)
 {
-    
 }
 
-PacketManager* PacketManager::Initialize(const EPacketManagerType InPacketManagerType, const NetSettings& InNetSettings)
+PacketManager::~PacketManager()
+{
+    delete netHandler_;
+}
+
+PacketManager* PacketManager::Initialize(const ENetworkHandleType InPacketManagerType, const NetSettings& InNetSettings)
 {
     if (instance_ == nullptr)
     {
         instance_ = new PacketManager(InPacketManagerType, InNetSettings);
+        instance_->netHandler_ = new NetHandler(InNetSettings);
     }
     
     return instance_;

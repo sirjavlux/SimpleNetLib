@@ -33,7 +33,7 @@ EAddComponentResult Packet::AddComponent(const PacketComponent& InPacketComponen
         return EAddComponentResult::SizeOutOfBounds;
     }
     
-    std::memmove(&data_[packetDataIter_], &InPacketComponent, componentSize);
+    std::memcpy(&data_[packetDataIter_], &InPacketComponent, componentSize);
     
     packetDataIter_ += componentSize;
     

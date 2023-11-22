@@ -8,9 +8,11 @@ class NetHandler
 public:
     explicit NetHandler(const NetSettings& InNetSettings);
     ~NetHandler();
+
+    bool IsServer() const { return bIsServer_; }
     
 private:
-    void Initialize();
+    void InitializeWin32();
 
     WSADATA wsaData_;
     SOCKET udpSocket_;
@@ -20,4 +22,7 @@ private:
     sockaddr_in address_;
 
     NetSettings netSettings_;
+
+    bool bHasParentServer_ = false;
+    const bool bIsServer_ = false;
 };

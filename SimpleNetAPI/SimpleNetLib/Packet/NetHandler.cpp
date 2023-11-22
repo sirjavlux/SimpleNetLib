@@ -1,6 +1,7 @@
 ﻿#include "NetHandler.h"
 
 #include <sstream>
+#include <thread>
 
 #include "PacketManager.h"
 
@@ -8,34 +9,39 @@ NetHandler::NetHandler(const NetSettings& InNetSettings) : netSettings_(InNetSet
     bIsServer_(PacketManager::Get()->GetManagerType() == ENetworkHandleType::Server)
 {
     #ifdef _WIN32
-    InitializeWin32();
+    if (InitializeWin32())
+    {
+        packetListenerThread_ = new std::thread(&NetHandler::PacketListener, this);
+    }
     #endif
 }
 
 NetHandler::~NetHandler()
 {
+    bIsRunning_ = false;
+    if (packetListenerThread_ && packetListenerThread_->joinable())
+    {
+        packetListenerThread_->join();
+    }
+    delete packetListenerThread_;
+    
     // Cleanup Winsock on Windows
     #ifdef _WIN32
+    closesocket(udpSocket_);
     WSACleanup();
     #endif
 }
 
-void NetHandler::InitializeWin32()
+bool NetHandler::InitializeWin32()
 {
-    static bool bHasBeenSetup = false;
-    if (bHasBeenSetup)
-    {
-        throw std::runtime_error("Winsock has already been initialized");
-    }
-    bHasBeenSetup = true;
-    
     // Initialize Winsock on Windows
     std::cout << "Starting Winsock...";
     #ifdef _WIN32
-    if (WSAStartup(MAKEWORD(2, 2), &wsaData_) != 0) {
-        std::cout << " FAIL!" << std::endl;
-        std::cout << "Error: " << WSAGetLastError() << std::endl;
-        return;
+    if (WSAStartup(MAKEWORD(2, 2), &wsaData_) != 0)
+    {
+        std::cerr << " FAIL!" << std::endl;
+        std::cerr << "Error: " << WSAGetLastError() << std::endl;
+        return false;
     }
     #endif
     std::cout << "OK!" << std::endl;
@@ -43,23 +49,23 @@ void NetHandler::InitializeWin32()
     udpSocket_ = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     if (udpSocket_ == INVALID_SOCKET)
     {
-        std::cout << "Failed to create udpSocket." << std::endl;
-        std::cout << "Error: " << WSAGetLastError() << std::endl;
+        std::cerr << "Failed to create udpSocket." << std::endl;
+        std::cerr << "Error: " << WSAGetLastError() << std::endl;
         closesocket(udpSocket_);
         WSACleanup();
-        return;
+        return false;
     }
 
     // Setup parent server address
-    bHasParentServer_ = netSettings_.serverPort != 0;
+    bHasParentServer_ = netSettings_.parentServerPort != 0;
     if (bHasParentServer_)
     {
-        connectedParentServerAddress_.sin_port = htons(netSettings_.serverPort);
+        connectedParentServerAddress_.sin_port = htons(netSettings_.parentServerPort);
         connectedParentServerAddress_.sin_family = AF_INET;
         
-        if (InetPton(AF_INET, netSettings_.serverAddress, &connectedParentServerAddress_.sin_addr.s_addr) != 1)
+        if (InetPton(AF_INET, netSettings_.parentServerAddress, &connectedParentServerAddress_.sin_addr.s_addr) != 1)
         {
-            std::cout << "Parent server address and port was invalid!" << std::endl;
+            std::cerr << "Parent server address and port was invalid!" << std::endl;
             bHasParentServer_ = false;
         }
     }
@@ -72,11 +78,11 @@ void NetHandler::InitializeWin32()
         
         if (InetPton(AF_INET, netSettings_.serverAddress, &address_.sin_addr.s_addr) != 1)
         {
-            std::cout << "Address and port was invalid!" << std::endl;
-            std::cout << "Error: " << WSAGetLastError() << std::endl;
+            std::cerr << "Address and port was invalid!" << std::endl;
+            std::cerr << "Error: " << WSAGetLastError() << std::endl;
             closesocket(udpSocket_);
             WSACleanup();
-            return;
+            return false;
         }
     }
     else
@@ -106,10 +112,86 @@ void NetHandler::InitializeWin32()
     // Bind socket
     if (bind(udpSocket_, reinterpret_cast<sockaddr*>(&address_), sizeof address_) == SOCKET_ERROR)
     {
-        std::cout << "Failed to bind socket." << std::endl;
-        std::cout << "Error: " << WSAGetLastError() << std::endl;
+        std::cerr << "Failed to bind socket." << std::endl;
+        std::cerr << "Error: " << WSAGetLastError() << std::endl;
         closesocket(udpSocket_);
         WSACleanup();
-        return;
+        return false;
     }
+
+    if (bHasParentServer_)
+    {
+        // Listen for incoming connections
+        if (listen(udpSocket_, SOMAXCONN) == SOCKET_ERROR)
+        {
+            std::cerr << "Listen failed with error: " << WSAGetLastError() << std::endl;
+            closesocket(udpSocket_);
+            WSACleanup();
+            return false;
+        }
+    }
+
+    return true;
+}
+
+void NetHandler::PacketListener(NetHandler* InNetHandler)
+{
+    while(InNetHandler->bIsRunning_)
+    {
+        fd_set readSet;
+        FD_ZERO(&readSet);
+        FD_SET(InNetHandler->udpSocket_, &readSet);
+
+        // Set a timeout for select if desired
+        timeval timeout;
+        timeout.tv_sec = 0;  // Set seconds
+        timeout.tv_usec = 1000 * 1000; // Set microseconds
+
+        // Use select to check for readability of the socket
+        const int result = select(0, &readSet, nullptr, nullptr, &timeout);
+        if (result == SOCKET_ERROR)
+        {
+            std::cerr << "select failed with error: " << WSAGetLastError() << "\n";
+            return;
+        }
+        
+        if (result > 0 && FD_ISSET(InNetHandler->udpSocket_, &readSet))
+        {
+            sockaddr_storage  senderAddress;
+            int senderAddressSize = sizeof(senderAddress);
+
+            const SOCKET senderSocket = accept(InNetHandler->udpSocket_, reinterpret_cast<sockaddr*>(&senderAddress), &senderAddressSize);
+            if (senderSocket == INVALID_SOCKET)
+            {
+                std::cerr << "Accept failed with error: " << WSAGetLastError() << "\n";
+                return;
+            }
+
+            // Receive data from the client
+            char buffer[NET_BUFFER_SIZE_TOTAL];
+            const int bytesReceived = recv(senderSocket, buffer, sizeof(buffer), 0);
+            if (bytesReceived > 0)
+            {
+                InNetHandler->ProcessPackets(buffer, bytesReceived);
+            }
+            else if (bytesReceived == 0)
+            {
+                std::cerr << "Connection closed by peer.\n";
+            }
+            else
+            {
+                std::cerr << "Receive failed with error: " << WSAGetLastError() << "\n";
+                return;
+            }
+        
+            closesocket(senderSocket);
+        }
+
+        // Do other logic...
+    }
+}
+
+void NetHandler::ProcessPackets(const char* buffer, int bytesReceived)
+{
+    
 }

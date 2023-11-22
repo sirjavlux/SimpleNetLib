@@ -12,6 +12,8 @@
       &lt;TestId&gt;GTest::07B94E4C-5A39-4776-ACC4-0BDCD66220CE::Windows,Version=v10.0.22000::PacketTests.SendPacket&lt;/TestId&gt;&#xD;
       &lt;TestId&gt;GTest::07B94E4C-5A39-4776-ACC4-0BDCD66220CE::Windows,Version=v10.0.22000::NetHandlerTest.InitializeServer&lt;/TestId&gt;&#xD;
       &lt;TestId&gt;GTest::07B94E4C-5A39-4776-ACC4-0BDCD66220CE::Windows,Version=v10.0.22000::NetHandlerTest.InitializeClient&lt;/TestId&gt;&#xD;
+      &lt;TestId&gt;GTest::07B94E4C-5A39-4776-ACC4-0BDCD66220CE::Windows,Version=v10.0.22000::NetHandlerTestServer.InitializeServer&lt;/TestId&gt;&#xD;
+      &lt;TestId&gt;GTest::07B94E4C-5A39-4776-ACC4-0BDCD66220CE::Windows,Version=v10.0.22000::NetHandlerTestClient.InitializeClient&lt;/TestId&gt;&#xD;
     &lt;/TestAncestor&gt;&#xD;
   &lt;/Or&gt;&#xD;
 &lt;/SessionState&gt;</s:String></wpf:ResourceDictionary>

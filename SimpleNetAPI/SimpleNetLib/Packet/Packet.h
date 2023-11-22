@@ -49,7 +49,7 @@ private:
     
     EPacketHandlingType packetHandlingType_ = EPacketHandlingType::None;
     
-    int8_t data_[PACKET_COMPONENT_TOTAL_SPACE];
+    int8_t data_[NET_BUFFER_SIZE_TOTAL];
 
     int32_t packetIdentifier_ = INT32_MIN;
     

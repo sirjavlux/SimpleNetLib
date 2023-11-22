@@ -30,6 +30,15 @@ PacketManager* PacketManager::Get()
     return instance_;
 }
 
+void PacketManager::End()
+{
+    if (instance_ != nullptr)
+    {
+        delete instance_;
+        instance_ = nullptr;
+    }
+}
+
 void PacketManager::Update()
 {
     using namespace std::chrono;

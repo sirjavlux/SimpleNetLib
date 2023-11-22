@@ -2,6 +2,10 @@
 
 #include "NetStructs.hpp"
 
+namespace std
+{
+    class thread;
+}
 
 class NetHandler
 {
@@ -12,8 +16,12 @@ public:
     bool IsServer() const { return bIsServer_; }
     
 private:
-    void InitializeWin32();
+    bool InitializeWin32();
 
+    static void PacketListener(NetHandler* InNetHandler);
+    
+    void ProcessPackets(const char* buffer, int bytesReceived);
+    
     WSADATA wsaData_;
     SOCKET udpSocket_;
 
@@ -23,6 +31,10 @@ private:
 
     NetSettings netSettings_;
 
+    std::thread* packetListenerThread_ = nullptr;
+    
     bool bHasParentServer_ = false;
     const bool bIsServer_ = false;
+
+    bool bIsRunning_ = true;
 };

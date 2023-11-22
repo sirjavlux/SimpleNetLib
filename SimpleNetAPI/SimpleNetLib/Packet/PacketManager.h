@@ -75,7 +75,8 @@ public:
     
     static PacketManager* Initialize(const ENetworkHandleType InPacketManagerType, const NetSettings& InNetSettings);
     static PacketManager* Get();
-
+    static void End();
+    
     void Update();
     
     template<typename ComponentType>

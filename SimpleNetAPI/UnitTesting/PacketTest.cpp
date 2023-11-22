@@ -88,6 +88,8 @@ TEST(PacketTests, PacketManagerComponentRegestring)
     }
 
     EXPECT_FALSE(failed);
+    
+    PacketManager::End();
 }
 
 TEST(PacketDelegateTests, HandleDelegate)
@@ -147,4 +149,6 @@ TEST(PacketTests, SendPacket)
         
         EXPECT_TRUE(packetManager->SendPacketComponent<TestComponent>(testComponent, testAddress));
     }
+    
+    PacketManager::End();
 }

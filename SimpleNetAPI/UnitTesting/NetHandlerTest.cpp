@@ -3,16 +3,18 @@
 #include "../SimpleNetLib/Packet/PacketManager.h"
 #include "gtest/gtest.h"
 
-TEST(NetHandlerTest, InitializeServer)
+TEST(NetHandlerTestServer, InitializeServer)
 {
     const NetSettings defaultSettings;
     
     PacketManager::Initialize(ENetworkHandleType::Server, defaultSettings);
+    PacketManager::End();
 }
 
-TEST(NetHandlerTest, InitializeClient)
+TEST(NetHandlerTestClient, InitializeClient)
 {
     const NetSettings defaultSettings(DEFAULT_SERVER_ADDRESS);
     
     PacketManager::Initialize(ENetworkHandleType::Client, defaultSettings);
+    PacketManager::End();
 }

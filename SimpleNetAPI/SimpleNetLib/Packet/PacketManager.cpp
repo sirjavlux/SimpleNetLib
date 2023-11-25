@@ -1,6 +1,6 @@
 ﻿#include "PacketManager.h"
 
-#include "NetHandler.h"
+#include "../Network/NetHandler.h"
 
 PacketManager* PacketManager::instance_ = nullptr;
 

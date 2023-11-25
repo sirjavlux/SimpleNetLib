@@ -3,7 +3,7 @@
 #include <sstream>
 #include <thread>
 
-#include "PacketManager.h"
+#include "../Packet/PacketManager.h"
 
 NetHandler::NetHandler(const NetSettings& InNetSettings) : netSettings_(InNetSettings),
     bIsServer_(PacketManager::Get()->GetManagerType() == ENetworkHandleType::Server)
@@ -30,6 +30,23 @@ NetHandler::~NetHandler()
     closesocket(udpSocket_);
     WSACleanup();
     #endif
+}
+
+bool NetHandler::RetrieveChildConnectionNetTargetInstance(const sockaddr_storage& InAddress, NetTarget*& OutNetTarget)
+{
+    const auto searchResult = std::find(childConnections_.begin(), childConnections_.end(), NetTarget(InAddress));
+    if (searchResult != childConnections_.end())
+    {
+        OutNetTarget = searchResult._Ptr;
+        return true;
+    }
+    return false;
+}
+
+bool NetHandler::IsConnected(const sockaddr_storage& InAddress)
+{
+    const auto searchResult = std::find(childConnections_.begin(), childConnections_.end(), NetTarget(InAddress));
+    return searchResult != childConnections_.end();
 }
 
 bool NetHandler::InitializeWin32()
@@ -131,6 +148,12 @@ bool NetHandler::InitializeWin32()
         }
     }
 
+    // Send Join Packet
+    if (!bIsServer_)
+    {
+        //TODO: Needs Connection PacketComponent to send to parent server
+    }
+    
     return true;
 }
 
@@ -157,7 +180,7 @@ void NetHandler::PacketListener(NetHandler* InNetHandler)
         
         if (result > 0 && FD_ISSET(InNetHandler->udpSocket_, &readSet))
         {
-            sockaddr_storage  senderAddress;
+            sockaddr_storage senderAddress;
             int senderAddressSize = sizeof(senderAddress);
 
             const SOCKET senderSocket = accept(InNetHandler->udpSocket_, reinterpret_cast<sockaddr*>(&senderAddress), &senderAddressSize);
@@ -173,9 +196,11 @@ void NetHandler::PacketListener(NetHandler* InNetHandler)
             if (bytesReceived > 0)
             {
                 InNetHandler->ProcessPackets(buffer, bytesReceived);
+                InNetHandler->UpdateNetTarget(senderAddress);
             }
             else if (bytesReceived == 0)
             {
+                InNetHandler->KickNetTarget(senderAddress, ENetKickType::ConnectionClosed);
                 std::cerr << "Connection closed by peer.\n";
             }
             else
@@ -188,10 +213,67 @@ void NetHandler::PacketListener(NetHandler* InNetHandler)
         }
 
         // Do other logic...
+        InNetHandler->KickInactiveNetTargets();
     }
 }
 
 void NetHandler::ProcessPackets(const char* buffer, int bytesReceived)
 {
+    // TODO: Packet processing, acks, ack returns, statistics, etc...
+}
+
+void NetHandler::UpdateNetTarget(const sockaddr_storage& InAddress)
+{
+    using namespace std::chrono;
     
+    NetTarget* outNetTarget;
+    if (RetrieveChildConnectionNetTargetInstance(InAddress, outNetTarget))
+    {
+        outNetTarget->lastTimeReceivedNetEvent = steady_clock::now();
+    }
+}
+
+void NetHandler::HandleNewChildNetConnection(const sockaddr_storage& InAddress)
+{
+    if (!IsConnected(InAddress))
+    {
+        const NetTarget netTarget(InAddress);
+        childConnections_.push_back(netTarget);
+
+        // TODO: Call library user function here...
+
+        
+    }
+}
+
+void NetHandler::KickInactiveNetTargets()
+{
+    using namespace std::chrono;
+    
+    constexpr int iterationAddition = static_cast<int>(1.f / NET_INACTIVE_CHECKS_PER_UPDATE_PERCENT);
+    
+    static int iterationOffset = 0;
+    
+    for (int iter = iterationOffset; iter < childConnections_.size(); iter += iterationAddition)
+    {
+        const NetTarget& netTarget = childConnections_[iter];
+
+        const steady_clock::time_point currentTime = steady_clock::now();
+        const duration<float> timeDifference = duration_cast<duration<float>>(currentTime - netTarget.lastTimeReceivedNetEvent);
+        if (timeDifference.count() > NET_TIME_UNTIL_TIME_OUT_SEC)
+        {
+            KickNetTarget(netTarget.address, ENetKickType::TimeOut);
+        }
+    }
+
+    ++iterationOffset;
+    if (iterationOffset == iterationAddition)
+    {
+        iterationOffset = 0;
+    }
+}
+
+void NetHandler::KickNetTarget(const sockaddr_storage& InAddress, const ENetKickType InKickReason)
+{
+    // TODO: Kick implementation, core packet component needed
 }

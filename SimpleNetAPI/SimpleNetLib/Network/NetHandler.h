@@ -14,6 +14,9 @@ public:
     ~NetHandler();
 
     bool IsServer() const { return bIsServer_; }
+
+    bool RetrieveChildConnectionNetTargetInstance(const sockaddr_storage& InAddress, NetTarget*& OutNetTarget);
+    bool IsConnected(const sockaddr_storage& InAddress);
     
 private:
     bool InitializeWin32();
@@ -21,6 +24,13 @@ private:
     static void PacketListener(NetHandler* InNetHandler);
     
     void ProcessPackets(const char* buffer, int bytesReceived);
+
+    void UpdateNetTarget(const sockaddr_storage& InAddress);
+    void HandleNewChildNetConnection(const sockaddr_storage& InAddress);
+    
+    void KickInactiveNetTargets();
+
+    void KickNetTarget(const sockaddr_storage& InAddress, const ENetKickType InKickReason);
     
     WSADATA wsaData_;
     SOCKET udpSocket_;
@@ -28,7 +38,9 @@ private:
     // Can be used by server as proxy connection
     sockaddr_in connectedParentServerAddress_;
     sockaddr_in address_;
-
+    
+    std::vector<NetTarget> childConnections_;
+    
     NetSettings netSettings_;
 
     std::thread* packetListenerThread_ = nullptr;

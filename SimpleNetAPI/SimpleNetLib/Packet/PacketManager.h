@@ -4,7 +4,7 @@
 
 #include "Packet.h"
 #include "PacketComponent.h"
-#include "NetStructs.hpp"
+#include "../Network/NetStructs.hpp"
 #include "PacketComponentHandleDelegator.h"
 
 class NetHandler;
@@ -80,7 +80,7 @@ public:
     void Update();
     
     template<typename ComponentType>
-    bool SendPacketComponent(const ComponentType& InPacketComponent, const sockaddr& InNetTarget);
+    bool SendPacketComponent(const ComponentType& InPacketComponent, const sockaddr& InTarget);
     
     template<typename ComponentType>
     void RegisterPacketComponent(const EPacketHandlingType InHandlingType, const std::function<void(const ComponentType&)>& InComponentHandleDelegateFunction);
@@ -115,7 +115,7 @@ private:
 };
 
 template <typename ComponentType>
-bool PacketManager::SendPacketComponent(const ComponentType& InPacketComponent, const sockaddr& InNetTarget)
+bool PacketManager::SendPacketComponent(const ComponentType& InPacketComponent, const sockaddr& InTarget)
 {
     // Check Component Validity
     if (!IsPacketComponentValid<ComponentType>())
@@ -126,11 +126,11 @@ bool PacketManager::SendPacketComponent(const ComponentType& InPacketComponent, 
     const PacketComponent& packetComponent = static_cast<const PacketComponent&>(InPacketComponent);
     const PacketComponentAssociatedData& packetComponentAssociatedData = packetComponentAssociatedData_.find(packetComponent.GetIdentifier())->second;
 
-    if (packetTargetDataMap_.find(InNetTarget) == packetTargetDataMap_.end())
+    if (packetTargetDataMap_.find(InTarget) == packetTargetDataMap_.end())
     {
-        packetTargetDataMap_.emplace(InNetTarget, PacketTargetData());
+        packetTargetDataMap_.emplace(InTarget, PacketTargetData());
     }
-    PacketTargetData& packetTargetData = packetTargetDataMap_.at(InNetTarget);
+    PacketTargetData& packetTargetData = packetTargetDataMap_.at(InTarget);
 
     Packet& relevantPacket = packetTargetData.GetPacketByHandlingType(packetComponentAssociatedData.handlingType);
 

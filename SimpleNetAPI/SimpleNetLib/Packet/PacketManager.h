@@ -1,11 +1,10 @@
 ﻿#pragma once
 
-#include <chrono>
+#include "../NetIncludes.h"
 
 #include "Packet.h"
 #include "PacketComponent.h"
-#include "../Network/NetStructs.hpp"
-#include "PacketComponentHandleDelegator.h"
+#include "../Delegates/PacketComponentHandleDelegator.h"
 
 class NetHandler;
 enum class EPacketHandlingType : uint8_t;
@@ -15,27 +14,6 @@ enum class ENetworkHandleType
     Server  = 0,
     Client  = 1,
 };
-
-inline bool operator<(const sockaddr& InLhs, const sockaddr& InRhs)
-{
-    // Compare based on the address family (IPv4 or IPv6)
-    if (InLhs.sa_family == AF_INET) {
-        const sockaddr_in& lhs = reinterpret_cast<const sockaddr_in&>(InLhs);
-        const sockaddr_in& rhs = reinterpret_cast<const sockaddr_in&>(InRhs);
-
-        // Compare IPv4 addresses
-        if (lhs.sin_addr.s_addr < rhs.sin_addr.s_addr) {
-            return true;
-        } 
-        if (lhs.sin_addr.s_addr == rhs.sin_addr.s_addr)
-        {
-            // Compare port numbers
-            return ntohs(lhs.sin_port) < ntohs(rhs.sin_port);
-        }
-    }
-
-    return false;
-}
 
 class PacketTargetData
 {
@@ -80,7 +58,7 @@ public:
     void Update();
     
     template<typename ComponentType>
-    bool SendPacketComponent(const ComponentType& InPacketComponent, const sockaddr& InTarget);
+    bool SendPacketComponent(const ComponentType& InPacketComponent, const NetTarget& InTarget);
     
     template<typename ComponentType>
     void RegisterPacketComponent(const EPacketHandlingType InHandlingType, const std::function<void(const ComponentType&)>& InComponentHandleDelegateFunction);
@@ -96,6 +74,9 @@ private:
     std::chrono::steady_clock::time_point lastUpdateTime_;
     double updateLag_ = 0.0;
 
+    void OnNetTargetConnected(const NetTarget& InTarget);
+    void OnNetTargetDisconnection(const NetTarget& InTarget, const ENetDisconnectType InDisconnectType);
+    
     template<typename ComponentType>
     bool IsPacketComponentValid();
 
@@ -111,11 +92,13 @@ private:
     PacketComponentHandleDelegator packetComponentHandleDelegator_;
     std::map<uint16_t, PacketComponentAssociatedData> packetComponentAssociatedData_;
 
-    std::map<sockaddr, PacketTargetData> packetTargetDataMap_;
+    std::map<NetTarget, PacketTargetData> packetTargetDataMap_;
+
+    friend class NetHandler;
 };
 
 template <typename ComponentType>
-bool PacketManager::SendPacketComponent(const ComponentType& InPacketComponent, const sockaddr& InTarget)
+bool PacketManager::SendPacketComponent(const ComponentType& InPacketComponent, const NetTarget& InTarget)
 {
     // Check Component Validity
     if (!IsPacketComponentValid<ComponentType>())

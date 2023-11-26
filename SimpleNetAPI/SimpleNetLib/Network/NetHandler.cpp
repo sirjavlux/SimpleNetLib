@@ -32,6 +32,11 @@ NetHandler::~NetHandler()
     #endif
 }
 
+void NetHandler::SendPacketToTarget(const NetTarget& InTarget, const Packet& InPacket)
+{
+    // TODO: Handle this
+}
+
 bool NetHandler::RetrieveChildConnectionNetTargetInstance(const sockaddr_storage& InAddress, NetTarget*& OutNetTarget)
 {
     const auto searchResult = std::find(childConnections_.begin(), childConnections_.end(), NetTarget(InAddress));
@@ -200,7 +205,7 @@ void NetHandler::PacketListener(NetHandler* InNetHandler)
             }
             else if (bytesReceived == 0)
             {
-                InNetHandler->KickNetTarget(senderAddress, ENetKickType::ConnectionClosed);
+                InNetHandler->KickNetTarget(senderAddress, ENetDisconnectType::ConnectionClosed);
                 std::cerr << "Connection closed by peer.\n";
             }
             else
@@ -235,14 +240,14 @@ void NetHandler::UpdateNetTarget(const sockaddr_storage& InAddress)
 
 void NetHandler::HandleNewChildNetConnection(const sockaddr_storage& InAddress)
 {
+    // TODO: Core packet component needed to call this
+    
     if (!IsConnected(InAddress))
     {
         const NetTarget netTarget(InAddress);
         childConnections_.push_back(netTarget);
 
-        // TODO: Call library user function here...
-
-        
+        PacketManager::Get()->OnNetTargetConnected(netTarget);
     }
 }
 
@@ -254,7 +259,7 @@ void NetHandler::KickInactiveNetTargets()
     
     static int iterationOffset = 0;
     
-    for (int iter = iterationOffset; iter < childConnections_.size(); iter += iterationAddition)
+    for (size_t iter = iterationOffset; iter < childConnections_.size(); iter += iterationAddition)
     {
         const NetTarget& netTarget = childConnections_[iter];
 
@@ -262,7 +267,7 @@ void NetHandler::KickInactiveNetTargets()
         const duration<float> timeDifference = duration_cast<duration<float>>(currentTime - netTarget.lastTimeReceivedNetEvent);
         if (timeDifference.count() > NET_TIME_UNTIL_TIME_OUT_SEC)
         {
-            KickNetTarget(netTarget.address, ENetKickType::TimeOut);
+            KickNetTarget(netTarget.address, ENetDisconnectType::TimeOut);
         }
     }
 
@@ -273,7 +278,14 @@ void NetHandler::KickInactiveNetTargets()
     }
 }
 
-void NetHandler::KickNetTarget(const sockaddr_storage& InAddress, const ENetKickType InKickReason)
+void NetHandler::KickNetTarget(const sockaddr_storage& InAddress, const ENetDisconnectType InKickReason)
 {
-    // TODO: Kick implementation, core packet component needed
+    NetTarget* outNetTarget;
+    if (RetrieveChildConnectionNetTargetInstance(InAddress, outNetTarget))
+    {
+        PacketManager::Get()->OnNetTargetDisconnection(*outNetTarget, InKickReason);
+        childConnections_.erase(std::find(childConnections_.begin(), childConnections_.end(), *outNetTarget));
+        
+        // TODO: Core packet component needed
+    }
 }

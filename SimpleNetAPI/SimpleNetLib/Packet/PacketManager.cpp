@@ -60,3 +60,13 @@ void PacketManager::FixedUpdate()
 {
     
 }
+
+void PacketManager::OnNetTargetConnected(const NetTarget& InTarget)
+{
+    
+}
+
+void PacketManager::OnNetTargetDisconnection(const NetTarget& InTarget, const ENetDisconnectType InDisconnectType)
+{
+    
+}

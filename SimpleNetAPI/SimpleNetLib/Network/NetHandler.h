@@ -1,6 +1,8 @@
 ﻿#pragma once
 
-#include "NetStructs.hpp"
+#include "../NetIncludes.h"
+
+class Packet;
 
 namespace std
 {
@@ -15,6 +17,8 @@ public:
 
     bool IsServer() const { return bIsServer_; }
 
+    void SendPacketToTarget(const NetTarget& InTarget, const Packet& InPacket);
+    
     bool RetrieveChildConnectionNetTargetInstance(const sockaddr_storage& InAddress, NetTarget*& OutNetTarget);
     bool IsConnected(const sockaddr_storage& InAddress);
     
@@ -30,7 +34,7 @@ private:
     
     void KickInactiveNetTargets();
 
-    void KickNetTarget(const sockaddr_storage& InAddress, const ENetKickType InKickReason);
+    void KickNetTarget(const sockaddr_storage& InAddress, const ENetDisconnectType InKickReason);
     
     WSADATA wsaData_;
     SOCKET udpSocket_;

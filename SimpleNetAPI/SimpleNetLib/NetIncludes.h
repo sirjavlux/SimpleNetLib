@@ -22,7 +22,13 @@
 #include <stdexcept>
 #include <Windows.h>
 #include <iostream>
+#include <memory>
+#include <chrono>
 
 #include "Packet/PacketDefinitions.h"
+#include "Utility/NetUtility.hpp"
+#include "Network/NetTarget.hpp"
+#include "Delegates/Delegates.hpp"
+#include "Network/NetStructs.hpp"
 
 #define NET_LIB_EXPORT __declspec(dllexport)

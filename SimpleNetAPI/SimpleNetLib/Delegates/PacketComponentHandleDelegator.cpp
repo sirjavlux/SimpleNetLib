@@ -1,6 +1,6 @@
 ﻿#include "PacketComponentHandleDelegator.h"
 
-#include "PacketComponent.h"
+#include "../Packet/PacketComponent.h"
 
 void PacketComponentHandleDelegator::HandleComponent(const PacketComponent& InPacketComponent)
 {

@@ -25,7 +25,8 @@
 #include <memory>
 #include <chrono>
 
-#include "Packet/PacketDefinitions.h"
+#include "Packet/PacketDefinitions.hpp"
+#include "Packet/PacketComponentDefinitions.hpp"
 #include "Utility/NetUtility.hpp"
 #include "Network/NetTarget.hpp"
 #include "Delegates/Delegates.hpp"

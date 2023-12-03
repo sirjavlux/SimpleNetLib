@@ -4,8 +4,8 @@
 
 struct NetTarget
 {
-    NetTarget(const sockaddr_storage& InAddress) : address(InAddress), lastTimeReceivedNetEvent(std::chrono::steady_clock::now()) { }
-    NetTarget() = default;
+    explicit NetTarget(const sockaddr_storage& InAddress) : address(InAddress), lastTimeReceivedNetEvent(std::chrono::steady_clock::now()) { }
+    NetTarget() : NetTarget(sockaddr_storage()) { }
 
     sockaddr_storage address;
 

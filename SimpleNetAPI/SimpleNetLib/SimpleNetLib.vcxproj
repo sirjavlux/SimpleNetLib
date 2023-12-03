@@ -129,15 +129,19 @@
   <ItemGroup>
     <ClInclude Include="Delegates\Delegates.hpp" />
     <ClInclude Include="Delegates\PacketComponentHandleDelegator.h" />
+    <ClInclude Include="Events\EventSystem.h" />
     <ClInclude Include="NetIncludes.h" />
     <ClInclude Include="Network\NetHandler.h" />
     <ClInclude Include="Network\NetStructs.hpp" />
     <ClInclude Include="Network\NetTarget.hpp" />
+    <ClInclude Include="Packet\CorePacketComponents\KickedFromServer.hpp" />
     <ClInclude Include="Packet\CorePacketComponents\ServerDisconnect.hpp" />
     <ClInclude Include="Packet\Packet.h" />
     <ClInclude Include="Packet\PacketComponent.h" />
-    <ClInclude Include="Packet\PacketDefinitions.h" />
+    <ClInclude Include="Packet\PacketComponentDefinitions.hpp" />
+    <ClInclude Include="Packet\PacketDefinitions.hpp" />
     <ClInclude Include="Packet\PacketManager.h" />
+    <ClInclude Include="SimpleNetCore.h" />
     <ClInclude Include="SimpleNetLib.h" />
     <ClInclude Include="Utility\NetTag.h" />
     <ClInclude Include="Utility\NetUtility.hpp" />
@@ -216,6 +220,7 @@
       <SDLCheck>true</SDLCheck>
       <LibCompiled>true</LibCompiled>
     </ClCompile>
+    <ClCompile Include="Events\EventSystem.cpp" />
     <ClCompile Include="Network\NetHandler.cpp">
       <RuntimeLibrary>MultiThreadedDebugDll</RuntimeLibrary>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -292,6 +297,7 @@
     <ClCompile Include="Packet\Packet.cpp" />
     <ClCompile Include="Packet\PacketComponent.cpp" />
     <ClCompile Include="Packet\PacketManager.cpp" />
+    <ClCompile Include="SimpleNetCore.cpp" />
     <ClCompile Include="Utility\NetTag.cpp" />
   </ItemGroup>
   <ItemGroup>

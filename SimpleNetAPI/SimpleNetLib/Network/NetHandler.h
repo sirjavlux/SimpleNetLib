@@ -2,6 +2,8 @@
 
 #include "../NetIncludes.h"
 
+class ServerConnectPacketComponent;
+class ServerDisconnectPacketComponent;
 class Packet;
 
 namespace std
@@ -30,7 +32,9 @@ private:
     void ProcessPackets(const char* buffer, int bytesReceived);
 
     void UpdateNetTarget(const sockaddr_storage& InAddress);
-    void HandleNewChildNetConnection(const sockaddr_storage& InAddress);
+
+    void OnChildDisconnectReceived(const NetTarget& InNetTarget, const ServerDisconnectPacketComponent& InComponent);
+    void OnChildConnectionReceived(const NetTarget& InNetTarget, const ServerConnectPacketComponent& InComponent);
     
     void KickInactiveNetTargets();
 
@@ -53,4 +57,6 @@ private:
     const bool bIsServer_ = false;
 
     bool bIsRunning_ = true;
+
+    friend class PacketManager;
 };

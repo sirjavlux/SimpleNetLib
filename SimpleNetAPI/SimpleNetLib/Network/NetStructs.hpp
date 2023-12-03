@@ -11,6 +11,7 @@ enum class ENetDisconnectType : uint8_t
 {
     TimeOut             = 0,
     ConnectionClosed    = 1,
+    Disconnected        = 2,
 };
 
 struct NetSettings

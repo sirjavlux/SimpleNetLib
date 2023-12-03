@@ -60,12 +60,15 @@ public:
     template<typename ComponentType>
     bool SendPacketComponent(const ComponentType& InPacketComponent, const NetTarget& InTarget);
     
+    template <class ComponentType>
+    void RegisterPacketComponent(EPacketHandlingType InHandlingType);
+
     template<typename ComponentType>
-    void RegisterPacketComponent(const EPacketHandlingType InHandlingType, const std::function<void(const ComponentType&)>& InComponentHandleDelegateFunction);
+    void RegisterPacketComponent(const EPacketHandlingType InHandlingType, const std::function<void(const NetTarget&, const ComponentType&)>& InComponentHandleDelegateFunction);
     
     template<typename ComponentType, typename OwningObject>
     void RegisterPacketComponent(EPacketHandlingType InHandlingType,
-        const std::function<void(OwningObject*, const ComponentType&)>& InFunction, OwningObject* InOwnerObject);
+        const std::function<void(OwningObject*, const NetTarget&, const ComponentType&)>& InFunction, OwningObject* InOwnerObject);
 
     ENetworkHandleType GetManagerType() const { return managerType_; }
     
@@ -74,14 +77,16 @@ private:
     std::chrono::steady_clock::time_point lastUpdateTime_;
     double updateLag_ = 0.0;
 
-    void OnNetTargetConnected(const NetTarget& InTarget);
-    void OnNetTargetDisconnection(const NetTarget& InTarget, const ENetDisconnectType InDisconnectType);
+    static void OnNetTargetConnected(const NetTarget& InTarget);
+    static void OnNetTargetDisconnection(const NetTarget& InTarget, const ENetDisconnectType InDisconnectType);
     
     template<typename ComponentType>
     bool IsPacketComponentValid();
 
     template <typename ComponentType>
     void RegisterAssociatedData(const EPacketHandlingType InHandlingType);
+
+    void RegisterDefaultPacketComponents();
     
     const ENetworkHandleType managerType_;
     
@@ -93,7 +98,7 @@ private:
     std::map<uint16_t, PacketComponentAssociatedData> packetComponentAssociatedData_;
 
     std::map<NetTarget, PacketTargetData> packetTargetDataMap_;
-
+    
     friend class NetHandler;
 };
 
@@ -129,7 +134,15 @@ bool PacketManager::SendPacketComponent(const ComponentType& InPacketComponent, 
 }
 
 template <typename ComponentType>
-void PacketManager::RegisterPacketComponent(const EPacketHandlingType InHandlingType, const std::function<void(const ComponentType&)>& InComponentHandleDelegateFunction)
+void PacketManager::RegisterPacketComponent(const EPacketHandlingType InHandlingType)
+{
+    static_assert(std::is_base_of_v<PacketComponent, ComponentType>, "ComponentType must be derived from PacketComponent");
+    
+    RegisterAssociatedData<ComponentType>(InHandlingType);
+}
+
+template <typename ComponentType>
+void PacketManager::RegisterPacketComponent(const EPacketHandlingType InHandlingType, const std::function<void(const NetTarget&, const ComponentType&)>& InComponentHandleDelegateFunction)
 {
     static_assert(std::is_base_of_v<PacketComponent, ComponentType>, "ComponentType must be derived from PacketComponent");
     
@@ -139,7 +152,7 @@ void PacketManager::RegisterPacketComponent(const EPacketHandlingType InHandling
 }
 
 template<typename ComponentType, typename OwningObject>
-void PacketManager::RegisterPacketComponent(const EPacketHandlingType InHandlingType, const std::function<void(OwningObject*, const ComponentType&)>& InFunction, OwningObject* InOwnerObject)
+void PacketManager::RegisterPacketComponent(const EPacketHandlingType InHandlingType, const std::function<void(OwningObject*, const NetTarget&, const ComponentType&)>& InFunction, OwningObject* InOwnerObject)
 {
     static_assert(std::is_base_of_v<PacketComponent, ComponentType>, "ComponentType must be derived from PacketComponent");
 
@@ -179,6 +192,12 @@ void PacketManager::RegisterAssociatedData(const EPacketHandlingType InHandlingT
     
     PacketComponentAssociatedData associatedData;
     associatedData.handlingType = InHandlingType;
+
+    uint16_t identifier = componentDefaultObject.GetIdentifier();
+    if (packetComponentAssociatedData_.find(identifier) != packetComponentAssociatedData_.end())
+    {
+        throw std::runtime_error("Component with the same Identifier has already been registered!");
+    }
     
-    packetComponentAssociatedData_.emplace(componentDefaultObject.GetIdentifier(), associatedData);
+    packetComponentAssociatedData_.emplace(identifier, associatedData);
 }

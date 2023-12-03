@@ -7,26 +7,26 @@ class PacketComponent;
 class PacketComponentHandleDelegator
 {
 public:
-    void HandleComponent(const PacketComponent& InPacketComponent);
+    void HandleComponent(const NetTarget& InNetTarget, const PacketComponent& InPacketComponent);
 
     template<typename ComponentType>
-    void MapComponentHandleDelegate(const std::function<void(const ComponentType&)>& InFunction);
+    void MapComponentHandleDelegate(const std::function<void(const NetTarget&, const ComponentType&)>& InFunction);
 
     template <typename ComponentType, typename OwningObject>
-    void MapComponentHandleDelegateDynamic(const std::function<void(OwningObject*, const ComponentType&)>& InFunction, OwningObject* InOwner);
+    void MapComponentHandleDelegateDynamic(const std::function<void(OwningObject*,const NetTarget&,  const ComponentType&)>& InFunction, OwningObject* InOwner);
     
 private:
-    std::map<uint16_t, std::function<void(const PacketComponent&)>> delegates_;
+    std::map<uint16_t, std::function<void(const NetTarget&, const PacketComponent&)>> delegates_;
 };
 
 template <typename ComponentType>
-void PacketComponentHandleDelegator::MapComponentHandleDelegate(const std::function<void(const ComponentType&)>& InFunction)
+void PacketComponentHandleDelegator::MapComponentHandleDelegate(const std::function<void(const NetTarget&, const ComponentType&)>& InFunction)
 {
     static_assert(std::is_base_of_v<PacketComponent, ComponentType>, "ComponentType must be derived from PacketComponent");
     
     // Use a lambda function as a wrapper
-    auto wrapper = [InFunction](const PacketComponent& packetComponent) {
-        InFunction(static_cast<const ComponentType&>(packetComponent));
+    auto wrapper = [InFunction](const NetTarget& netTarget, const PacketComponent& packetComponent) {
+        InFunction(netTarget, static_cast<const ComponentType&>(packetComponent));
     };
 
     const ComponentType componentDefaultObject = ComponentType();
@@ -39,15 +39,15 @@ void PacketComponentHandleDelegator::MapComponentHandleDelegate(const std::funct
 }
 
 template <typename ComponentType, typename OwningObject>
-void PacketComponentHandleDelegator::MapComponentHandleDelegateDynamic(const std::function<void(OwningObject*, const ComponentType&)>& InFunction, OwningObject* InOwner)
+void PacketComponentHandleDelegator::MapComponentHandleDelegateDynamic(const std::function<void(OwningObject*, const NetTarget&, const ComponentType&)>& InFunction, OwningObject* InOwner)
 {
     static_assert(std::is_base_of_v<PacketComponent, ComponentType>, "ComponentType must be derived from PacketComponent");
 
     // Use a lambda function as a wrapper
-    const std::function<void(const PacketComponent&)>& function = 
-        [InOwner, InFunction](const PacketComponent& packetComponent) {
+    const std::function<void(const NetTarget&, const PacketComponent&)>& function = 
+        [InOwner, InFunction](const NetTarget& netTarget, const PacketComponent& packetComponent) {
             const ComponentType& component = static_cast<const ComponentType&>(packetComponent);
-            InFunction(InOwner, component);
+            InFunction(InOwner, netTarget, component);
     };
     
     MapComponentHandleDelegate<ComponentType>(function);

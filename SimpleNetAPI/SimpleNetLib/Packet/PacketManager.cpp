@@ -1,12 +1,16 @@
 ﻿#include "PacketManager.h"
 
+#include "../Events/EventSystem.h"
 #include "../Network/NetHandler.h"
+#include "CorePacketComponents/ServerConnect.hpp"
+#include "CorePacketComponents/ServerDisconnect.hpp"
 
 PacketManager* PacketManager::instance_ = nullptr;
 
 PacketManager::PacketManager(const ENetworkHandleType InPacketManagerType, const NetSettings& InNetSettings)
     : managerType_(InPacketManagerType), netHandler_(nullptr)
 {
+    RegisterDefaultPacketComponents();
 }
 
 PacketManager::~PacketManager()
@@ -63,10 +67,16 @@ void PacketManager::FixedUpdate()
 
 void PacketManager::OnNetTargetConnected(const NetTarget& InTarget)
 {
-    
+    EventSystem::Get()->onClientConnectEvent.Execute(InTarget);
 }
 
 void PacketManager::OnNetTargetDisconnection(const NetTarget& InTarget, const ENetDisconnectType InDisconnectType)
 {
-    
+    EventSystem::Get()->onClientDisconnectEvent.Execute(InTarget, InDisconnectType);
+}
+
+void PacketManager::RegisterDefaultPacketComponents()
+{
+    RegisterPacketComponent<ServerConnectPacketComponent, NetHandler>(EPacketHandlingType::Ack, &NetHandler::OnChildConnectionReceived, netHandler_);
+    RegisterPacketComponent<ServerDisconnectPacketComponent, NetHandler>(EPacketHandlingType::Ack, &NetHandler::OnChildDisconnectReceived, netHandler_);
 }

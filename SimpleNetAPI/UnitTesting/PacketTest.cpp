@@ -1,6 +1,8 @@
-﻿#include "../SimpleNetLib/Packet/Packet.h"
+﻿#include "../SimpleNetLib/SimpleNetCore.h"
+#include "../SimpleNetLib/Packet/Packet.h"
 #include "../SimpleNetLib/Packet/PacketComponent.h"
 #include "../SimpleNetLib/Delegates/PacketComponentHandleDelegator.h"
+#include "../SimpleNetLib/Events/EventSystem.h"
 #include "../SimpleNetLib/Packet/PacketManager.h"
 #include "gtest/gtest.h"
 
@@ -46,13 +48,13 @@ TEST(PacketTests, PacketCreation)
     }
 }
 
-void TestComponentFunction(const TestComponent& InPacketComponent)
+void TestComponentFunction(const NetTarget& InNetTarget, const TestComponent& InPacketComponent)
 {
     EXPECT_EQ(InPacketComponent.integerValue, 20);
     std::cout << InPacketComponent.integerValue << std::endl;
 }
 
-void InvalidComponentFunction(const InvalidComponent& InPacketComponent)
+void InvalidComponentFunction(const NetTarget& InNetTarget, const InvalidComponent& InPacketComponent)
 {
     
 }
@@ -100,7 +102,7 @@ TEST(PacketDelegateTests, HandleDelegate)
     
     delegator.MapComponentHandleDelegate<TestComponent>(&TestComponentFunction);
 
-    delegator.HandleComponent(component);
+    delegator.HandleComponent(NetTarget(), component);
 }
 
 class DynamicDelegateHandleClass
@@ -108,17 +110,25 @@ class DynamicDelegateHandleClass
 public:
     int testInt = 0;
     
-    void TestComponentFunction(const TestComponent& InPacketComponent)
+    void TestComponentFunction(const NetTarget& InNetTarget, const TestComponent& InPacketComponent)
     {
         EXPECT_EQ(InPacketComponent.integerValue, 20);
         EXPECT_EQ(testInt, 30);
         std::cout << InPacketComponent.integerValue << std::endl;
         std::cout << testInt << std::endl;
     }
+
+    void OnConnectEvent(const NetTarget& InNetTarget)
+    {
+        
+    }
 };
 
 TEST(PacketDelegateTests, DynamicHandleDelegate)
 {
+    const NetSettings settings; // Left empty acting as server with no parent server
+    SimpleNetCore* netCore = SimpleNetCore::Initialize(ENetworkHandleType::Client, settings);
+    
     PacketComponentHandleDelegator delegator;
 
     DynamicDelegateHandleClass delegateOwner;
@@ -129,7 +139,11 @@ TEST(PacketDelegateTests, DynamicHandleDelegate)
     
     delegator.MapComponentHandleDelegateDynamic<TestComponent, DynamicDelegateHandleClass>(&DynamicDelegateHandleClass::TestComponentFunction, &delegateOwner);
 
-    delegator.HandleComponent(component);
+    delegator.HandleComponent(NetTarget(), component);
+
+    EventSystem::Get()->onClientConnectEvent.AddDynamic<DynamicDelegateHandleClass>(std::make_shared<DynamicDelegateHandleClass>(delegateOwner), &DynamicDelegateHandleClass::OnConnectEvent);
+    
+    PacketManager::End();
 }
 
 TEST(PacketTests, SendPacket)

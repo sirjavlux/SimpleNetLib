@@ -4,9 +4,10 @@
 #include <thread>
 
 #include "../Packet/PacketManager.h"
+#include "../Packet/CorePacketComponents/ServerConnect.hpp"
 
 NetHandler::NetHandler(const NetSettings& InNetSettings) : netSettings_(InNetSettings),
-    bIsServer_(PacketManager::Get()->GetManagerType() == ENetworkHandleType::Server)
+                                                           bIsServer_(PacketManager::Get()->GetManagerType() == ENetworkHandleType::Server)
 {
     #ifdef _WIN32
     if (InitializeWin32())
@@ -153,9 +154,18 @@ bool NetHandler::InitializeWin32()
         }
     }
 
+    if (!bHasParentServer_ && !bIsServer_)
+    {
+        std::cerr << "Needs parent server connection if not setup as server!" << std::endl;
+        closesocket(udpSocket_);
+        WSACleanup();
+        return false;
+    }
+    
     // Send Join Packet
     if (!bIsServer_)
     {
+        
         //TODO: Needs Connection PacketComponent to send to parent server
     }
     
@@ -238,16 +248,21 @@ void NetHandler::UpdateNetTarget(const sockaddr_storage& InAddress)
     }
 }
 
-void NetHandler::HandleNewChildNetConnection(const sockaddr_storage& InAddress)
+void NetHandler::OnChildDisconnectReceived(const NetTarget& InNetTarget, const ServerDisconnectPacketComponent& InComponent)
 {
-    // TODO: Core packet component needed to call this
-    
-    if (!IsConnected(InAddress))
+    if (IsConnected(InNetTarget.address))
     {
-        const NetTarget netTarget(InAddress);
-        childConnections_.push_back(netTarget);
+        KickNetTarget(InNetTarget.address, ENetDisconnectType::Disconnected);
+    }
+}
 
-        PacketManager::Get()->OnNetTargetConnected(netTarget);
+void NetHandler::OnChildConnectionReceived(const NetTarget& InNetTarget, const ServerConnectPacketComponent& InComponent)
+{
+    if (!IsConnected(InNetTarget.address))
+    {
+        childConnections_.push_back(InNetTarget);
+
+        PacketManager::Get()->OnNetTargetConnected(InNetTarget);
     }
 }
 
@@ -285,7 +300,5 @@ void NetHandler::KickNetTarget(const sockaddr_storage& InAddress, const ENetDisc
     {
         PacketManager::Get()->OnNetTargetDisconnection(*outNetTarget, InKickReason);
         childConnections_.erase(std::find(childConnections_.begin(), childConnections_.end(), *outNetTarget));
-        
-        // TODO: Core packet component needed
     }
 }

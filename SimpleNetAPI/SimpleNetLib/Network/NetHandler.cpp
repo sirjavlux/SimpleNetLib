@@ -62,18 +62,18 @@ bool NetHandler::InitializeWin32()
     #ifdef _WIN32
     if (WSAStartup(MAKEWORD(2, 2), &wsaData_) != 0)
     {
-        std::cerr << " FAIL!" << std::endl;
-        std::cerr << "Error: " << WSAGetLastError() << std::endl;
+        std::cerr << " FAIL!" << '\n';
+        std::cerr << "Error: " << WSAGetLastError() << '\n';
         return false;
     }
     #endif
-    std::cout << "OK!" << std::endl;
+    std::cout << "OK!" << '\n';
 
     udpSocket_ = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     if (udpSocket_ == INVALID_SOCKET)
     {
-        std::cerr << "Failed to create udpSocket." << std::endl;
-        std::cerr << "Error: " << WSAGetLastError() << std::endl;
+        std::cerr << "Failed to create udpSocket." << '\n';
+        std::cerr << "Error: " << WSAGetLastError() << '\n';
         closesocket(udpSocket_);
         WSACleanup();
         return false;
@@ -88,7 +88,7 @@ bool NetHandler::InitializeWin32()
         
         if (InetPton(AF_INET, netSettings_.parentServerAddress, &connectedParentServerAddress_.sin_addr.s_addr) != 1)
         {
-            std::cerr << "Parent server address and port was invalid!" << std::endl;
+            std::cerr << "Parent server address and port was invalid!" << '\n';
             bHasParentServer_ = false;
         }
     }
@@ -101,8 +101,8 @@ bool NetHandler::InitializeWin32()
         
         if (InetPton(AF_INET, netSettings_.serverAddress, &address_.sin_addr.s_addr) != 1)
         {
-            std::cerr << "Address and port was invalid!" << std::endl;
-            std::cerr << "Error: " << WSAGetLastError() << std::endl;
+            std::cerr << "Address and port was invalid!" << '\n';
+            std::cerr << "Error: " << WSAGetLastError() << '\n';
             closesocket(udpSocket_);
             WSACleanup();
             return false;
@@ -135,8 +135,8 @@ bool NetHandler::InitializeWin32()
     // Bind socket
     if (bind(udpSocket_, reinterpret_cast<sockaddr*>(&address_), sizeof address_) == SOCKET_ERROR)
     {
-        std::cerr << "Failed to bind socket." << std::endl;
-        std::cerr << "Error: " << WSAGetLastError() << std::endl;
+        std::cerr << "Failed to bind socket." << '\n';
+        std::cerr << "Error: " << WSAGetLastError() << '\n';
         closesocket(udpSocket_);
         WSACleanup();
         return false;
@@ -147,7 +147,7 @@ bool NetHandler::InitializeWin32()
         // Listen for incoming connections
         if (listen(udpSocket_, SOMAXCONN) == SOCKET_ERROR)
         {
-            std::cerr << "Listen failed with error: " << WSAGetLastError() << std::endl;
+            std::cerr << "Listen failed with error: " << WSAGetLastError() << '\n';
             closesocket(udpSocket_);
             WSACleanup();
             return false;
@@ -156,7 +156,7 @@ bool NetHandler::InitializeWin32()
 
     if (!bHasParentServer_ && !bIsServer_)
     {
-        std::cerr << "Needs parent server connection if not setup as server!" << std::endl;
+        std::cerr << "Needs parent server connection if not setup as server!" << '\n';
         closesocket(udpSocket_);
         WSACleanup();
         return false;
@@ -232,7 +232,7 @@ void NetHandler::PacketListener(NetHandler* InNetHandler)
     }
 }
 
-void NetHandler::ProcessPackets(const char* buffer, int bytesReceived)
+void NetHandler::ProcessPackets(const char* buffer, const int bytesReceived)
 {
     // TODO: Packet processing, acks, ack returns, statistics, etc...
 }

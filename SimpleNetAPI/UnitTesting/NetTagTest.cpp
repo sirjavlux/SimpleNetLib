@@ -1,5 +1,6 @@
-﻿#include "../SimpleNetLib/Utility/NetTag.h"
-#include "gtest/gtest.h"
+﻿#include "gtest/gtest.h"
+
+#include "../SimpleNetLib/Utility/NetTag.h"
 
 TEST(InitializationAndDeletion, NetTagTest)
 {
@@ -21,5 +22,5 @@ TEST(InitializationAndDeletion, NetTagTest)
        EXPECT_TRUE(!invalidTag.IsValid());
    }
    
-   std::cout << oldTag.ToCStr() << std::endl;
+   std::cout << oldTag.ToCStr() << '\n';
 }

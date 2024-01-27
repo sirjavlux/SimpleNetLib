@@ -1,10 +1,11 @@
-﻿#include "../SimpleNetLib/SimpleNetCore.h"
+﻿#include "gtest/gtest.h"
+
+#include "../SimpleNetLib/SimpleNetCore.h"
 #include "../SimpleNetLib/Packet/Packet.h"
 #include "../SimpleNetLib/Packet/PacketComponent.h"
 #include "../SimpleNetLib/Delegates/PacketComponentHandleDelegator.h"
 #include "../SimpleNetLib/Events/EventSystem.h"
 #include "../SimpleNetLib/Packet/PacketManager.h"
-#include "gtest/gtest.h"
 
 class TestComponent : public PacketComponent
 {

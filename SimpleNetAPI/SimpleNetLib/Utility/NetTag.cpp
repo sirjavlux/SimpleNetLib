@@ -7,7 +7,7 @@ const char* NetTag::ToCStr() const
 
 std::string NetTag::ToStr() const
 {
-	return std::string { ToCStr(), size_ };
+	return std::string { ToCStr(), static_cast<unsigned long>(size_) };
 }
 
 bool NetTag::IsValid() const

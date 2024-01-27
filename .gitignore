@@ -35,6 +35,11 @@
 **.obj
 Local/
 
+*.pdb
+*.exp
+*.idb
+*.sln
+
 Bin/*.exe
 Bin/*.pdb
 Bin/*.ilk

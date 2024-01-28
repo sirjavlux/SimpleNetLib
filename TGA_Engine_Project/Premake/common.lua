@@ -20,7 +20,8 @@ dirs["settings"]		= os.realpath(dirs.root .. "Bin/settings/")
 dirs["engine_assets"] 	= os.realpath(dirs.root .. "EngineAssets/")
 dirs["proxyserver"]     = os.realpath(dirs.root .. "Source/ProxyServer/")
 dirs["clientsimulation"]= os.realpath(dirs.root .. "Source/ClientSimulation/")
-dirs["simplenetapi"]	= os.realpath(dirs.root .. "../SimpleNetAPI/SimpleNetAPI/")
+dirs["simplenetlib"]	= os.realpath(dirs.root .. "../SimpleNetLib/SimpleNetLib/")
+dirs["simplenetlib_lib"]= os.realpath(dirs.root .. "../SimpleNetLib/Lib")
 
 dirs["shaders"]	= {}
 dirs.shaders["absolute"] = os.realpath(dirs.root .. "Bin/Shaders/")

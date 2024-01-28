@@ -52,13 +52,13 @@ void Go()
 	
 	{
 		Client client;
-		//client.Init();
+		client.Init();
 
 		Tga::Engine* engine = Tga::Engine::GetInstance();
 
-		while (engine->BeginFrame()) {
-			/*float fixedFPS = 1.f / 60.f;*/
-			//client.Update(/*fixedFPS*/ engine->GetDeltaTime());
+		while (engine->BeginFrame())
+		{
+			client.Update(engine->GetDeltaTime());
 
 			engine->EndFrame();
 		}

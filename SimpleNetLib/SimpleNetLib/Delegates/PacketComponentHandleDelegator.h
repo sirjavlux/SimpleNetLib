@@ -25,8 +25,8 @@ void PacketComponentHandleDelegator::MapComponentHandleDelegate(const std::funct
     static_assert(std::is_base_of_v<PacketComponent, ComponentType>, "ComponentType must be derived from PacketComponent");
     
     // Use a lambda function as a wrapper
-    auto wrapper = [InFunction](const NetTarget& netTarget, const PacketComponent& packetComponent) {
-        InFunction(netTarget, static_cast<const ComponentType&>(packetComponent));
+    auto wrapper = [InFunction](const NetTarget& NetTarget, const PacketComponent& PacketComponent) {
+        InFunction(NetTarget, static_cast<const ComponentType&>(PacketComponent));
     };
 
     const ComponentType componentDefaultObject = ComponentType();
@@ -45,9 +45,9 @@ void PacketComponentHandleDelegator::MapComponentHandleDelegateDynamic(const std
 
     // Use a lambda function as a wrapper
     const std::function<void(const NetTarget&, const PacketComponent&)>& function = 
-        [InOwner, InFunction](const NetTarget& netTarget, const PacketComponent& packetComponent) {
-            const ComponentType& component = static_cast<const ComponentType&>(packetComponent);
-            InFunction(InOwner, netTarget, component);
+        [InOwner, InFunction](const NetTarget& NetTarget, const PacketComponent& PacketComponent) {
+            const ComponentType& component = static_cast<const ComponentType&>(PacketComponent);
+            InFunction(InOwner, NetTarget, component);
     };
     
     MapComponentHandleDelegate<ComponentType>(function);

@@ -4,9 +4,9 @@
 #include "../SimpleNetLib/Packet/PacketComponent.h"
 #include "../SimpleNetLib/Packet/PacketManager.h"
 
-int main(int argc, char** argv)
+int main(int Argc, char** Argv)
 {
-    testing::InitGoogleTest(&argc, argv);
+    testing::InitGoogleTest(&Argc, Argv);
 
     return RUN_ALL_TESTS();
 }

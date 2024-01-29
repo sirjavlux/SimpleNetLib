@@ -231,7 +231,7 @@ void NetHandler::PacketListener(NetHandler* InNetHandler)
     }
 }
 
-void NetHandler::ProcessPackets(const char* buffer, const int bytesReceived)
+void NetHandler::ProcessPackets(const char* Buffer, const int BytesReceived)
 {
     // TODO: Packet processing, acks, ack returns, statistics, etc...
 }

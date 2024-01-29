@@ -29,7 +29,7 @@ private:
 
     static void PacketListener(NetHandler* InNetHandler);
     
-    void ProcessPackets(const char* buffer, const int bytesReceived);
+    void ProcessPackets(const char* Buffer, const int BytesReceived);
 
     void UpdateNetTarget(const sockaddr_storage& InAddress);
 

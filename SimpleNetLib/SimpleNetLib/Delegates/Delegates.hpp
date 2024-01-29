@@ -9,24 +9,24 @@ public:
     template<typename OwningObjectType>
     void AddDynamic(const std::shared_ptr<OwningObjectType>& InOwnerObject, const std::function<void(OwningObjectType*, Args...)>& InFunction)
     {
-        delegates_.emplace_back(InOwnerObject, [InFunction](void* obj, Args... args) {
-            InFunction(static_cast<OwningObjectType*>(obj), std::forward<Args>(args)...);
+        delegates_.emplace_back(InOwnerObject, [InFunction](void* InObj, Args... InArgs) {
+            InFunction(static_cast<OwningObjectType*>(InObj), std::forward<Args>(InArgs)...);
         });
     }
 
     template<typename OwningObjectType>
     void RemoveDynamic(const OwningObjectType* InOwnerObject, const std::function<void(OwningObjectType*, Args...)>& InFunction)
     {
-        auto compFunc = [InFunction](const DelegateEntry& entry) -> bool {
-            auto storedFunc = entry.function.template target<void(OwningObjectType*, Args...)>();
+        auto compFunc = [InFunction](const DelegateEntry& Entry) -> bool {
+            auto storedFunc = Entry.function.template target<void(OwningObjectType*, Args...)>();
             auto inputFuncTarget = InFunction.template target<void(OwningObjectType*, Args...)>();
             return storedFunc && inputFuncTarget && *storedFunc == *inputFuncTarget;
         };
 
         auto it = std::remove_if(delegates_.begin(), delegates_.end(),
-            [=](const DelegateEntry& entry) {
-                auto owner = entry.ownerObject.lock();
-                return owner.get() == InOwnerObject && compFunc(entry);
+            [=](const DelegateEntry& Entry) {
+                auto owner = Entry.ownerObject.lock();
+                return owner.get() == InOwnerObject && compFunc(Entry);
             });
 
         delegates_.erase(it, delegates_.end());
@@ -60,13 +60,13 @@ private:
         std::weak_ptr<void> ownerObject;
         std::function<void(void*, Args...)> function;
 
-        DelegateEntry(const std::shared_ptr<void>& owner, const std::function<void(void*, Args...)>& func)
-            : ownerObject(owner), function(func) {}
+        DelegateEntry(const std::shared_ptr<void>& Owner, const std::function<void(void*, Args...)>& Func)
+            : ownerObject(Owner), function(Func) {}
 
         bool operator==(const DelegateEntry& InComp)
         {
             return ownerObject.lock().get() == InComp.ownerObject.lock().get()
-                && function == InComp.function;
+                && function == InComp.ownerObject;
         }
     };
     
@@ -96,8 +96,8 @@ public:
     template<typename OwningObjectType>
     void Bind(const std::shared_ptr<OwningObjectType>& InOwnerObject, const std::function<void(OwningObjectType*, Args...)>& InFunction)
     {
-        function_ = [InFunction](void* obj, Args... args) {
-            InFunction(static_cast<OwningObjectType*>(obj), std::forward<Args>(args)...);
+        function_ = [InFunction](void* Obj, Args... InArgs) {
+            InFunction(static_cast<OwningObjectType*>(Obj), std::forward<Args>(InArgs)...);
         };
         
         ownerObject_ = InOwnerObject;

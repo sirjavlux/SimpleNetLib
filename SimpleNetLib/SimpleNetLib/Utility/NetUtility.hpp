@@ -1,7 +1,5 @@
 ﻿#pragma once
 
-#include "../NetIncludes.h"
-
 namespace Net
 {
     inline sockaddr_in RetrieveIPv4AddressFromStorage(const sockaddr_storage& InAddress)

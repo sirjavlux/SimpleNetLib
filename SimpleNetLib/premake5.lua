@@ -12,7 +12,7 @@ workspace "SimpleNetLib"
 		"Release",
 		"Retail"
 	}
-
+   
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
 include (dirs.simple_net_lib)

@@ -5,6 +5,7 @@
 #include "Packet.h"
 #include "PacketComponent.h"
 #include "../Delegates/PacketComponentHandleDelegator.h"
+#include "../Network/NetHandler.h"
 
 class NetHandler;
 enum class EPacketHandlingType : uint8_t;
@@ -126,8 +127,9 @@ bool PacketManager::SendPacketComponent(const ComponentType& InPacketComponent, 
 
     if (relevantPacket.AddComponent(packetComponent) == EAddComponentResult::SizeOutOfBounds)
     {
-        // TODO: Pre-send packet and clear...
-
+        netHandler_->SendPacketToTarget(InTarget, relevantPacket);
+        relevantPacket.Reset(); // Important to reset packet data
+        
         // Try adding component again
         relevantPacket.AddComponent(packetComponent);
     }

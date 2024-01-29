@@ -45,6 +45,12 @@ void Packet::GetComponents(std::vector<PacketComponent*>& OutComponents)
     int iterator = 0;
     ExtractComponent(OutComponents, iterator);
 }
+void Packet::Reset()
+{
+    GenerateIdentifier();
+    SecureZeroMemory(data_, sizeof(data_));
+    packetDataIter_ = 0;
+}
 
 void Packet::ExtractComponent(std::vector<PacketComponent*>& OutComponents, int& Iterator)
 {

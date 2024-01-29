@@ -4,6 +4,7 @@
 #include <thread>
 
 #include "../Packet/PacketManager.h"
+#include "../Packet/CorePacketComponents/ServerConnect.hpp"
 
 NetHandler::NetHandler(const NetSettings& InNetSettings) : netSettings_(InNetSettings),
     bIsServer_(PacketManager::Get()->GetManagerType() == ENetworkHandleType::Server)
@@ -35,6 +36,8 @@ NetHandler::~NetHandler()
 void NetHandler::SendPacketToTarget(const NetTarget& InTarget, const Packet& InPacket)
 {
     // TODO: Handle this
+
+    // Final step of sending packet to target
 }
 
 bool NetHandler::RetrieveChildConnectionNetTargetInstance(const sockaddr_storage& InAddress, NetTarget*& OutNetTarget)
@@ -113,11 +116,11 @@ bool NetHandler::InitializeWin32()
         address_.sin_addr.s_addr = INADDR_ANY;
         address_.sin_port = htons(0); // Bind to any available port
     }
-    
+
     // 1 for non-blocking, 0 for blocking
     u_long iMode = 1;
     ioctlsocket(udpSocket_, FIONBIO, &iMode);
-
+    
     BOOL bNewBehavior = FALSE;
     DWORD dwBytesReturned = 0;
     WSAIoctl(
@@ -141,6 +144,8 @@ bool NetHandler::InitializeWin32()
         return false;
     }
 
+    // TODO: This might be redundant when using UDP
+    /*
     if (bHasParentServer_)
     {
         // Listen for incoming connections
@@ -152,7 +157,8 @@ bool NetHandler::InitializeWin32()
             return false;
         }
     }
-
+    */
+    
     if (!bHasParentServer_ && !bIsServer_)
     {
         std::cerr << "Needs parent server connection if not setup as server!" << '\n';
@@ -164,8 +170,10 @@ bool NetHandler::InitializeWin32()
     // Send Join Packet
     if (!bIsServer_)
     {
-        
-        //TODO: Needs Connection PacketComponent to send to parent server
+        parentConnection_ = NetTarget(Net::RetrieveStorageFromIPv4Address(connectedParentServerAddress_));
+
+        const ServerConnectPacketComponent connectComponent;
+        PacketManager::Get()->SendPacketComponent<ServerConnectPacketComponent>(connectComponent, parentConnection_);
     }
     
     return true;
@@ -234,6 +242,7 @@ void NetHandler::PacketListener(NetHandler* InNetHandler)
 void NetHandler::ProcessPackets(const char* Buffer, const int BytesReceived)
 {
     // TODO: Packet processing, acks, ack returns, statistics, etc...
+    std::cout << "Got Packet!\n";
 }
 
 void NetHandler::UpdateNetTarget(const sockaddr_storage& InAddress)

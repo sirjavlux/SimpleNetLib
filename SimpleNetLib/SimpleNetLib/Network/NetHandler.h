@@ -46,7 +46,8 @@ private:
     // Can be used by server as proxy connection
     sockaddr_in connectedParentServerAddress_;
     sockaddr_in address_;
-    
+
+    NetTarget parentConnection_;
     std::vector<NetTarget> childConnections_;
     
     NetSettings netSettings_;

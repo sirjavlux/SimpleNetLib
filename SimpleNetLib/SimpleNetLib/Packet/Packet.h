@@ -43,6 +43,8 @@ public:
     EAddComponentResult AddComponent(const PacketComponent& InPacketComponent);
     
     void GetComponents(std::vector<PacketComponent*>& OutComponents);
+
+    void Reset();
     
 private:
     void ExtractComponent(std::vector<PacketComponent*>& OutComponents, int& Iterator);

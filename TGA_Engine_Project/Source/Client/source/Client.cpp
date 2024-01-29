@@ -16,8 +16,11 @@ Client::~Client()
 
 void Client::Init()
 {
-    const NetSettings netSettings; // Use default settings for now with local address and default port as 42000
-    SimpleNetCore::Initialize(ENetworkHandleType::Server, netSettings);
+    NetSettings netSettings; // Keep everything at default and local for testing
+    netSettings.parentServerAddress = DEFAULT_SERVER_ADDRESS;
+    netSettings.parentServerPort = DEFAULT_SERVER_PORT;
+    
+    SimpleNetCore::Initialize(ENetworkHandleType::Client, netSettings);
 }
 
 void Client::End()

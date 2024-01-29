@@ -2,6 +2,14 @@
 
 namespace Net
 {
+    inline sockaddr_storage RetrieveStorageFromIPv4Address(const sockaddr_in& InAddress)
+    {
+        sockaddr_storage sockAddrStorage = {};
+        std::memcpy(&sockAddrStorage, &InAddress, sizeof(InAddress));
+        
+        return sockAddrStorage;
+    }
+
     inline sockaddr_in RetrieveIPv4AddressFromStorage(const sockaddr_storage& InAddress)
     {
         assert(InAddress.ss_family == AF_INET);

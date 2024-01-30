@@ -5,12 +5,12 @@
 class NET_LIB_EXPORT KickedFromServerPacketComponent : public PacketComponent
 {
 public:
-    KickedFromServerPacketComponent(const ENetDisconnectType InDisconnectType);
+    explicit KickedFromServerPacketComponent();
 
     ENetDisconnectType disconnectType;
 };
 
-inline KickedFromServerPacketComponent::KickedFromServerPacketComponent(const ENetDisconnectType InDisconnectType)
+inline KickedFromServerPacketComponent::KickedFromServerPacketComponent()
     : PacketComponent(static_cast<int16_t>(EPacketComponent::KickedFromServer), sizeof(KickedFromServerPacketComponent)),
-    disconnectType(InDisconnectType)
-{ }
+    disconnectType()
+{}

@@ -19,7 +19,8 @@ public:
 
     bool IsServer() const { return bIsServer_; }
 
-    void SendPacketToTarget(const NetTarget& InTarget, const Packet& InPacket);
+    void SendPacketToTargetAndResetPacket(const NetTarget& InTarget, Packet& InPacket) const;
+    void SendPacketToTarget(const NetTarget& InTarget, const Packet& InPacket) const;
     
     bool RetrieveChildConnectionNetTargetInstance(const sockaddr_storage& InAddress, NetTarget*& OutNetTarget);
     bool IsConnected(const sockaddr_storage& InAddress);

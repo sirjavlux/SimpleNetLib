@@ -12,6 +12,10 @@ bool Packet::IsValid() const
 {
     return packetIdentifier_ > INT32_MIN;
 }
+bool Packet::IsEmpty() const
+{
+    return data_[0] == '\0';
+}
 
 int32_t Packet::GenerateIdentifier()
 {

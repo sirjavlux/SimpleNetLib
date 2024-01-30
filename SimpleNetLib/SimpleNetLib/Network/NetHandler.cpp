@@ -33,11 +33,19 @@ NetHandler::~NetHandler()
     #endif
 }
 
-void NetHandler::SendPacketToTarget(const NetTarget& InTarget, const Packet& InPacket)
+void NetHandler::SendPacketToTargetAndResetPacket(const NetTarget& InTarget, Packet& InPacket) const
 {
-    // TODO: Handle this
+    SendPacketToTarget(InTarget, InPacket);
+    InPacket.Reset();
+}
 
-    // Final step of sending packet to target
+void NetHandler::SendPacketToTarget(const NetTarget& InTarget, const Packet& InPacket) const
+{
+    const sockaddr_in targetAddress = Net::RetrieveIPv4AddressFromStorage(InTarget.address);
+    if (sendto(udpSocket_, InPacket.GetData(), NET_BUFFER_SIZE_TOTAL, 0, reinterpret_cast<const sockaddr*>(&targetAddress), sizeof(targetAddress)) == SOCKET_ERROR)
+    {
+        std::cout << "Error: " << WSAGetLastError() << '\n';
+    }
 }
 
 bool NetHandler::RetrieveChildConnectionNetTargetInstance(const sockaddr_storage& InAddress, NetTarget*& OutNetTarget)
@@ -60,7 +68,7 @@ bool NetHandler::IsConnected(const sockaddr_storage& InAddress)
 bool NetHandler::InitializeWin32()
 {
     // Initialize Winsock on Windows
-    std::cout << "Starting Winsock...";
+    std::cout << "\nStarting Winsock...\n";
     #ifdef _WIN32
     if (WSAStartup(MAKEWORD(2, 2), &wsaData_) != 0)
     {
@@ -174,6 +182,8 @@ bool NetHandler::InitializeWin32()
 
         const ServerConnectPacketComponent connectComponent;
         PacketManager::Get()->SendPacketComponent<ServerConnectPacketComponent>(connectComponent, parentConnection_);
+
+        std::cout << "Sending join packet!\n";
     }
     
     return true;
@@ -183,55 +193,30 @@ void NetHandler::PacketListener(NetHandler* InNetHandler)
 {
     while(InNetHandler->bIsRunning_)
     {
-        fd_set readSet;
-        FD_ZERO(&readSet);
-        FD_SET(InNetHandler->udpSocket_, &readSet);
+        sockaddr_storage senderAddress;
+        int senderAddressSize = sizeof(senderAddress);
 
-        // Set a timeout for select if desired
-        timeval timeout;
-        timeout.tv_sec = 0;  // Set seconds
-        timeout.tv_usec = 1000 * 1000; // Set microseconds
+        char buffer[NET_BUFFER_SIZE_TOTAL];
+        const int bytesReceived = recvfrom(InNetHandler->udpSocket_, buffer, sizeof(buffer), 0,
+        reinterpret_cast<sockaddr*>(&senderAddress), &senderAddressSize);
 
-        // Use select to check for readability of the socket
-        const int result = select(0, &readSet, nullptr, nullptr, &timeout);
-        if (result == SOCKET_ERROR)
+        if (bytesReceived > 0)
         {
-            std::cerr << "select failed with error: " << WSAGetLastError() << "\n";
-            return;
+            InNetHandler->ProcessPackets(buffer, bytesReceived);
+            InNetHandler->UpdateNetTarget(senderAddress);
         }
-        
-        if (result > 0 && FD_ISSET(InNetHandler->udpSocket_, &readSet))
+        else if (bytesReceived == 0)
         {
-            sockaddr_storage senderAddress;
-            int senderAddressSize = sizeof(senderAddress);
-
-            const SOCKET senderSocket = accept(InNetHandler->udpSocket_, reinterpret_cast<sockaddr*>(&senderAddress), &senderAddressSize);
-            if (senderSocket == INVALID_SOCKET)
-            {
-                std::cerr << "Accept failed with error: " << WSAGetLastError() << "\n";
-                return;
-            }
-
-            // Receive data from the client
-            char buffer[NET_BUFFER_SIZE_TOTAL];
-            const int bytesReceived = recv(senderSocket, buffer, sizeof(buffer), 0);
-            if (bytesReceived > 0)
-            {
-                InNetHandler->ProcessPackets(buffer, bytesReceived);
-                InNetHandler->UpdateNetTarget(senderAddress);
-            }
-            else if (bytesReceived == 0)
-            {
-                InNetHandler->KickNetTarget(senderAddress, ENetDisconnectType::ConnectionClosed);
-                std::cerr << "Connection closed by peer.\n";
-            }
-            else
+            InNetHandler->KickNetTarget(senderAddress, ENetDisconnectType::ConnectionClosed);
+            std::cerr << "Connection closed by peer.\n";
+        }
+        else if (bytesReceived == SOCKET_ERROR)
+        {
+            if (const int errorCode = WSAGetLastError(); errorCode != WSAEWOULDBLOCK)
             {
                 std::cerr << "Receive failed with error: " << WSAGetLastError() << "\n";
                 return;
             }
-        
-            closesocket(senderSocket);
         }
 
         // Do other logic...
@@ -248,9 +233,8 @@ void NetHandler::ProcessPackets(const char* Buffer, const int BytesReceived)
 void NetHandler::UpdateNetTarget(const sockaddr_storage& InAddress)
 {
     using namespace std::chrono;
-    
-    NetTarget* outNetTarget;
-    if (RetrieveChildConnectionNetTargetInstance(InAddress, outNetTarget))
+
+    if (NetTarget* outNetTarget; RetrieveChildConnectionNetTargetInstance(InAddress, outNetTarget))
     {
         outNetTarget->lastTimeReceivedNetEvent = steady_clock::now();
     }

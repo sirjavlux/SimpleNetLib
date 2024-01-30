@@ -8,7 +8,8 @@ enum class NET_LIB_EXPORT EPacketHandlingType : uint8_t
 {
     None		= 0,
     Ack			= 1,
-    AckReturn	= 2,
+    
+    Size        = 3
 };
 
 /*
@@ -39,19 +40,26 @@ public:
     Packet(EPacketHandlingType InPacketHandlingType);
 
     bool IsValid() const;
+    bool IsEmpty() const;
     
     EAddComponentResult AddComponent(const PacketComponent& InPacketComponent);
     
     void GetComponents(std::vector<PacketComponent*>& OutComponents);
 
     void Reset();
+
+    const char* GetData() const { return &data_[0]; }
+
+    uint16_t GetIdentifier() const { return packetDataIter_; }
+
+    EPacketHandlingType GetPacketType() const { return packetHandlingType_; }
     
 private:
     void ExtractComponent(std::vector<PacketComponent*>& OutComponents, int& Iterator);
     
     EPacketHandlingType packetHandlingType_ = EPacketHandlingType::None;
     
-    int8_t data_[NET_BUFFER_SIZE_TOTAL];
+    char data_[NET_BUFFER_SIZE_TOTAL];
 
     int32_t packetIdentifier_ = INT32_MIN;
     

@@ -2,6 +2,7 @@
 
 #include "../Events/EventSystem.h"
 #include "../Network/NetHandler.h"
+#include "CorePacketComponents/ReturnAckComponent.hpp"
 #include "CorePacketComponents/ServerConnect.hpp"
 #include "CorePacketComponents/ServerDisconnect.hpp"
 
@@ -62,7 +63,25 @@ void PacketManager::Update()
 
 void PacketManager::FixedUpdate()
 {
-    
+    for (std::pair<const NetTarget, PacketTargetData>& packetTargetPair : packetTargetDataMap_)
+    {
+        const NetTarget& target = packetTargetPair.first;
+        PacketTargetData& targetData = packetTargetPair.second;
+        
+        // Regular Packets
+        if (Packet& packet = targetData.GetPacketByHandlingType(EPacketHandlingType::None); !packet.IsEmpty())
+        {
+            netHandler_->SendPacketToTargetAndResetPacket(target, packet);
+        }
+
+        // Packets not returned
+        targetData.PushAckPacketIfContainingData();
+        const std::map<uint16_t, Packet>& packetsNotReturned = targetData.GetPacketsNotReturned();
+        for (const std::pair<const uint16_t, Packet>& packetIdentifierPair : packetsNotReturned)
+        {
+            netHandler_->SendPacketToTarget(target, packetIdentifierPair.second);
+        }
+    }
 }
 
 void PacketManager::OnNetTargetConnected(const NetTarget& InTarget)
@@ -75,8 +94,14 @@ void PacketManager::OnNetTargetDisconnection(const NetTarget& InTarget, const EN
     EventSystem::Get()->onClientDisconnectEvent.Execute(InTarget, InDisconnectType);
 }
 
+void PacketManager::OnAckReturnReceived(const NetTarget& InNetTarget, const ReturnAckComponent& InComponent)
+{
+    packetTargetDataMap_.at(InNetTarget).RemoveReturnedPacket(InComponent.ackIdentifier);
+}
+
 void PacketManager::RegisterDefaultPacketComponents()
 {
     RegisterPacketComponent<ServerConnectPacketComponent, NetHandler>(EPacketHandlingType::Ack, &NetHandler::OnChildConnectionReceived, netHandler_);
     RegisterPacketComponent<ServerDisconnectPacketComponent, NetHandler>(EPacketHandlingType::Ack, &NetHandler::OnChildDisconnectReceived, netHandler_);
+    RegisterPacketComponent<ReturnAckComponent, PacketManager>(EPacketHandlingType::None, &PacketManager::OnAckReturnReceived, this);
 }

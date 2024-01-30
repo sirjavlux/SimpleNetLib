@@ -27,5 +27,5 @@ void Server::End()
 
 void Server::Update()
 {
-    
+    PacketManager::Get()->Update();
 }

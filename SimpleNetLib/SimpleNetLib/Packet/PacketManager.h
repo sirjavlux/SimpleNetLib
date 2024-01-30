@@ -7,6 +7,7 @@
 #include "../Delegates/PacketComponentHandleDelegator.h"
 #include "../Network/NetHandler.h"
 
+class ReturnAckComponent;
 class NetHandler;
 enum class EPacketHandlingType : uint8_t;
 
@@ -21,9 +22,11 @@ class PacketTargetData
 public:
     explicit PacketTargetData()
         : regularPacket_(EPacketHandlingType::None),
-        ackPacket_(EPacketHandlingType::Ack),
-        ackReturnPacket_(EPacketHandlingType::AckReturn)
-    { }
+        ackPacket_(EPacketHandlingType::Ack)
+    {
+        regularPacket_.Reset();
+        ackPacket_.Reset();
+    }
 
     Packet& GetPacketByHandlingType(const EPacketHandlingType InHandlingType)
     {
@@ -33,17 +36,37 @@ public:
             return regularPacket_;
         case EPacketHandlingType::Ack:
             return ackPacket_;
-        case EPacketHandlingType::AckReturn:
-            return ackReturnPacket_;
+        default: ;
         }
 
         throw std::runtime_error("Invalid EPacketHandlingType was used");
     }
 
+    void PushAckPacketIfContainingData()
+    {
+        if (ackPacket_.IsEmpty())
+        {
+            return;
+        }
+        
+        ackPacketsNotReturned_.insert({ ackPacket_.GetIdentifier(), ackPacket_ });
+        ackPacket_.Reset();
+
+        std::cout << "Added ack packet " << ackPacket_.GetIdentifier() << "\n";
+    }
+    
+    const std::map<uint16_t, Packet>& GetPacketsNotReturned() const { return ackPacketsNotReturned_; }
+    void RemoveReturnedPacket(const uint16_t InIdentifier)
+    {
+        ackPacketsNotReturned_.erase(InIdentifier);
+        std::cout << "Removed ack packet " << InIdentifier << "\n";
+    }
+    
 private:
     Packet regularPacket_;
     Packet ackPacket_;
-    Packet ackReturnPacket_;
+
+    std::map<uint16_t, Packet> ackPacketsNotReturned_;
 };
 
 class PacketManager
@@ -80,6 +103,8 @@ private:
 
     static void OnNetTargetConnected(const NetTarget& InTarget);
     static void OnNetTargetDisconnection(const NetTarget& InTarget, const ENetDisconnectType InDisconnectType);
+
+    void OnAckReturnReceived(const NetTarget& InNetTarget, const ReturnAckComponent& InComponent);
     
     template<typename ComponentType>
     bool IsPacketComponentValid();
@@ -99,7 +124,7 @@ private:
     std::map<uint16_t, PacketComponentAssociatedData> packetComponentAssociatedData_;
 
     std::map<NetTarget, PacketTargetData> packetTargetDataMap_;
-
+    
     const NetSettings netSettings_;
     
     friend class NetHandler;
@@ -127,8 +152,14 @@ bool PacketManager::SendPacketComponent(const ComponentType& InPacketComponent, 
 
     if (relevantPacket.AddComponent(packetComponent) == EAddComponentResult::SizeOutOfBounds)
     {
-        netHandler_->SendPacketToTarget(InTarget, relevantPacket);
-        relevantPacket.Reset(); // Important to reset packet data
+        if (relevantPacket.GetPacketType() == EPacketHandlingType::Ack)
+        {
+            packetTargetData.PushAckPacketIfContainingData();
+        }
+        else
+        {
+            netHandler_->SendPacketToTargetAndResetPacket(InTarget, relevantPacket);
+        }
         
         // Try adding component again
         relevantPacket.AddComponent(packetComponent);

@@ -8,7 +8,10 @@ enum class EPacketComponent : uint16_t
     // Client to server
     ServerConnect           = 1,
     ServerDisconnect        = 2,
-
+    
     // Server to client
-    KickedFromServer        = 1001
+    KickedFromServer        = 1001,
+
+    // Generic Packets
+    ReturnAck               = 2001
 };

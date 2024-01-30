@@ -33,5 +33,5 @@ void Client::End()
 
 void Client::Update(const float InDeltaTime)
 {
-    
+    PacketManager::Get()->Update();
 }

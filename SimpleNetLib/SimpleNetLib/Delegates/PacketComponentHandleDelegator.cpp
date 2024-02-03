@@ -8,6 +8,7 @@ void PacketComponentHandleDelegator::HandleComponent(const NetTarget& InNetTarge
     const auto iter = delegates_.find(identifier);
     if (iter != delegates_.end())
     {
+        std::cout << "Handled Component!\n";
         iter->second(InNetTarget, InPacketComponent);
     }
 }

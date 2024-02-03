@@ -55,8 +55,8 @@ public:
         std::cout << "Added ack packet " << ackPacket_.GetIdentifier() << "\n";
     }
     
-    const std::map<uint16_t, Packet>& GetPacketsNotReturned() const { return ackPacketsNotReturned_; }
-    void RemoveReturnedPacket(const uint16_t InIdentifier)
+    const std::map<int32_t, Packet>& GetPacketsNotReturned() const { return ackPacketsNotReturned_; }
+    void RemoveReturnedPacket(const int32_t InIdentifier)
     {
         ackPacketsNotReturned_.erase(InIdentifier);
         std::cout << "Removed ack packet " << InIdentifier << "\n";
@@ -66,7 +66,7 @@ private:
     Packet regularPacket_;
     Packet ackPacket_;
 
-    std::map<uint16_t, Packet> ackPacketsNotReturned_;
+    std::map<int32_t, Packet> ackPacketsNotReturned_;
 };
 
 class PacketManager
@@ -95,6 +95,8 @@ public:
         const std::function<void(OwningObject*, const NetTarget&, const ComponentType&)>& InFunction, OwningObject* InOwnerObject);
 
     ENetworkHandleType GetManagerType() const { return managerType_; }
+
+    void HandleComponent(const NetTarget& InNetTarget, const PacketComponent& InPacketComponent);
     
 private:
     void FixedUpdate(); // TODO: Implement this
@@ -118,7 +120,7 @@ private:
     
     static PacketManager* instance_;
 
-    NetHandler* netHandler_;
+    NetHandler* netHandler_ = nullptr;
     
     PacketComponentHandleDelegator packetComponentHandleDelegator_;
     std::map<uint16_t, PacketComponentAssociatedData> packetComponentAssociatedData_;
@@ -190,7 +192,11 @@ template<typename ComponentType, typename OwningObjectType>
 void PacketManager::RegisterPacketComponent(const EPacketHandlingType InHandlingType, const std::function<void(OwningObjectType*, const NetTarget&, const ComponentType&)>& InFunction, OwningObjectType* InOwnerObject)
 {
     static_assert(std::is_base_of_v<PacketComponent, ComponentType>, "ComponentType must be derived from PacketComponent");
-
+    if (InOwnerObject == nullptr)
+    {
+        throw std::runtime_error("Tried registering a packet component with a null owner object");
+    }
+    
     RegisterAssociatedData<ComponentType>(InHandlingType);
 
     packetComponentHandleDelegator_.MapComponentHandleDelegateDynamic(InFunction, InOwnerObject);

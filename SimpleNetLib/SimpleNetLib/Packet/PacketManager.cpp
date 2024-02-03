@@ -11,7 +11,7 @@ PacketManager* PacketManager::instance_ = nullptr;
 PacketManager::PacketManager(const ENetworkHandleType InPacketManagerType, const NetSettings& InNetSettings)
     : managerType_(InPacketManagerType), netHandler_(nullptr), netSettings_(InNetSettings)
 {
-    RegisterDefaultPacketComponents();
+    
 }
 
 PacketManager::~PacketManager()
@@ -25,6 +25,9 @@ PacketManager* PacketManager::Initialize(const ENetworkHandleType InPacketManage
     {
         instance_ = new PacketManager(InPacketManagerType, InNetSettings);
         instance_->netHandler_ = new NetHandler(InNetSettings);
+        
+        instance_->RegisterDefaultPacketComponents();
+        instance_->netHandler_->Initialize();
     }
     
     return instance_;
@@ -61,6 +64,11 @@ void PacketManager::Update()
     }
 }
 
+void PacketManager::HandleComponent(const NetTarget& InNetTarget, const PacketComponent& InPacketComponent)
+{
+    packetComponentHandleDelegator_.HandleComponent(InNetTarget, InPacketComponent); 
+}
+
 void PacketManager::FixedUpdate()
 {
     for (std::pair<const NetTarget, PacketTargetData>& packetTargetPair : packetTargetDataMap_)
@@ -76,8 +84,8 @@ void PacketManager::FixedUpdate()
 
         // Packets not returned
         targetData.PushAckPacketIfContainingData();
-        const std::map<uint16_t, Packet>& packetsNotReturned = targetData.GetPacketsNotReturned();
-        for (const std::pair<const uint16_t, Packet>& packetIdentifierPair : packetsNotReturned)
+        const std::map<int32_t, Packet>& packetsNotReturned = targetData.GetPacketsNotReturned();
+        for (const std::pair<const int32_t, Packet>& packetIdentifierPair : packetsNotReturned)
         {
             netHandler_->SendPacketToTarget(target, packetIdentifierPair.second);
         }

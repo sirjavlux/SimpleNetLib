@@ -55,7 +55,7 @@ void Go()
 		client.Init();
 
 		Tga::Engine* engine = Tga::Engine::GetInstance();
-
+		
 		while (engine->BeginFrame())
 		{
 			client.Update(engine->GetDeltaTime());

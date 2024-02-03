@@ -38,7 +38,8 @@ class NET_LIB_EXPORT Packet
 {
 public:
     Packet(EPacketHandlingType InPacketHandlingType);
-
+    Packet(const char* InBuffer, const int InBytesReceived);
+    
     bool IsValid() const;
     bool IsEmpty() const;
     
@@ -50,20 +51,20 @@ public:
 
     const char* GetData() const { return &data_[0]; }
 
-    uint16_t GetIdentifier() const { return packetDataIter_; }
+    int32_t GetIdentifier() const { return packetIdentifier_; }
 
     EPacketHandlingType GetPacketType() const { return packetHandlingType_; }
     
 private:
     void ExtractComponent(std::vector<PacketComponent*>& OutComponents, int& Iterator);
-    
-    EPacketHandlingType packetHandlingType_ = EPacketHandlingType::None;
-    
-    char data_[NET_BUFFER_SIZE_TOTAL];
 
     int32_t packetIdentifier_ = INT32_MIN;
+
+    EPacketHandlingType packetHandlingType_ = EPacketHandlingType::None;
     
     static int32_t GenerateIdentifier();
+    
+    char data_[NET_PACKET_DATA_SIZE_TOTAL];
 
     // Data bypassing the packet size limit
     uint16_t packetDataIter_ = 0;

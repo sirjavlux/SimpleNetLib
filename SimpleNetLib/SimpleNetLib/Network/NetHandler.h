@@ -17,6 +17,8 @@ public:
     explicit NetHandler(const NetSettings& InNetSettings);
     ~NetHandler();
 
+    void Initialize();
+    
     bool IsServer() const { return bIsServer_; }
 
     void SendPacketToTargetAndResetPacket(const NetTarget& InTarget, Packet& InPacket) const;
@@ -26,11 +28,16 @@ public:
     bool IsConnected(const sockaddr_storage& InAddress);
     
 private:
+    
     bool InitializeWin32();
 
     static void PacketListener(NetHandler* InNetHandler);
+
+    static void SendReturnAckBackToNetTarget(const NetTarget& Target, const int32_t Identifier);
+    bool HandleReturnAck(const sockaddr_storage& SenderAddress, const int32_t Identifier);
+    void UpdatePacketTracker(const sockaddr_storage& SenderAddress, const int32_t Identifier);
     
-    void ProcessPackets(const char* Buffer, const int BytesReceived);
+    void ProcessPackets(const char* Buffer, const int BytesReceived, const sockaddr_storage& SenderAddress);
 
     void UpdateNetTarget(const sockaddr_storage& InAddress);
 

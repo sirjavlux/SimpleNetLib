@@ -7,6 +7,10 @@ Packet::Packet(const EPacketHandlingType InPacketHandlingType)
 {
     SecureZeroMemory(data_, sizeof(data_));
 }
+Packet::Packet(const char* InBuffer, const int InBytesReceived)
+{
+    std::memcpy(this, InBuffer, InBytesReceived);
+}
 
 bool Packet::IsValid() const
 {
@@ -32,7 +36,7 @@ EAddComponentResult Packet::AddComponent(const PacketComponent& InPacketComponen
     }
     
     const uint16_t componentSize = InPacketComponent.GetSize();
-    if (packetDataIter_ + componentSize > NET_BUFFER_SIZE_TOTAL)
+    if (packetDataIter_ + componentSize > NET_PACKET_DATA_SIZE_TOTAL)
     {
         return EAddComponentResult::SizeOutOfBounds;
     }

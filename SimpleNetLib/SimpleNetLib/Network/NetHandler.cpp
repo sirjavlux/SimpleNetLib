@@ -5,16 +5,12 @@
 
 #include "../Packet/PacketManager.h"
 #include "../Packet/CorePacketComponents/ServerConnect.hpp"
+#include "../Packet/CorePacketComponents/ReturnAckComponent.hpp"
 
 NetHandler::NetHandler(const NetSettings& InNetSettings) : netSettings_(InNetSettings),
     bIsServer_(PacketManager::Get()->GetManagerType() == ENetworkHandleType::Server)
 {
-    #ifdef _WIN32
-    if (InitializeWin32())
-    {
-        packetListenerThread_ = new std::thread(&NetHandler::PacketListener, this);
-    }
-    #endif
+
 }
 
 NetHandler::~NetHandler()
@@ -42,7 +38,8 @@ void NetHandler::SendPacketToTargetAndResetPacket(const NetTarget& InTarget, Pac
 void NetHandler::SendPacketToTarget(const NetTarget& InTarget, const Packet& InPacket) const
 {
     const sockaddr_in targetAddress = Net::RetrieveIPv4AddressFromStorage(InTarget.address);
-    if (sendto(udpSocket_, InPacket.GetData(), NET_BUFFER_SIZE_TOTAL, 0, reinterpret_cast<const sockaddr*>(&targetAddress), sizeof(targetAddress)) == SOCKET_ERROR)
+    std::cout << InPacket.GetIdentifier() << " : " << (InPacket.GetPacketType() == EPacketHandlingType::Ack ? "Ack" : "Not Ack") << " : " << "Sent Packet!\n";
+    if (sendto(udpSocket_, reinterpret_cast<const char*>(&InPacket), NET_BUFFER_SIZE_TOTAL, 0, reinterpret_cast<const sockaddr*>(&targetAddress), sizeof(targetAddress)) == SOCKET_ERROR)
     {
         std::cout << "Error: " << WSAGetLastError() << '\n';
     }
@@ -63,6 +60,16 @@ bool NetHandler::IsConnected(const sockaddr_storage& InAddress)
 {
     const auto searchResult = std::find(childConnections_.begin(), childConnections_.end(), NetTarget(InAddress));
     return searchResult != childConnections_.end();
+}
+
+void NetHandler::Initialize()
+{
+    #ifdef _WIN32
+    if (InitializeWin32())
+    {
+        packetListenerThread_ = new std::thread(&NetHandler::PacketListener, this);
+    }
+    #endif
 }
 
 bool NetHandler::InitializeWin32()
@@ -151,21 +158,6 @@ bool NetHandler::InitializeWin32()
         WSACleanup();
         return false;
     }
-
-    // TODO: This might be redundant when using UDP
-    /*
-    if (bHasParentServer_)
-    {
-        // Listen for incoming connections
-        if (listen(udpSocket_, SOMAXCONN) == SOCKET_ERROR)
-        {
-            std::cerr << "Listen failed with error: " << WSAGetLastError() << '\n';
-            closesocket(udpSocket_);
-            WSACleanup();
-            return false;
-        }
-    }
-    */
     
     if (!bHasParentServer_ && !bIsServer_)
     {
@@ -202,7 +194,7 @@ void NetHandler::PacketListener(NetHandler* InNetHandler)
 
         if (bytesReceived > 0)
         {
-            InNetHandler->ProcessPackets(buffer, bytesReceived);
+            InNetHandler->ProcessPackets(buffer, bytesReceived, senderAddress);
             InNetHandler->UpdateNetTarget(senderAddress);
         }
         else if (bytesReceived == 0)
@@ -212,7 +204,7 @@ void NetHandler::PacketListener(NetHandler* InNetHandler)
         }
         else if (bytesReceived == SOCKET_ERROR)
         {
-            if (const int errorCode = WSAGetLastError(); errorCode != WSAEWOULDBLOCK)
+            if (const int errorCode = WSAGetLastError(); errorCode != WSAEWOULDBLOCK) // Ignore block error TODO: Might reconsider using blocking type or not
             {
                 std::cerr << "Receive failed with error: " << WSAGetLastError() << "\n";
                 return;
@@ -224,10 +216,75 @@ void NetHandler::PacketListener(NetHandler* InNetHandler)
     }
 }
 
-void NetHandler::ProcessPackets(const char* Buffer, const int BytesReceived)
+void NetHandler::SendReturnAckBackToNetTarget(const NetTarget& Target, const int32_t Identifier)
+{
+    ReturnAckComponent component;
+    component.ackIdentifier = Identifier;
+    PacketManager::Get()->SendPacketComponent(component, Target);
+}
+
+bool NetHandler::HandleReturnAck(const sockaddr_storage& SenderAddress, const int32_t Identifier)
+{
+    std::cout << "Handle Ack Return\n";
+    
+    bool bHasAlreadyBeenReceived = false;
+    // Client receiving packet
+    if (parentConnection_ == SenderAddress)
+    {
+        std::cout << "Found Parent Connection\n";
+        SendReturnAckBackToNetTarget(parentConnection_, Identifier);
+        bHasAlreadyBeenReceived = parentConnection_.HasPacketBeenSent(Identifier);
+    }
+    // Server receiving packet
+    else  if (NetTarget* outNetTarget; RetrieveChildConnectionNetTargetInstance(SenderAddress, outNetTarget))
+    {
+        std::cout << "Found Child Connection\n";
+        SendReturnAckBackToNetTarget(*outNetTarget, Identifier);
+        bHasAlreadyBeenReceived = outNetTarget->HasPacketBeenSent(Identifier);
+    }
+    return bHasAlreadyBeenReceived;
+}
+void NetHandler::UpdatePacketTracker(const sockaddr_storage& SenderAddress, const int32_t Identifier)
+{
+    // Client receiving packet
+    if (parentConnection_ == SenderAddress)
+    {
+        parentConnection_.UpdatePacketTracker(Identifier);
+    }
+    // Server receiving packet
+    else  if (NetTarget* outNetTarget; RetrieveChildConnectionNetTargetInstance(SenderAddress, outNetTarget))
+    {
+        outNetTarget->UpdatePacketTracker(Identifier);
+    }
+}
+
+void NetHandler::ProcessPackets(const char* Buffer, const int BytesReceived, const sockaddr_storage& SenderAddress)
 {
     // TODO: Packet processing, acks, ack returns, statistics, etc...
-    std::cout << "Got Packet!\n";
+    Packet packet = { Buffer, BytesReceived };
+
+    std::cout << packet.GetIdentifier() << " : " << (packet.GetPacketType() == EPacketHandlingType::Ack ? "Ack" : "Not Ack") << " : " << "Got Packet!\n";
+
+    // Send back response if of Ack type
+    if (packet.GetPacketType() == EPacketHandlingType::Ack)
+    {
+        if (HandleReturnAck(SenderAddress, packet.GetIdentifier()))
+        {
+            std::cout << "Has already been received\n";
+            return; // Packet has already been received
+        }
+    }
+
+    // Handle Components
+    std::vector<PacketComponent*> outComponents;
+    packet.GetComponents(outComponents);
+    for (const PacketComponent* component : outComponents)
+    {
+        PacketManager::Get()->HandleComponent(NetTarget(SenderAddress), *component);
+    }
+
+    // Update packet tracker
+    UpdatePacketTracker(SenderAddress, packet.GetIdentifier());
 }
 
 void NetHandler::UpdateNetTarget(const sockaddr_storage& InAddress)

@@ -16,10 +16,68 @@ struct NetTarget
         return memcmp(&address, &InNetTarget.address, sizeof(sockaddr_storage)) == 0;
     }
 
+    bool operator==(const sockaddr_storage& InAddress) const
+    {
+        return memcmp(&address, &InAddress, sizeof(sockaddr_storage)) == 0;
+    }
+
     bool operator!=(const NetTarget& InNetTarget) const
     {
         return !(*this == InNetTarget);
     }
+
+    bool HasPacketBeenSent(const int32_t InIdentifier) const
+    {
+        if (InIdentifier > currentPacket_)
+        {
+            return false;
+        } 
+
+        for (size_t i = 0; i < packetsMissingPriorToCurrent_.size(); ++i)
+        {
+            if (packetsMissingPriorToCurrent_[i] == InIdentifier)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+    
+    void UpdatePacketTracker(const int32_t InIdentifier)
+    {
+        if (InIdentifier > currentPacket_)
+        {
+            for (int32_t i = currentPacket_ + 1; i < InIdentifier; ++i)
+            {
+                packetsMissingPriorToCurrent_.push_back(i);
+            }
+            currentPacket_ = InIdentifier;
+        }
+        else
+        {
+            size_t foundIndex = 0;
+            bool bFoundIndex = false;
+            for (size_t i = 0; i < packetsMissingPriorToCurrent_.size(); ++i)
+            {
+                if (packetsMissingPriorToCurrent_[i] == InIdentifier)
+                {
+                    foundIndex = i;
+                    bFoundIndex = true;
+                    break;
+                }
+            }
+
+            if (bFoundIndex)
+            {
+                packetsMissingPriorToCurrent_.erase(packetsMissingPriorToCurrent_.begin() + foundIndex);
+            }
+        }
+    }
+    
+private:
+    std::vector<int32_t> packetsMissingPriorToCurrent_;
+    int32_t currentPacket_ = INT32_MIN;
 };
 
 inline bool operator<(const sockaddr_storage& InLhs, const sockaddr_storage& InRhs)

@@ -36,7 +36,7 @@ EAddComponentResult Packet::AddComponent(const PacketComponent& InPacketComponen
     }
     
     const uint16_t componentSize = InPacketComponent.GetSize();
-    if (packetDataIter_ + componentSize > NET_PACKET_DATA_SIZE_TOTAL)
+    if (packetDataIter_ + componentSize > NET_PACKET_COMPONENT_DATA_SIZE_TOTAL)
     {
         return EAddComponentResult::SizeOutOfBounds;
     }
@@ -62,7 +62,7 @@ void Packet::Reset()
 
 void Packet::ExtractComponent(std::vector<PacketComponent*>& OutComponents, int& Iterator)
 {
-    if (data_[Iterator] == '\0')
+    if (NET_PACKET_COMPONENT_DATA_SIZE_TOTAL <= Iterator || data_[Iterator] == '\0')
     {
         return;    
     }

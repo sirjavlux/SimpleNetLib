@@ -4,7 +4,7 @@
 
 #include "Packet.h"
 #include "PacketComponent.h"
-#include "../Delegates/PacketComponentHandleDelegator.h"
+#include "../Delegates/PacketComponentDelegator.h"
 #include "../Network/NetHandler.h"
 
 class ReturnAckComponent;
@@ -59,7 +59,6 @@ public:
     void RemoveReturnedPacket(const int32_t InIdentifier)
     {
         ackPacketsNotReturned_.erase(InIdentifier);
-        std::cout << "Removed ack packet " << InIdentifier << "\n";
     }
     
 private:
@@ -88,11 +87,11 @@ public:
     void RegisterPacketComponent(EPacketHandlingType InHandlingType);
 
     template<typename ComponentType>
-    void RegisterPacketComponent(const EPacketHandlingType InHandlingType, const std::function<void(const NetTarget&, const ComponentType&)>& InComponentHandleDelegateFunction);
+    void RegisterPacketComponent(const EPacketHandlingType InHandlingType, const std::function<void(const NetTarget&, const PacketComponent&)>& InFunction);
     
     template<typename ComponentType, typename OwningObject>
     void RegisterPacketComponent(EPacketHandlingType InHandlingType,
-        const std::function<void(OwningObject*, const NetTarget&, const ComponentType&)>& InFunction, OwningObject* InOwnerObject);
+        const std::function<void(OwningObject*, const NetTarget&, const PacketComponent&)>& InFunction, OwningObject* InOwnerObject);
 
     ENetworkHandleType GetManagerType() const { return managerType_; }
 
@@ -106,7 +105,7 @@ private:
     static void OnNetTargetConnected(const NetTarget& InTarget);
     static void OnNetTargetDisconnection(const NetTarget& InTarget, const ENetDisconnectType InDisconnectType);
 
-    void OnAckReturnReceived(const NetTarget& InNetTarget, const ReturnAckComponent& InComponent);
+    void OnAckReturnReceived(const NetTarget& InNetTarget, const PacketComponent& InComponent);
     
     template<typename ComponentType>
     bool IsPacketComponentValid();
@@ -122,7 +121,7 @@ private:
 
     NetHandler* netHandler_ = nullptr;
     
-    PacketComponentHandleDelegator packetComponentHandleDelegator_;
+    PacketComponentDelegator packetComponentHandleDelegator_;
     std::map<uint16_t, PacketComponentAssociatedData> packetComponentAssociatedData_;
 
     std::map<NetTarget, PacketTargetData> packetTargetDataMap_;
@@ -146,12 +145,12 @@ bool PacketManager::SendPacketComponent(const ComponentType& InPacketComponent, 
 
     if (packetTargetDataMap_.find(InTarget) == packetTargetDataMap_.end())
     {
-        packetTargetDataMap_.emplace(InTarget, PacketTargetData());
+        packetTargetDataMap_.insert({InTarget, PacketTargetData()});
     }
     PacketTargetData& packetTargetData = packetTargetDataMap_.at(InTarget);
 
     Packet& relevantPacket = packetTargetData.GetPacketByHandlingType(packetComponentAssociatedData.handlingType);
-
+    
     if (relevantPacket.AddComponent(packetComponent) == EAddComponentResult::SizeOutOfBounds)
     {
         if (relevantPacket.GetPacketType() == EPacketHandlingType::Ack)
@@ -179,17 +178,17 @@ void PacketManager::RegisterPacketComponent(const EPacketHandlingType InHandling
 }
 
 template <typename ComponentType>
-void PacketManager::RegisterPacketComponent(const EPacketHandlingType InHandlingType, const std::function<void(const NetTarget&, const ComponentType&)>& InComponentHandleDelegateFunction)
+void PacketManager::RegisterPacketComponent(const EPacketHandlingType InHandlingType, const std::function<void(const NetTarget&, const PacketComponent&)>& InFunction)
 {
     static_assert(std::is_base_of_v<PacketComponent, ComponentType>, "ComponentType must be derived from PacketComponent");
     
     RegisterAssociatedData<ComponentType>(InHandlingType);
 
-    packetComponentHandleDelegator_.MapComponentHandleDelegate<ComponentType>(InComponentHandleDelegateFunction);
+    packetComponentHandleDelegator_.SubscribeToPacketComponentDelegate<ComponentType>(InFunction);
 }
 
 template<typename ComponentType, typename OwningObjectType>
-void PacketManager::RegisterPacketComponent(const EPacketHandlingType InHandlingType, const std::function<void(OwningObjectType*, const NetTarget&, const ComponentType&)>& InFunction, OwningObjectType* InOwnerObject)
+void PacketManager::RegisterPacketComponent(const EPacketHandlingType InHandlingType, const std::function<void(OwningObjectType*, const NetTarget&, const PacketComponent&)>& InFunction, OwningObjectType* InOwnerObject)
 {
     static_assert(std::is_base_of_v<PacketComponent, ComponentType>, "ComponentType must be derived from PacketComponent");
     if (InOwnerObject == nullptr)
@@ -199,7 +198,7 @@ void PacketManager::RegisterPacketComponent(const EPacketHandlingType InHandling
     
     RegisterAssociatedData<ComponentType>(InHandlingType);
 
-    packetComponentHandleDelegator_.MapComponentHandleDelegateDynamic(InFunction, InOwnerObject);
+    packetComponentHandleDelegator_.SubscribeToPacketComponentDelegate<ComponentType, OwningObjectType>(InFunction, InOwnerObject);
 }
 
 template <typename ComponentType>

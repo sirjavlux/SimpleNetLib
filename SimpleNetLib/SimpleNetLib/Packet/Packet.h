@@ -64,7 +64,7 @@ private:
     
     static int32_t GenerateIdentifier();
     
-    char data_[NET_PACKET_DATA_SIZE_TOTAL];
+    char data_[NET_PACKET_COMPONENT_DATA_SIZE_TOTAL];
 
     // Data bypassing the packet size limit
     uint16_t packetDataIter_ = 0;

@@ -11,7 +11,7 @@ public:
 	
 	constexpr bool IsValid() const
 	{
-		return size_ >= DEFAULT_PACKET_COMPONENT_SIZE && size_ <= NET_PACKET_DATA_SIZE_TOTAL && identifier_ > -1;
+		return size_ >= DEFAULT_PACKET_COMPONENT_SIZE && size_ <= NET_PACKET_COMPONENT_DATA_SIZE_TOTAL && identifier_ > -1;
 	}
 
 	uint16_t GetSize() const { return size_; }

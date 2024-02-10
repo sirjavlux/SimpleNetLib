@@ -7,8 +7,13 @@ public:
     DynamicMulticastDelegate() = default;
 
     template<typename OwningObjectType>
-    void AddDynamic(const std::shared_ptr<OwningObjectType>& InOwnerObject, const std::function<void(OwningObjectType*, Args...)>& InFunction)
+    void AddDynamic(OwningObjectType* InOwnerObject, const std::function<void(OwningObjectType*, Args...)>& InFunction)
     {
+        if (InOwnerObject == nullptr)
+        {
+            return;
+        }
+        
         delegates_.emplace_back(InOwnerObject, [InFunction](void* InObj, Args... InArgs) {
             InFunction(static_cast<OwningObjectType*>(InObj), std::forward<Args>(InArgs)...);
         });
@@ -25,8 +30,8 @@ public:
 
         auto it = std::remove_if(delegates_.begin(), delegates_.end(),
             [=](const DelegateEntry& Entry) {
-                auto owner = Entry.ownerObject.lock();
-                return owner.get() == InOwnerObject && compFunc(Entry);
+                auto owner = Entry.ownerObject;
+                return owner == InOwnerObject && compFunc(Entry);
             });
 
         delegates_.erase(it, delegates_.end());
@@ -34,39 +39,26 @@ public:
 
     void Execute(Args... InArgs)
     {
-        std::vector<DelegateEntry> toRemove;
-
         for (auto& entry : delegates_)
         {
-            if (auto owner = entry.ownerObject.lock())
-            {
-                entry.function(owner.get(), InArgs...);
-            }
-            else
-            {
-                toRemove.push_back(entry);
-            }
-        }
-        
-        for (const auto& entryToRemove : toRemove)
-        {
-            RemoveDynamic(entryToRemove.ownerObject.lock().get(), entryToRemove.function);
+            auto owner = entry.ownerObject;
+            entry.function(owner, InArgs...);
         }
     }
     
 private:
     struct DelegateEntry
     {
-        std::weak_ptr<void> ownerObject;
+        void* ownerObject;
         std::function<void(void*, Args...)> function;
 
-        DelegateEntry(const std::shared_ptr<void>& Owner, const std::function<void(void*, Args...)>& Func)
+        DelegateEntry(void* Owner, const std::function<void(void*, Args...)>& Func)
             : ownerObject(Owner), function(Func) {}
 
         bool operator==(const DelegateEntry& InComp)
         {
-            return ownerObject.lock().get() == InComp.ownerObject.lock().get()
-                && function == InComp.ownerObject;
+            return ownerObject == InComp.ownerObject
+                && function == InComp.function;
         }
     };
     
@@ -89,7 +81,7 @@ public:
     {
         if (ownerObject_.lock() != nullptr)
         {
-            function_(ownerObject_.lock().get(), InArgs);
+            function_(ownerObject_.lock().get(), InArgs...);
         }
     }
 
@@ -119,7 +111,7 @@ public:
     {
         for (std::function<void(Args...)>& function : functions_)
         {
-            function(InArgs);
+            function(InArgs...);
         }
     }
     
@@ -152,7 +144,7 @@ public:
     
     void Execute(Args... InArgs)
     {
-        function_(InArgs);
+        function_(InArgs...);
     }
     
     void Bind(const std::function<void(Args...)>& InFunction)

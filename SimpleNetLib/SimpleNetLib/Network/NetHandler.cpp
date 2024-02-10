@@ -47,6 +47,7 @@ void NetHandler::SendPacketToTarget(const NetTarget& InTarget, const Packet& InP
 
 bool NetHandler::RetrieveChildConnectionNetTargetInstance(const sockaddr_storage& InAddress, NetTarget*& OutNetTarget)
 {
+    
     const auto searchResult = std::find(childConnections_.begin(), childConnections_.end(), NetTarget(InAddress));
     if (searchResult != childConnections_.end())
     {
@@ -150,7 +151,7 @@ bool NetHandler::InitializeWin32()
         nullptr);
 
     // Bind socket
-    if (bind(udpSocket_, reinterpret_cast<sockaddr*>(&address_), sizeof address_) == SOCKET_ERROR)
+    if (bind(udpSocket_, reinterpret_cast<sockaddr*>(&address_), sizeof(address_)) == SOCKET_ERROR)
     {
         std::cerr << "Failed to bind socket." << '\n';
         std::cerr << "Error: " << WSAGetLastError() << '\n';
@@ -158,6 +159,23 @@ bool NetHandler::InitializeWin32()
         WSACleanup();
         return false;
     }
+
+    // Fetch correctly assigned port by OS if client
+    if (!bIsServer_)
+    {
+        // Retrieve the assigned port
+        socklen_t len = sizeof(address_);
+        if (getsockname(udpSocket_, reinterpret_cast<sockaddr*>(&address_), &len) == SOCKET_ERROR)
+        {
+            std::cerr << "Failed to get socket name." << '\n';
+            std::cerr << "Error: " << WSAGetLastError() << '\n';
+            closesocket(udpSocket_);
+            WSACleanup();
+            return false;
+        }
+    }
+    
+    std::cout << "Bound to port: " << ntohs(address_.sin_port) << "\n";
     
     if (!bHasParentServer_ && !bIsServer_)
     {
@@ -225,20 +243,16 @@ void NetHandler::SendReturnAckBackToNetTarget(const NetTarget& Target, const int
 
 bool NetHandler::HandleReturnAck(const sockaddr_storage& SenderAddress, const int32_t Identifier)
 {
-    std::cout << "Handle Ack Return\n";
-    
     bool bHasAlreadyBeenReceived = false;
     // Client receiving packet
-    if (parentConnection_ == SenderAddress)
+    if (parentConnection_.address == SenderAddress)
     {
-        std::cout << "Found Parent Connection\n";
         SendReturnAckBackToNetTarget(parentConnection_, Identifier);
         bHasAlreadyBeenReceived = parentConnection_.HasPacketBeenSent(Identifier);
     }
     // Server receiving packet
     else  if (NetTarget* outNetTarget; RetrieveChildConnectionNetTargetInstance(SenderAddress, outNetTarget))
     {
-        std::cout << "Found Child Connection\n";
         SendReturnAckBackToNetTarget(*outNetTarget, Identifier);
         bHasAlreadyBeenReceived = outNetTarget->HasPacketBeenSent(Identifier);
     }
@@ -247,7 +261,7 @@ bool NetHandler::HandleReturnAck(const sockaddr_storage& SenderAddress, const in
 void NetHandler::UpdatePacketTracker(const sockaddr_storage& SenderAddress, const int32_t Identifier)
 {
     // Client receiving packet
-    if (parentConnection_ == SenderAddress)
+    if (parentConnection_.address == SenderAddress)
     {
         parentConnection_.UpdatePacketTracker(Identifier);
     }
@@ -260,7 +274,6 @@ void NetHandler::UpdatePacketTracker(const sockaddr_storage& SenderAddress, cons
 
 void NetHandler::ProcessPackets(const char* Buffer, const int BytesReceived, const sockaddr_storage& SenderAddress)
 {
-    // TODO: Packet processing, acks, ack returns, statistics, etc...
     Packet packet = { Buffer, BytesReceived };
 
     std::cout << packet.GetIdentifier() << " : " << (packet.GetPacketType() == EPacketHandlingType::Ack ? "Ack" : "Not Ack") << " : " << "Got Packet!\n";
@@ -270,7 +283,6 @@ void NetHandler::ProcessPackets(const char* Buffer, const int BytesReceived, con
     {
         if (HandleReturnAck(SenderAddress, packet.GetIdentifier()))
         {
-            std::cout << "Has already been received\n";
             return; // Packet has already been received
         }
     }
@@ -297,7 +309,7 @@ void NetHandler::UpdateNetTarget(const sockaddr_storage& InAddress)
     }
 }
 
-void NetHandler::OnChildDisconnectReceived(const NetTarget& InNetTarget, const ServerDisconnectPacketComponent& InComponent)
+void NetHandler::OnChildDisconnectReceived(const NetTarget& InNetTarget, const PacketComponent& InComponent)
 {
     if (IsConnected(InNetTarget.address))
     {
@@ -305,12 +317,12 @@ void NetHandler::OnChildDisconnectReceived(const NetTarget& InNetTarget, const S
     }
 }
 
-void NetHandler::OnChildConnectionReceived(const NetTarget& InNetTarget, const ServerConnectPacketComponent& InComponent)
+void NetHandler::OnChildConnectionReceived(const NetTarget& InNetTarget, const PacketComponent& InComponent)
 {
+    std::cout << "Join retrieved!\n";
     if (!IsConnected(InNetTarget.address))
     {
         childConnections_.push_back(InNetTarget);
-
         PacketManager::Get()->OnNetTargetConnected(InNetTarget);
     }
 }

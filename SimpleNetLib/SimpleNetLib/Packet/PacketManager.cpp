@@ -102,9 +102,10 @@ void PacketManager::OnNetTargetDisconnection(const NetTarget& InTarget, const EN
     EventSystem::Get()->onClientDisconnectEvent.Execute(InTarget, InDisconnectType);
 }
 
-void PacketManager::OnAckReturnReceived(const NetTarget& InNetTarget, const ReturnAckComponent& InComponent)
+void PacketManager::OnAckReturnReceived(const NetTarget& InNetTarget, const PacketComponent& InComponent)
 {
-    packetTargetDataMap_.at(InNetTarget).RemoveReturnedPacket(InComponent.ackIdentifier);
+    const ReturnAckComponent* ackComponent = static_cast<const ReturnAckComponent*>(&InComponent);
+    packetTargetDataMap_.at(InNetTarget).RemoveReturnedPacket(ackComponent->ackIdentifier);
 }
 
 void PacketManager::RegisterDefaultPacketComponents()

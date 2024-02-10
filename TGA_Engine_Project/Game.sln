@@ -31,6 +31,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Server", "Local\Server.vcxp
 		{7FA9857C-6BE0-860D-14CD-6C1000E3020F} = {7FA9857C-6BE0-860D-14CD-6C1000E3020F}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SimpleNetLib", "..\SimpleNetLib\Local\SimpleNetLib.vcxproj", "{4D5E5861-39C1-E705-E246-20BCCE88B388}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -74,6 +76,12 @@ Global
 		{7C62DFD0-6804-0AA7-51BF-1DFB3D0091F7}.Release|x64.Build.0 = Release|x64
 		{7C62DFD0-6804-0AA7-51BF-1DFB3D0091F7}.Retail|x64.ActiveCfg = Retail|x64
 		{7C62DFD0-6804-0AA7-51BF-1DFB3D0091F7}.Retail|x64.Build.0 = Retail|x64
+		{4D5E5861-39C1-E705-E246-20BCCE88B388}.Debug|x64.ActiveCfg = Debug|x64
+		{4D5E5861-39C1-E705-E246-20BCCE88B388}.Debug|x64.Build.0 = Debug|x64
+		{4D5E5861-39C1-E705-E246-20BCCE88B388}.Release|x64.ActiveCfg = Release|x64
+		{4D5E5861-39C1-E705-E246-20BCCE88B388}.Release|x64.Build.0 = Release|x64
+		{4D5E5861-39C1-E705-E246-20BCCE88B388}.Retail|x64.ActiveCfg = Retail|x64
+		{4D5E5861-39C1-E705-E246-20BCCE88B388}.Retail|x64.Build.0 = Retail|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

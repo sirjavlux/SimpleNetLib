@@ -2,6 +2,7 @@
 
 #include "../NetIncludes.h"
 
+class PacketComponent;
 class ServerConnectPacketComponent;
 class ServerDisconnectPacketComponent;
 class Packet;
@@ -41,8 +42,8 @@ private:
 
     void UpdateNetTarget(const sockaddr_storage& InAddress);
 
-    void OnChildDisconnectReceived(const NetTarget& InNetTarget, const ServerDisconnectPacketComponent& InComponent);
-    void OnChildConnectionReceived(const NetTarget& InNetTarget, const ServerConnectPacketComponent& InComponent);
+    void OnChildDisconnectReceived(const NetTarget& InNetTarget, const PacketComponent& InComponent);
+    void OnChildConnectionReceived(const NetTarget& InNetTarget, const PacketComponent& InComponent);
     
     void KickInactiveNetTargets();
 

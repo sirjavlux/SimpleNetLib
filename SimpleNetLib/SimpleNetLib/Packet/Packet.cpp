@@ -55,7 +55,7 @@ void Packet::GetComponents(std::vector<PacketComponent*>& OutComponents)
 }
 void Packet::Reset()
 {
-    GenerateIdentifier();
+    packetIdentifier_ = GenerateIdentifier();
     SecureZeroMemory(data_, sizeof(data_));
     packetDataIter_ = 0;
 }

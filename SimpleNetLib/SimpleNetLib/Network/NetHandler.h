@@ -1,5 +1,7 @@
 ﻿#pragma once
 
+#include <mutex>
+
 #include "../NetIncludes.h"
 
 class PacketComponent;
@@ -67,6 +69,6 @@ private:
     const bool bIsServer_ = false;
 
     bool bIsRunning_ = true;
-
+    
     friend class PacketManager;
 };

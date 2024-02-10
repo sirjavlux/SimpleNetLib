@@ -1,5 +1,7 @@
 ﻿#pragma once
 
+#include <mutex>
+
 #include "../NetIncludes.h"
 
 #include "Packet.h"
@@ -64,7 +66,7 @@ public:
 private:
     Packet regularPacket_;
     Packet ackPacket_;
-
+    
     std::map<int32_t, Packet> ackPacketsNotReturned_;
 };
 
@@ -114,6 +116,9 @@ private:
     void RegisterAssociatedData(const EPacketHandlingType InHandlingType);
 
     void RegisterDefaultPacketComponents();
+
+    void UpdateServerPinging();
+    std::chrono::steady_clock::time_point lastTimePacketSent_;
     
     const ENetworkHandleType managerType_;
     
@@ -134,6 +139,8 @@ private:
 template <typename ComponentType>
 bool PacketManager::SendPacketComponent(const ComponentType& InPacketComponent, const NetTarget& InTarget)
 {
+    lastTimePacketSent_ = std::chrono::steady_clock::now(); // Reset server ping timer
+    
     // Check Component Validity
     if (!IsPacketComponentValid<ComponentType>())
     {

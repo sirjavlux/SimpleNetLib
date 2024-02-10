@@ -212,7 +212,7 @@ void NetHandler::PacketListener(NetHandler* InNetHandler)
 
         if (bytesReceived > 0)
         {
-            InNetHandler->ProcessPackets(buffer, bytesReceived, senderAddress);
+            InNetHandler->ProcessPackets(buffer, bytesReceived, senderAddress); // This needs update to be secure against threaded processing
             InNetHandler->UpdateNetTarget(senderAddress);
         }
         else if (bytesReceived == 0)

@@ -5,13 +5,14 @@
 #include "CorePacketComponents/ReturnAckComponent.hpp"
 #include "CorePacketComponents/ServerConnect.hpp"
 #include "CorePacketComponents/ServerDisconnect.hpp"
+#include "CorePacketComponents/ServerPing.hpp"
 
 PacketManager* PacketManager::instance_ = nullptr;
 
 PacketManager::PacketManager(const ENetworkHandleType InPacketManagerType, const NetSettings& InNetSettings)
     : managerType_(InPacketManagerType), netHandler_(nullptr), netSettings_(InNetSettings)
 {
-    
+    lastTimePacketSent_ = std::chrono::steady_clock::now();
 }
 
 PacketManager::~PacketManager()
@@ -71,6 +72,11 @@ void PacketManager::HandleComponent(const NetTarget& InNetTarget, const PacketCo
 
 void PacketManager::FixedUpdate()
 {
+    if (!netHandler_->IsServer())
+    {
+        UpdateServerPinging();
+    }
+    
     for (std::pair<const NetTarget, PacketTargetData>& packetTargetPair : packetTargetDataMap_)
     {
         const NetTarget& target = packetTargetPair.first;
@@ -113,4 +119,18 @@ void PacketManager::RegisterDefaultPacketComponents()
     RegisterPacketComponent<ServerConnectPacketComponent, NetHandler>(EPacketHandlingType::Ack, &NetHandler::OnChildConnectionReceived, netHandler_);
     RegisterPacketComponent<ServerDisconnectPacketComponent, NetHandler>(EPacketHandlingType::Ack, &NetHandler::OnChildDisconnectReceived, netHandler_);
     RegisterPacketComponent<ReturnAckComponent, PacketManager>(EPacketHandlingType::None, &PacketManager::OnAckReturnReceived, this);
+    RegisterPacketComponent<ServerPingPacketComponent>(EPacketHandlingType::Ack);
+}
+
+void PacketManager::UpdateServerPinging()
+{
+    using namespace std::chrono;
+    
+    const steady_clock::time_point currentTime = steady_clock::now();
+    const duration<double> deltaTime = duration_cast<duration<double>>(currentTime - lastTimePacketSent_);
+    if (deltaTime.count() > NET_TIME_UNTIL_NEXT_SERVER_PING)
+    {
+        const ServerPingPacketComponent serverPingPacketComponent;
+        SendPacketComponent(serverPingPacketComponent, netHandler_->parentConnection_);
+    }
 }

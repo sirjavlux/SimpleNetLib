@@ -12,6 +12,7 @@ enum class EPacketComponent : uint16_t
     // Server to client
     KickedFromServer        = 1001,
 
-    // Generic Packets
-    ReturnAck               = 2001
+    // Other
+    ReturnAck               = 2001,
+    ServerPing              = 2002
 };

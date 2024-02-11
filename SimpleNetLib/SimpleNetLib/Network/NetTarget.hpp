@@ -4,6 +4,8 @@
 
 inline bool operator==(const sockaddr_storage& InRhs, const sockaddr_storage& InLhs);
 
+namespace Net
+{
 struct NetTarget
 {
     explicit NetTarget(const sockaddr_storage& InAddress) : address(InAddress), lastTimeReceivedNetEvent(std::chrono::steady_clock::now()) { }
@@ -89,6 +91,7 @@ private:
 
     friend class NetConnectionHandler;
 };
+}
 
 inline bool operator==(const sockaddr_storage& InRhs, const sockaddr_storage& InLhs)
 {
@@ -175,7 +178,10 @@ inline bool operator<(const sockaddr_storage& InLhs, const sockaddr_storage& InR
     return false;
 }
 
+namespace Net
+{
 inline bool operator<(const NetTarget& InLhs, const NetTarget& InRhs)
 {
     return InLhs.address < InRhs.address;
+}
 }

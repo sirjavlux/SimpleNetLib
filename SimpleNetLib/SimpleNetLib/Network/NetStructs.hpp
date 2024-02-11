@@ -10,6 +10,8 @@ enum class ENetDisconnectType : uint8_t
     Disconnected        = 2,
 };
 
+namespace Net
+{
 struct NetSettings
 {
     explicit NetSettings(const PCWSTR InParentServerAddress = TEXT(""), const PCWSTR InServerAddress = DEFAULT_SERVER_ADDRESS):
@@ -25,6 +27,7 @@ struct NetSettings
     PCWSTR serverAddress;
     u_short serverPort = DEFAULT_SERVER_PORT;
 };
+}
 
 struct PacketComponentAssociatedData
 {

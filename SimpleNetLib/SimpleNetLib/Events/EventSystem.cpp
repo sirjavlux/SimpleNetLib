@@ -1,5 +1,8 @@
 ﻿#include "EventSystem.h"
 
+namespace Net
+{
+
 EventSystem* EventSystem::instance_ = nullptr;
 
 EventSystem* EventSystem::Initialize()
@@ -29,3 +32,5 @@ void EventSystem::End()
 EventSystem::EventSystem() = default;
 
 EventSystem::~EventSystem() = default;
+
+}

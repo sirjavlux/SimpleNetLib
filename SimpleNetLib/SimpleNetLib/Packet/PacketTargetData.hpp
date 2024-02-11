@@ -2,6 +2,8 @@
 
 #include "../NetIncludes.h"
 
+namespace Net
+{
 class PacketTargetData
 {
 public:
@@ -52,3 +54,4 @@ private:
     
   std::map<int32_t, Packet> ackPacketsNotReturned_;
 };
+}

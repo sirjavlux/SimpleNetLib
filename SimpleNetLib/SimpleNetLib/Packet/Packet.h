@@ -2,7 +2,10 @@
 
 #include "../NetIncludes.h"
 
-class PacketComponent;
+namespace Net
+{
+    class PacketComponent;
+}
 
 enum class NET_LIB_EXPORT EPacketHandlingType : uint8_t
 {
@@ -31,9 +34,11 @@ enum class NET_LIB_EXPORT EAddComponentResult : uint8_t
 struct NET_LIB_EXPORT PacketComponentData
 {
     uint16_t size = 0;
-    const PacketComponent* packetComponent;
+    const Net::PacketComponent* packetComponent;
 };
 
+namespace Net
+{
 class NET_LIB_EXPORT Packet
 {
 public:
@@ -70,3 +75,4 @@ private:
     // THIS DATA IS NOT INCLUDED IN PACKET NET TRANSFERS
     uint16_t packetDataIter_ = 0;
 };
+}

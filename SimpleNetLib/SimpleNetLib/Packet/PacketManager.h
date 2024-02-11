@@ -7,6 +7,7 @@
 #include "../Network/NetHandler.h"
 
 class ReturnAckComponent;
+
 class NetHandler;
 enum class EPacketHandlingType : uint8_t;
 
@@ -16,6 +17,8 @@ enum class ENetworkHandleType
     Client  = 1,
 };
 
+namespace Net
+{
 class PacketManager
 {
 public:
@@ -30,6 +33,9 @@ public:
     
     template<typename ComponentType>
     bool SendPacketComponent(const ComponentType& InPacketComponent, const NetTarget& InTarget);
+
+    template<typename ComponentType>
+    bool SendPacketComponentMulticastOrParentConnection(const ComponentType& InPacketComponent);
     
     template <class ComponentType>
     void RegisterPacketComponent(EPacketHandlingType InHandlingType);
@@ -42,10 +48,10 @@ public:
         const std::function<void(OwningObject*, const NetTarget&, const PacketComponent&)>& InFunction, OwningObject* InOwnerObject);
 
     ENetworkHandleType GetManagerType() const { return managerType_; }
-
-    void HandleComponent(const NetTarget& InNetTarget, const PacketComponent& InPacketComponent);
     
 private:
+    void HandleComponent(const NetTarget& InNetTarget, const PacketComponent& InPacketComponent);
+    
     void FixedUpdate(); // TODO: Implement this
     std::chrono::steady_clock::time_point lastUpdateTime_;
     double updateLag_ = 0.0;
@@ -123,6 +129,27 @@ bool PacketManager::SendPacketComponent(const ComponentType& InPacketComponent, 
 }
 
 template <typename ComponentType>
+bool PacketManager::SendPacketComponentMulticastOrParentConnection(const ComponentType& InPacketComponent)
+{
+    // Server
+    if (netHandler_->IsServer())
+    {
+        SendPacketComponent<ComponentType>(InPacketComponent, netHandler_->parentConnection_);
+    }
+    // Client
+    else
+    {
+        const std::vector<NetTarget> connections = netHandler_->connectionHandler_.GetCopy();
+        for (const NetTarget& netTarget : connections)
+        {
+            SendPacketComponent<ComponentType>(InPacketComponent, netTarget);
+        }
+    }
+
+    return true;
+}
+
+template <typename ComponentType>
 void PacketManager::RegisterPacketComponent(const EPacketHandlingType InHandlingType)
 {
     static_assert(std::is_base_of_v<PacketComponent, ComponentType>, "ComponentType must be derived from PacketComponent");
@@ -193,4 +220,5 @@ void PacketManager::RegisterAssociatedData(const EPacketHandlingType InHandlingT
     }
     
     packetComponentAssociatedData_.emplace(identifier, associatedData);
+}
 }

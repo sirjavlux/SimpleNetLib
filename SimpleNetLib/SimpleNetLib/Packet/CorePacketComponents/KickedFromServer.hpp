@@ -2,7 +2,7 @@
 
 #include "../PacketComponent.h"
 
-class NET_LIB_EXPORT KickedFromServerPacketComponent : public PacketComponent
+class NET_LIB_EXPORT KickedFromServerPacketComponent : public Net::PacketComponent
 {
 public:
     explicit KickedFromServerPacketComponent();
@@ -11,6 +11,6 @@ public:
 };
 
 inline KickedFromServerPacketComponent::KickedFromServerPacketComponent()
-    : PacketComponent(static_cast<int16_t>(EPacketComponent::KickedFromServer), sizeof(KickedFromServerPacketComponent)),
+    : PacketComponent(static_cast<int16_t>(Net::EPacketComponent::KickedFromServer), sizeof(KickedFromServerPacketComponent)),
     disconnectType()
 {}

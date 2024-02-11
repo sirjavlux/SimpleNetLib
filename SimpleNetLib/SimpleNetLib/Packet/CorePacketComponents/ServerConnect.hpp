@@ -2,7 +2,7 @@
 
 #include "../PacketComponent.h"
 
-class NET_LIB_EXPORT ServerConnectPacketComponent : public PacketComponent
+class NET_LIB_EXPORT ServerConnectPacketComponent : public Net::PacketComponent
 {
 public:
     ServerConnectPacketComponent();
@@ -10,5 +10,5 @@ public:
 };
 
 inline ServerConnectPacketComponent::ServerConnectPacketComponent()
-    : PacketComponent(static_cast<int16_t>(EPacketComponent::ServerConnect), sizeof(ServerConnectPacketComponent))
+    : PacketComponent(static_cast<int16_t>(Net::EPacketComponent::ServerConnect), sizeof(ServerConnectPacketComponent) + 500, true)
 { }

@@ -1,5 +1,7 @@
 ﻿#include "NetConnectionHandler.h"
 
+namespace Net
+{
 bool NetConnectionHandler::ContainsConnection(const sockaddr_storage& InAddress)
 {
     mutexLock_.lock();
@@ -129,4 +131,5 @@ NetTarget* NetConnectionHandler::RetrieveNetTarget(const sockaddr_storage& InAdd
         return iter._Ptr;
     }
     return nullptr;
+}
 }

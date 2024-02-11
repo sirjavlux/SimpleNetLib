@@ -1,6 +1,8 @@
 ﻿#pragma once
 #include <cstdint>
 
+namespace Net
+{
 enum class EPacketComponent : uint16_t
 {
     None                    = 0,
@@ -16,3 +18,4 @@ enum class EPacketComponent : uint16_t
     ReturnAck               = 2001,
     ServerPing              = 2002
 };
+}

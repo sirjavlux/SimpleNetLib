@@ -15,17 +15,17 @@ Server::~Server()
 
 void Server::Init()
 {
-    const NetSettings netSettings; // Use default settings for now with local address and default port as 42000
-    SimpleNetCore::Initialize(ENetworkHandleType::Server, netSettings);
+    const Net::NetSettings netSettings; // Use default settings for now with local address and default port as 42000
+    Net::SimpleNetLibCore::Initialize(ENetworkHandleType::Server, netSettings);
 }
 
 void Server::End()
 {
-    SimpleNetCore::End();
+    Net::SimpleNetLibCore::End();
     bIsRunning = false;
 }
 
 void Server::Update()
 {
-    PacketManager::Get()->Update();
+    Net::PacketManager::Get()->Update();
 }

@@ -2,6 +2,8 @@
 
 #include "../NetIncludes.h"
 
+namespace Net
+{
 class PacketComponent;
 
 class PacketComponentDelegator
@@ -101,4 +103,5 @@ void PacketComponentDelegator::CheckValidityOfPacket()
     {
         throw std::runtime_error("ComponentType isn't a valid PacketComponent. Make sure identifier and size is set.");
     }
+}
 }

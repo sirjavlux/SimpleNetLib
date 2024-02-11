@@ -4,10 +4,14 @@
 #include "../NetIncludes.h"
 #include "../Packet/Packet.h"
 
-class PacketComponent;
 class ServerConnectPacketComponent;
 class ServerDisconnectPacketComponent;
-class Packet;
+
+namespace Net
+{
+    class PacketComponent;
+    class Packet;
+}
 
 namespace std
 {
@@ -17,9 +21,11 @@ namespace std
 struct PacketProcessData
 {
     sockaddr_storage address;
-    Packet packet;
+    Net::Packet packet;
 };
 
+namespace Net
+{
 class NetHandler
 {
 public:
@@ -88,3 +94,4 @@ private:
     
     friend class PacketManager;
 };
+}

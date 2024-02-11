@@ -7,6 +7,8 @@
 #include "../Packet/CorePacketComponents/ServerConnect.hpp"
 #include "../Packet/CorePacketComponents/ReturnAckComponent.hpp"
 
+namespace Net
+{
 NetHandler::NetHandler(const NetSettings& InNetSettings) : netSettings_(InNetSettings),
     bIsServer_(PacketManager::Get()->GetManagerType() == ENetworkHandleType::Server)
 {
@@ -42,7 +44,7 @@ void NetHandler::SendPacketToTargetAndResetPacket(const NetTarget& InTarget, Pac
 
 void NetHandler::SendPacketToTarget(const NetTarget& InTarget, const Packet& InPacket) const
 {
-    const sockaddr_in targetAddress = Net::RetrieveIPv4AddressFromStorage(InTarget.address);
+    const sockaddr_in targetAddress = NetUtility::RetrieveIPv4AddressFromStorage(InTarget.address);
     std::cout << InPacket.GetIdentifier() << " : " << (InPacket.GetPacketType() == EPacketHandlingType::Ack ? "Ack" : "Not Ack") << " : " << "Sent Packet!\n";
     if (sendto(udpSocket_, reinterpret_cast<const char*>(&InPacket), NET_BUFFER_SIZE_TOTAL, 0, reinterpret_cast<const sockaddr*>(&targetAddress), sizeof(targetAddress)) == SOCKET_ERROR)
     {
@@ -185,7 +187,7 @@ bool NetHandler::InitializeWin32()
     // Send Join Packet
     if (!bIsServer_)
     {
-        parentConnection_ = NetTarget(Net::RetrieveStorageFromIPv4Address(connectedParentServerAddress_));
+        parentConnection_ = NetTarget(NetUtility::RetrieveStorageFromIPv4Address(connectedParentServerAddress_));
         connectionHandler_.AddConnection(parentConnection_.address);
         
         const ServerConnectPacketComponent connectComponent;
@@ -289,7 +291,7 @@ void NetHandler::UpdatePacketTracker(const sockaddr_storage& SenderAddress, cons
 
 void NetHandler::PreProcessPackets(const char* Buffer, const int BytesReceived, const sockaddr_storage& SenderAddress)
 {
-    Packet packet = { Buffer, BytesReceived };
+    const Packet packet = { Buffer, BytesReceived };
 
     std::cout << packet.GetIdentifier() << " : " << (packet.GetPacketType() == EPacketHandlingType::Ack ? "Ack" : "Not Ack") << " : " << "Got Packet!\n";
 
@@ -366,4 +368,5 @@ void NetHandler::KickNetTarget(const sockaddr_storage& InAddress, const ENetDisc
         PacketManager::Get()->OnNetTargetDisconnection(outNetTarget, InKickReason);
         connectionHandler_.RemoveConnection(InAddress);
     }
+}
 }

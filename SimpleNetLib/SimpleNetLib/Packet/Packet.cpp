@@ -2,6 +2,8 @@
 
 #include "PacketComponent.h"
 
+namespace Net
+{
 Packet::Packet(const EPacketHandlingType InPacketHandlingType)
     : packetHandlingType_(InPacketHandlingType), packetIdentifier_(GenerateIdentifier())
 {
@@ -73,4 +75,5 @@ void Packet::ExtractComponent(std::vector<const PacketComponent*>& OutComponents
     
     Iterator += componentSize;
     ExtractComponent(OutComponents, Iterator);
+}
 }

@@ -1,5 +1,5 @@
 #pragma once
 
 #include "NetIncludes.h"
-#include "SimpleNetCore.h"
+#include "SimpleNetLibCore.h"
 #include "Packet/PacketManager.h"

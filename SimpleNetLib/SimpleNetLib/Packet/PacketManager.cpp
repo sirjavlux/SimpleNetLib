@@ -7,6 +7,8 @@
 #include "CorePacketComponents/ServerDisconnect.hpp"
 #include "CorePacketComponents/ServerPing.hpp"
 
+namespace Net
+{
 PacketManager* PacketManager::instance_ = nullptr;
 
 PacketManager::PacketManager(const ENetworkHandleType InPacketManagerType, const NetSettings& InNetSettings)
@@ -135,4 +137,5 @@ void PacketManager::UpdateServerPinging()
         const ServerPingPacketComponent serverPingPacketComponent;
         SendPacketComponent(serverPingPacketComponent, netHandler_->parentConnection_);
     }
+}
 }

@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-namespace Net
+namespace NetUtility
 {
     inline sockaddr_storage RetrieveStorageFromIPv4Address(const sockaddr_in& InAddress)
     {

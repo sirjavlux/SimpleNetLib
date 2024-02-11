@@ -2,7 +2,7 @@
 
 #include "../PacketComponent.h"
 
-class NET_LIB_EXPORT ReturnAckComponent : public PacketComponent
+class NET_LIB_EXPORT ReturnAckComponent : public Net::PacketComponent
 {
 public:
     explicit ReturnAckComponent();
@@ -11,6 +11,6 @@ public:
 };
 
 inline ReturnAckComponent::ReturnAckComponent()
-    : PacketComponent(static_cast<int16_t>(EPacketComponent::ReturnAck), sizeof(ReturnAckComponent)),
+    : PacketComponent(static_cast<int16_t>(Net::EPacketComponent::ReturnAck), sizeof(ReturnAckComponent)),
     ackIdentifier(-1)
 { }

@@ -16,22 +16,22 @@ Client::~Client()
 
 void Client::Init()
 {
-    NetSettings netSettings; // Keep everything at default and local for testing
+    Net::NetSettings netSettings; // Keep everything at default and local for testing
     netSettings.parentServerAddress = DEFAULT_SERVER_ADDRESS;
     netSettings.parentServerPort = DEFAULT_SERVER_PORT;
     
-    SimpleNetCore::Initialize(ENetworkHandleType::Client, netSettings);
+    Net::SimpleNetLibCore::Initialize(ENetworkHandleType::Client, netSettings);
 }
 
 void Client::End()
 {
     Tga::Engine::Shutdown();
     
-    SimpleNetCore::End();
+    Net::SimpleNetLibCore::End();
     bIsRunning = false;
 }
 
 void Client::Update(const float InDeltaTime)
 {
-    PacketManager::Get()->Update();
+    Net::PacketManager::Get()->Update();
 }

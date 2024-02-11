@@ -2,6 +2,8 @@
 
 #include "../Packet/PacketComponent.h"
 
+namespace Net
+{
 void PacketComponentDelegator::HandleComponent(const NetTarget& InNetTarget, const PacketComponent& InPacketComponent)
 {
     const uint16_t identifier = InPacketComponent.GetIdentifier();
@@ -19,4 +21,5 @@ void PacketComponentDelegator::HandleComponent(const NetTarget& InNetTarget, con
     {
         iterStatic->second.Execute(InNetTarget, InPacketComponent);
     }
+}
 }

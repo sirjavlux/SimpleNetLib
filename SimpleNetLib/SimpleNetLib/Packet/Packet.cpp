@@ -48,7 +48,7 @@ EAddComponentResult Packet::AddComponent(const PacketComponent& InPacketComponen
     return EAddComponentResult::Success;
 }
 
-void Packet::GetComponents(std::vector<PacketComponent*>& OutComponents)
+void Packet::GetComponents(std::vector<const PacketComponent*>& OutComponents) const
 {
     int iterator = 0;
     ExtractComponent(OutComponents, iterator);
@@ -60,14 +60,14 @@ void Packet::Reset()
     packetDataIter_ = 0;
 }
 
-void Packet::ExtractComponent(std::vector<PacketComponent*>& OutComponents, int& Iterator)
+void Packet::ExtractComponent(std::vector<const PacketComponent*>& OutComponents, int& Iterator) const
 {
     if (NET_PACKET_COMPONENT_DATA_SIZE_TOTAL <= Iterator || data_[Iterator] == '\0')
     {
         return;    
     }
 
-    PacketComponent* componentExtracted = reinterpret_cast<PacketComponent*>(&data_[Iterator]);
+    const PacketComponent* componentExtracted = reinterpret_cast<const PacketComponent*>(&data_[Iterator]);
     const uint16_t componentSize = componentExtracted->GetSize();
     OutComponents.push_back(componentExtracted);
     

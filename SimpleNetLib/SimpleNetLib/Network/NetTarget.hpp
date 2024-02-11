@@ -13,6 +13,16 @@ struct NetTarget
 
     std::chrono::steady_clock::time_point lastTimeReceivedNetEvent;
 
+    bool operator==(const sockaddr_storage& InNetTarget) const
+    {
+        return InNetTarget == this->address;
+    }
+
+    bool operator!=(const sockaddr_storage& InNetTarget) const
+    {
+        return !(InNetTarget == this->address);
+    }
+    
     bool operator==(const NetTarget& InNetTarget) const
     {
         return InNetTarget.address == this->address;
@@ -23,6 +33,8 @@ struct NetTarget
         return !(*this == InNetTarget);
     }
 
+private:
+    
     bool HasPacketBeenSent(const int32_t InIdentifier) const
     {
         if (InIdentifier > currentPacket_)
@@ -72,9 +84,10 @@ struct NetTarget
         }
     }
     
-private:
     std::vector<int32_t> packetsMissingPriorToCurrent_;
     int32_t currentPacket_ = INT32_MIN;
+
+    friend class NetConnectionHandler;
 };
 
 inline bool operator==(const sockaddr_storage& InRhs, const sockaddr_storage& InLhs)

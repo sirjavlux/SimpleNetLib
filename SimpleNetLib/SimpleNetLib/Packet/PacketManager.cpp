@@ -72,6 +72,8 @@ void PacketManager::HandleComponent(const NetTarget& InNetTarget, const PacketCo
 
 void PacketManager::FixedUpdate()
 {
+    netHandler_->Update();
+    
     if (!netHandler_->IsServer())
     {
         UpdateServerPinging();

@@ -45,7 +45,7 @@ public:
     
     EAddComponentResult AddComponent(const PacketComponent& InPacketComponent);
     
-    void GetComponents(std::vector<PacketComponent*>& OutComponents);
+    void GetComponents(std::vector<const PacketComponent*>& OutComponents) const;
 
     void Reset();
 
@@ -56,7 +56,7 @@ public:
     EPacketHandlingType GetPacketType() const { return packetHandlingType_; }
     
 private:
-    void ExtractComponent(std::vector<PacketComponent*>& OutComponents, int& Iterator);
+    void ExtractComponent(std::vector<const PacketComponent*>& OutComponents, int& Iterator) const;
 
     int32_t packetIdentifier_ = INT32_MIN;
 
@@ -67,5 +67,6 @@ private:
     char data_[NET_PACKET_COMPONENT_DATA_SIZE_TOTAL];
 
     // Data bypassing the packet size limit
+    // THIS DATA IS NOT INCLUDED IN PACKET NET TRANSFERS
     uint16_t packetDataIter_ = 0;
 };

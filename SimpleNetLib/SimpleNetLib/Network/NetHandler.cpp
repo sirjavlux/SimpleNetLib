@@ -29,6 +29,11 @@ NetHandler::~NetHandler()
     #endif
 }
 
+void NetHandler::Update()
+{
+    ProcessPackets();
+}
+
 void NetHandler::SendPacketToTargetAndResetPacket(const NetTarget& InTarget, Packet& InPacket) const
 {
     SendPacketToTarget(InTarget, InPacket);
@@ -45,22 +50,14 @@ void NetHandler::SendPacketToTarget(const NetTarget& InTarget, const Packet& InP
     }
 }
 
-bool NetHandler::RetrieveChildConnectionNetTargetInstance(const sockaddr_storage& InAddress, NetTarget*& OutNetTarget)
+bool NetHandler::RetrieveChildConnectionNetTargetInstance(const sockaddr_storage& InAddress, NetTarget& OutNetTarget)
 {
-    
-    const auto searchResult = std::find(childConnections_.begin(), childConnections_.end(), NetTarget(InAddress));
-    if (searchResult != childConnections_.end())
-    {
-        OutNetTarget = searchResult._Ptr;
-        return true;
-    }
-    return false;
+    return connectionHandler_.GetNetTargetCopy(InAddress, OutNetTarget);
 }
 
 bool NetHandler::IsConnected(const sockaddr_storage& InAddress)
 {
-    const auto searchResult = std::find(childConnections_.begin(), childConnections_.end(), NetTarget(InAddress));
-    return searchResult != childConnections_.end();
+    return connectionHandler_.ContainsConnection(InAddress);
 }
 
 void NetHandler::Initialize()
@@ -189,7 +186,8 @@ bool NetHandler::InitializeWin32()
     if (!bIsServer_)
     {
         parentConnection_ = NetTarget(Net::RetrieveStorageFromIPv4Address(connectedParentServerAddress_));
-
+        connectionHandler_.AddConnection(parentConnection_.address);
+        
         const ServerConnectPacketComponent connectComponent;
         PacketManager::Get()->SendPacketComponent<ServerConnectPacketComponent>(connectComponent, parentConnection_);
 
@@ -212,7 +210,7 @@ void NetHandler::PacketListener(NetHandler* InNetHandler)
 
         if (bytesReceived > 0)
         {
-            InNetHandler->ProcessPackets(buffer, bytesReceived, senderAddress); // This needs update to be secure against threaded processing
+            InNetHandler->PreProcessPackets(buffer, bytesReceived, senderAddress); // Important: This needs update to be secure against threaded processing
             InNetHandler->UpdateNetTarget(senderAddress);
         }
         else if (bytesReceived == 0)
@@ -241,38 +239,55 @@ void NetHandler::SendReturnAckBackToNetTarget(const NetTarget& Target, const int
     PacketManager::Get()->SendPacketComponent(component, Target);
 }
 
-bool NetHandler::HandleReturnAck(const sockaddr_storage& SenderAddress, const int32_t Identifier)
+void NetHandler::ProcessPackets()
 {
-    bool bHasAlreadyBeenReceived = false;
-    // Client receiving packet
-    if (parentConnection_.address == SenderAddress)
+    // Retrieve and clear packets waiting for processing
+    packetProcessingMutexLock_.lock();
+    const std::vector<PacketProcessData> packetProcessDataCopy = packetDataToProcess_;
+    packetDataToProcess_.clear();
+    packetProcessingMutexLock_.unlock();
+
+    // Process packets
+    for (const PacketProcessData& data : packetProcessDataCopy)
     {
-        SendReturnAckBackToNetTarget(parentConnection_, Identifier);
-        bHasAlreadyBeenReceived = parentConnection_.HasPacketBeenSent(Identifier);
-    }
-    // Server receiving packet
-    else  if (NetTarget* outNetTarget; RetrieveChildConnectionNetTargetInstance(SenderAddress, outNetTarget))
-    {
-        SendReturnAckBackToNetTarget(*outNetTarget, Identifier);
-        bHasAlreadyBeenReceived = outNetTarget->HasPacketBeenSent(Identifier);
-    }
-    return bHasAlreadyBeenReceived;
-}
-void NetHandler::UpdatePacketTracker(const sockaddr_storage& SenderAddress, const int32_t Identifier)
-{
-    // Client receiving packet
-    if (parentConnection_.address == SenderAddress)
-    {
-        parentConnection_.UpdatePacketTracker(Identifier);
-    }
-    // Server receiving packet
-    else  if (NetTarget* outNetTarget; RetrieveChildConnectionNetTargetInstance(SenderAddress, outNetTarget))
-    {
-        outNetTarget->UpdatePacketTracker(Identifier);
+        const Packet& packet = data.packet;
+        const sockaddr_storage& senderAddress = data.address;
+        const NetTarget netTarget = NetTarget(senderAddress);
+        
+        // Handle Components
+        std::vector<const PacketComponent*> outComponents;
+        packet.GetComponents(outComponents);
+        for (const PacketComponent* component : outComponents)
+        {
+            PacketManager::Get()->HandleComponent(netTarget, *component);
+        }
+
+        // Update packet tracker
+        UpdatePacketTracker(senderAddress, packet.GetIdentifier());
     }
 }
 
-void NetHandler::ProcessPackets(const char* Buffer, const int BytesReceived, const sockaddr_storage& SenderAddress)
+bool NetHandler::HandleReturnAck(const sockaddr_storage& SenderAddress, const int32_t Identifier)
+{
+    bool bHasAlreadyBeenReceived = false;
+    if (NetTarget outNetTarget; RetrieveChildConnectionNetTargetInstance(SenderAddress, outNetTarget))
+    {
+        SendReturnAckBackToNetTarget(outNetTarget, Identifier);
+        bHasAlreadyBeenReceived = connectionHandler_.HasPacketBeenSent(SenderAddress, Identifier);
+    }
+    return bHasAlreadyBeenReceived;
+}
+
+void NetHandler::UpdatePacketTracker(const sockaddr_storage& SenderAddress, const int32_t Identifier)
+{
+    NetTarget outNetTarget;
+    if (RetrieveChildConnectionNetTargetInstance(SenderAddress, outNetTarget))
+    {
+        connectionHandler_.UpdatePacketTracker(SenderAddress, Identifier);
+    }
+}
+
+void NetHandler::PreProcessPackets(const char* Buffer, const int BytesReceived, const sockaddr_storage& SenderAddress)
 {
     Packet packet = { Buffer, BytesReceived };
 
@@ -287,31 +302,19 @@ void NetHandler::ProcessPackets(const char* Buffer, const int BytesReceived, con
         }
     }
 
-    // Handle Components
-    std::vector<PacketComponent*> outComponents;
-    packet.GetComponents(outComponents);
-    for (const PacketComponent* component : outComponents)
-    {
-        PacketManager::Get()->HandleComponent(NetTarget(SenderAddress), *component);
-    }
-
-    // Update packet tracker
-    UpdatePacketTracker(SenderAddress, packet.GetIdentifier());
+    packetProcessingMutexLock_.lock();
+    packetDataToProcess_.push_back({ SenderAddress, packet });
+    packetProcessingMutexLock_.unlock();
 }
 
 void NetHandler::UpdateNetTarget(const sockaddr_storage& InAddress)
 {
-    using namespace std::chrono;
-
-    if (NetTarget* outNetTarget; RetrieveChildConnectionNetTargetInstance(InAddress, outNetTarget))
-    {
-        outNetTarget->lastTimeReceivedNetEvent = steady_clock::now();
-    }
+    connectionHandler_.UpdateNetTargetClock(InAddress);
 }
 
 void NetHandler::OnChildDisconnectReceived(const NetTarget& InNetTarget, const PacketComponent& InComponent)
 {
-    if (IsConnected(InNetTarget.address))
+    if (connectionHandler_.ContainsConnection(InNetTarget.address))
     {
         KickNetTarget(InNetTarget.address, ENetDisconnectType::Disconnected);
     }
@@ -322,7 +325,7 @@ void NetHandler::OnChildConnectionReceived(const NetTarget& InNetTarget, const P
     std::cout << "Join retrieved!\n";
     if (!IsConnected(InNetTarget.address))
     {
-        childConnections_.push_back(InNetTarget);
+        connectionHandler_.AddConnection(InNetTarget.address);
         PacketManager::Get()->OnNetTargetConnected(InNetTarget);
     }
 }
@@ -334,10 +337,11 @@ void NetHandler::KickInactiveNetTargets()
     constexpr int iterationAddition = static_cast<int>(1.f / NET_INACTIVE_CHECKS_PER_UPDATE_PERCENT);
     
     static int iterationOffset = 0;
-    
-    for (size_t iter = iterationOffset; iter < childConnections_.size(); iter += iterationAddition)
+
+    const std::vector<NetTarget> childConnections = connectionHandler_.GetCopy();
+    for (size_t iter = iterationOffset; iter < childConnections.size(); iter += iterationAddition)
     {
-        const NetTarget& netTarget = childConnections_[iter];
+        const NetTarget& netTarget = childConnections[iter];
 
         const steady_clock::time_point currentTime = steady_clock::now();
         const duration<float> timeDifference = duration_cast<duration<float>>(currentTime - netTarget.lastTimeReceivedNetEvent);
@@ -356,10 +360,10 @@ void NetHandler::KickInactiveNetTargets()
 
 void NetHandler::KickNetTarget(const sockaddr_storage& InAddress, const ENetDisconnectType InKickReason)
 {
-    NetTarget* outNetTarget;
-    if (RetrieveChildConnectionNetTargetInstance(InAddress, outNetTarget))
+    NetTarget outNetTarget;
+    if (connectionHandler_.GetNetTargetCopy(InAddress, outNetTarget))
     {
-        PacketManager::Get()->OnNetTargetDisconnection(*outNetTarget, InKickReason);
-        childConnections_.erase(std::find(childConnections_.begin(), childConnections_.end(), *outNetTarget));
+        PacketManager::Get()->OnNetTargetDisconnection(outNetTarget, InKickReason);
+        connectionHandler_.RemoveConnection(InAddress);
     }
 }

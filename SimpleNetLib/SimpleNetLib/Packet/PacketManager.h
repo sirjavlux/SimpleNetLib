@@ -37,7 +37,7 @@ public:
     template<typename ComponentType>
     bool SendPacketComponentMulticastOrParentConnection(const ComponentType& InPacketComponent);
     
-    template <class ComponentType>
+    template <typename ComponentType>
     void RegisterPacketComponent(EPacketHandlingType InHandlingType);
 
     template<typename ComponentType>
@@ -52,7 +52,7 @@ public:
 private:
     void HandleComponent(const NetTarget& InNetTarget, const PacketComponent& InPacketComponent);
     
-    void FixedUpdate(); // TODO: Implement this
+    void FixedUpdate();
     std::chrono::steady_clock::time_point lastUpdateTime_;
     double updateLag_ = 0.0;
 

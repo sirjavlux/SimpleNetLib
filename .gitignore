@@ -72,3 +72,7 @@ x64/
 
 .vs
 .idea
+*.exe
+*.pdb
+*.dll
+*.cso

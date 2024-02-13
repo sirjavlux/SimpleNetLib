@@ -15,8 +15,8 @@ namespace Net
         ~EventSystem();
 
         // Connection events
-        DynamicMulticastDelegate<const NetTarget&> onClientConnectEvent;
-        DynamicMulticastDelegate<const NetTarget&, ENetDisconnectType> onClientDisconnectEvent;
+        DynamicMulticastDelegate<const sockaddr_storage&> onClientConnectEvent;
+        DynamicMulticastDelegate<const sockaddr_storage&, ENetDisconnectType> onClientDisconnectEvent;
     
     private:
         static EventSystem* instance_;

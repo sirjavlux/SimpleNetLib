@@ -22,17 +22,17 @@ namespace Net
 class PacketManager
 {
 public:
-    PacketManager(const ENetworkHandleType InPacketManagerType, const NetSettings& InNetSettings);
+    PacketManager(ENetworkHandleType InPacketManagerType, const NetSettings& InNetSettings);
     ~PacketManager();
     
-    static PacketManager* Initialize(const ENetworkHandleType InPacketManagerType, const NetSettings& InNetSettings);
+    static PacketManager* Initialize(ENetworkHandleType InPacketManagerType, const NetSettings& InNetSettings);
     static PacketManager* Get();
     static void End();
     
     void Update();
     
     template<typename ComponentType>
-    bool SendPacketComponent(const ComponentType& InPacketComponent, const NetTarget& InTarget);
+    bool SendPacketComponent(const ComponentType& InPacketComponent, const sockaddr_storage& InTarget);
 
     template<typename ComponentType>
     bool SendPacketComponentMulticastOrParentConnection(const ComponentType& InPacketComponent);
@@ -41,31 +41,31 @@ public:
     void RegisterPacketComponent(EPacketHandlingType InHandlingType);
 
     template<typename ComponentType>
-    void RegisterPacketComponent(const EPacketHandlingType InHandlingType, const std::function<void(const NetTarget&, const PacketComponent&)>& InFunction);
+    void RegisterPacketComponent(EPacketHandlingType InHandlingType, const std::function<void(const sockaddr_storage&, const PacketComponent&)>& InFunction);
     
     template<typename ComponentType, typename OwningObject>
     void RegisterPacketComponent(EPacketHandlingType InHandlingType,
-        const std::function<void(OwningObject*, const NetTarget&, const PacketComponent&)>& InFunction, OwningObject* InOwnerObject);
+        const std::function<void(OwningObject*, const sockaddr_storage&, const PacketComponent&)>& InFunction, OwningObject* InOwnerObject);
 
     ENetworkHandleType GetManagerType() const { return managerType_; }
     
 private:
-    void HandleComponent(const NetTarget& InNetTarget, const PacketComponent& InPacketComponent);
+    void HandleComponent(const sockaddr_storage& InComponentSender, const PacketComponent& InPacketComponent);
     
     void FixedUpdate();
     std::chrono::steady_clock::time_point lastUpdateTime_;
     double updateLag_ = 0.0;
 
-    static void OnNetTargetConnected(const NetTarget& InTarget);
-    static void OnNetTargetDisconnection(const NetTarget& InTarget, const ENetDisconnectType InDisconnectType);
+    static void OnNetTargetConnected(const sockaddr_storage& InTarget);
+    static void OnNetTargetDisconnection(const sockaddr_storage& InTarget, ENetDisconnectType InDisconnectType);
 
-    void OnAckReturnReceived(const NetTarget& InNetTarget, const PacketComponent& InComponent);
+    void OnAckReturnReceived(const sockaddr_storage& InNetTarget, const PacketComponent& InComponent);
     
     template<typename ComponentType>
     bool IsPacketComponentValid();
 
     template <typename ComponentType>
-    void RegisterAssociatedData(const EPacketHandlingType InHandlingType);
+    void RegisterAssociatedData(EPacketHandlingType InHandlingType);
 
     void RegisterDefaultPacketComponents();
 
@@ -81,7 +81,7 @@ private:
     PacketComponentDelegator packetComponentHandleDelegator_;
     std::map<uint16_t, PacketComponentAssociatedData> packetComponentAssociatedData_;
 
-    std::map<NetTarget, PacketTargetData> packetTargetDataMap_;
+    std::map<sockaddr_storage, PacketTargetData> packetTargetDataMap_;
     
     const NetSettings netSettings_;
     
@@ -89,7 +89,7 @@ private:
 };
 
 template <typename ComponentType>
-bool PacketManager::SendPacketComponent(const ComponentType& InPacketComponent, const NetTarget& InTarget)
+bool PacketManager::SendPacketComponent(const ComponentType& InPacketComponent, const sockaddr_storage& InTarget)
 {
     lastTimePacketSent_ = std::chrono::steady_clock::now(); // Reset server ping timer
     
@@ -158,7 +158,7 @@ void PacketManager::RegisterPacketComponent(const EPacketHandlingType InHandling
 }
 
 template <typename ComponentType>
-void PacketManager::RegisterPacketComponent(const EPacketHandlingType InHandlingType, const std::function<void(const NetTarget&, const PacketComponent&)>& InFunction)
+void PacketManager::RegisterPacketComponent(const EPacketHandlingType InHandlingType, const std::function<void(const sockaddr_storage&, const PacketComponent&)>& InFunction)
 {
     static_assert(std::is_base_of_v<PacketComponent, ComponentType>, "ComponentType must be derived from PacketComponent");
     
@@ -168,7 +168,7 @@ void PacketManager::RegisterPacketComponent(const EPacketHandlingType InHandling
 }
 
 template<typename ComponentType, typename OwningObjectType>
-void PacketManager::RegisterPacketComponent(const EPacketHandlingType InHandlingType, const std::function<void(OwningObjectType*, const NetTarget&, const PacketComponent&)>& InFunction, OwningObjectType* InOwnerObject)
+void PacketManager::RegisterPacketComponent(const EPacketHandlingType InHandlingType, const std::function<void(OwningObjectType*, const sockaddr_storage&, const PacketComponent&)>& InFunction, OwningObjectType* InOwnerObject)
 {
     static_assert(std::is_base_of_v<PacketComponent, ComponentType>, "ComponentType must be derived from PacketComponent");
     if (InOwnerObject == nullptr)

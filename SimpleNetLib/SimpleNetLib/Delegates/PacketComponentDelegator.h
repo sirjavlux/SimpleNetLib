@@ -9,27 +9,27 @@ class PacketComponent;
 class PacketComponentDelegator
 {
 public:
-    void HandleComponent(const NetTarget& InNetTarget, const PacketComponent& InPacketComponent);
+    void HandleComponent(const sockaddr_storage& InNetTarget, const PacketComponent& InPacketComponent);
     
     template <typename ComponentType, typename OwningObject>
     void SubscribeToPacketComponentDelegate(
-        const std::function<void(OwningObject*,const NetTarget&, const PacketComponent&)>& InFunction, OwningObject* InOwner);
+        const std::function<void(OwningObject*,const sockaddr_storage&, const PacketComponent&)>& InFunction, OwningObject* InOwner);
 
     template <typename ComponentType>
     void SubscribeToPacketComponentDelegate(
-        const std::function<void(const NetTarget&, const PacketComponent&)>& InFunction);
+        const std::function<void(const sockaddr_storage&, const PacketComponent&)>& InFunction);
 
     template <typename ComponentType, typename OwningObject>
     void UnSubscribeFromPacketComponentDelegate(
-        const std::function<void(OwningObject*,const NetTarget&, const PacketComponent&)>& InFunction, OwningObject* InOwner);
+        const std::function<void(OwningObject*,const sockaddr_storage&, const PacketComponent&)>& InFunction, OwningObject* InOwner);
 
     template <typename ComponentType>
     void UnSubscribeFromPacketComponentDelegate(
-        const std::function<void(const NetTarget&, const PacketComponent&)>& InFunction);
+        const std::function<void(const sockaddr_storage&, const PacketComponent&)>& InFunction);
     
 private:
-    std::map<uint16_t, DynamicMulticastDelegate<const NetTarget&, const PacketComponent&>> delegatesDynamic_;
-    std::map<uint16_t, StaticMulticastDelegate<const NetTarget&, const PacketComponent&>> delegatesStatic_;
+    std::map<uint16_t, DynamicMulticastDelegate<const sockaddr_storage&, const PacketComponent&>> delegatesDynamic_;
+    std::map<uint16_t, StaticMulticastDelegate<const sockaddr_storage&, const PacketComponent&>> delegatesStatic_;
 
     template <typename ComponentType>
     void CheckValidityOfPacket();
@@ -37,7 +37,7 @@ private:
 
 template <typename ComponentType, typename OwningObject>
 void PacketComponentDelegator::SubscribeToPacketComponentDelegate(
-    const std::function<void(OwningObject*, const NetTarget&, const PacketComponent&)>& InFunction, OwningObject* InOwner)
+    const std::function<void(OwningObject*, const sockaddr_storage&, const PacketComponent&)>& InFunction, OwningObject* InOwner)
 {
     CheckValidityOfPacket<ComponentType>();
 
@@ -53,7 +53,7 @@ void PacketComponentDelegator::SubscribeToPacketComponentDelegate(
 }
 
 template <typename ComponentType>
-void PacketComponentDelegator::SubscribeToPacketComponentDelegate(const std::function<void(const NetTarget&, const PacketComponent&)>& InFunction)
+void PacketComponentDelegator::SubscribeToPacketComponentDelegate(const std::function<void(const sockaddr_storage&, const PacketComponent&)>& InFunction)
 {
     CheckValidityOfPacket<ComponentType>();
 
@@ -70,7 +70,7 @@ void PacketComponentDelegator::SubscribeToPacketComponentDelegate(const std::fun
 
 template <typename ComponentType, typename OwningObject>
 void PacketComponentDelegator::UnSubscribeFromPacketComponentDelegate(
-    const std::function<void(OwningObject*, const NetTarget&, const PacketComponent&)>& InFunction, OwningObject* InOwner)
+    const std::function<void(OwningObject*, const sockaddr_storage&, const PacketComponent&)>& InFunction, OwningObject* InOwner)
 {
     const ComponentType componentDefaultObject = ComponentType();
     const uint16_t identifier = componentDefaultObject.GetIdentifier();
@@ -82,7 +82,7 @@ void PacketComponentDelegator::UnSubscribeFromPacketComponentDelegate(
 }
 
 template <typename ComponentType>
-void PacketComponentDelegator::UnSubscribeFromPacketComponentDelegate(const std::function<void(const NetTarget&, const PacketComponent&)>& InFunction)
+void PacketComponentDelegator::UnSubscribeFromPacketComponentDelegate(const std::function<void(const sockaddr_storage&, const PacketComponent&)>& InFunction)
 {
     const ComponentType componentDefaultObject = ComponentType();
     const uint16_t identifier = componentDefaultObject.GetIdentifier();

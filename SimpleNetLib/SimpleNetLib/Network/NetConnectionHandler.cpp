@@ -4,9 +4,14 @@ namespace Net
 {
 bool NetConnectionHandler::ContainsConnection(const sockaddr_storage& InAddress)
 {
+    bool bWasFound = false;
+    
     mutexLock_.lock();
 
-    const bool bWasFound = std::find(connections_.begin(), connections_.end(), InAddress) != connections_.end();
+    if (InAddress.ss_family == AF_INET)
+    {
+        bWasFound = connections_.find(NetUtility::RetrieveIPv4AddressFromStorage(InAddress)) != connections_.end();
+    }
     
     mutexLock_.unlock();
 
@@ -17,7 +22,10 @@ void NetConnectionHandler::RemoveConnection(const sockaddr_storage& InAddress)
 {
     mutexLock_.lock();
 
-    connections_.erase(std::find(connections_.begin(), connections_.end(), InAddress));
+    if (InAddress.ss_family == AF_INET)
+    {
+        connections_.erase(NetUtility::RetrieveIPv4AddressFromStorage(InAddress));
+    }
     
     mutexLock_.unlock();
 }
@@ -31,16 +39,19 @@ void NetConnectionHandler::AddConnection(const sockaddr_storage& InAddress)
     
     mutexLock_.lock();
 
-    connections_.emplace_back(InAddress);
+    if (InAddress.ss_family == AF_INET)
+    {
+        connections_.insert({ NetUtility::RetrieveIPv4AddressFromStorage(InAddress), {} });
+    }
     
     mutexLock_.unlock();
 }
 
-std::vector<NetTarget> NetConnectionHandler::GetCopy()
+std::unordered_map<sockaddr_in, NetTarget> NetConnectionHandler::GetCopy()
 {
     mutexLock_.lock();
     
-    std::vector<NetTarget> result = connections_;
+    std::unordered_map<sockaddr_in, NetTarget> result = connections_;
     
     mutexLock_.unlock();
 
@@ -63,19 +74,6 @@ bool NetConnectionHandler::GetNetTargetCopy(const sockaddr_storage& InAddress, N
     mutexLock_.unlock();
 
     return bWasFound;
-}
-
-void NetConnectionHandler::UpdateNetTarget(const NetTarget& InNetTarget)
-{
-    mutexLock_.lock();
-
-    NetTarget* netTarget = RetrieveNetTarget(InNetTarget.address);
-    if (netTarget)
-    {
-        *netTarget = InNetTarget;
-    }
-    
-    mutexLock_.unlock();
 }
 
 void NetConnectionHandler::UpdateNetTargetClock(const sockaddr_storage& InAddress)
@@ -123,12 +121,57 @@ void NetConnectionHandler::UpdatePacketTracker(const sockaddr_storage& InAddress
     mutexLock_.unlock();
 }
 
+int NetConnectionHandler::FetchAndIncreaseComponentSendCount(const sockaddr_storage& InAddress, const uint16_t ComponentIdentifier)
+{
+    mutexLock_.lock();
+
+    int result = 0;
+    NetTarget* netTarget = RetrieveNetTarget(InAddress);
+    if (netTarget)
+    {
+        result = ++netTarget->packetComponentSendTryCount_[ComponentIdentifier];
+    }
+
+    mutexLock_.unlock();
+
+    return result;
+}
+
+void NetConnectionHandler::UpdateNetCullingPosition(const sockaddr_storage& InAddress, const NetUtility::NetPosition& InPosition)
+{
+    mutexLock_.lock();
+    NetTarget* netTarget = RetrieveNetTarget(InAddress);
+    mutexLock_.unlock();
+    
+    if (netTarget)
+    {
+        netTarget->netCullingPosition_ = InPosition;
+    }
+}
+
+NetUtility::NetPosition NetConnectionHandler::GetNetPosition(const sockaddr_storage& InAddress)
+{
+    mutexLock_.lock();
+    NetTarget* netTarget = RetrieveNetTarget(InAddress);
+    mutexLock_.unlock();
+    
+    if (netTarget)
+    {
+        return netTarget->netCullingPosition_;
+    }
+    return {};
+}
+
 NetTarget* NetConnectionHandler::RetrieveNetTarget(const sockaddr_storage& InAddress)
 {
-    auto iter = std::find(connections_.begin(), connections_.end(), InAddress);
-    if (iter != connections_.end())
+    if (InAddress.ss_family == AF_INET)
     {
-        return iter._Ptr;
+        const sockaddr_in ipv4Address = NetUtility::RetrieveIPv4AddressFromStorage(InAddress);
+        const auto iter = connections_.find(ipv4Address);
+        if (iter != connections_.end())
+        {
+            return &iter->second;
+        }
     }
     return nullptr;
 }

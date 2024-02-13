@@ -4,7 +4,7 @@
 
 namespace Net
 {
-void PacketComponentDelegator::HandleComponent(const NetTarget& InNetTarget, const PacketComponent& InPacketComponent)
+void PacketComponentDelegator::HandleComponent(const sockaddr_storage& InNetTarget, const PacketComponent& InPacketComponent)
 {
     const uint16_t identifier = InPacketComponent.GetIdentifier();
 

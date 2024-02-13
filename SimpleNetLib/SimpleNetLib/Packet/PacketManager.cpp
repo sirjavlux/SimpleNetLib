@@ -67,9 +67,9 @@ void PacketManager::Update()
     }
 }
 
-void PacketManager::HandleComponent(const NetTarget& InNetTarget, const PacketComponent& InPacketComponent)
+void PacketManager::HandleComponent(const sockaddr_storage& InComponentSender, const PacketComponent& InPacketComponent)
 {
-    packetComponentHandleDelegator_.HandleComponent(InNetTarget, InPacketComponent); 
+    packetComponentHandleDelegator_.HandleComponent(InComponentSender, InPacketComponent); 
 }
 
 void PacketManager::FixedUpdate()
@@ -81,9 +81,9 @@ void PacketManager::FixedUpdate()
         UpdateServerPinging();
     }
     
-    for (std::pair<const NetTarget, PacketTargetData>& packetTargetPair : packetTargetDataMap_)
+    for (std::pair<const sockaddr_storage, PacketTargetData>& packetTargetPair : packetTargetDataMap_)
     {
-        const NetTarget& target = packetTargetPair.first;
+        const sockaddr_storage& target = packetTargetPair.first;
         PacketTargetData& targetData = packetTargetPair.second;
         
         // Regular Packets
@@ -102,17 +102,17 @@ void PacketManager::FixedUpdate()
     }
 }
 
-void PacketManager::OnNetTargetConnected(const NetTarget& InTarget)
+void PacketManager::OnNetTargetConnected(const sockaddr_storage& InTarget)
 {
     EventSystem::Get()->onClientConnectEvent.Execute(InTarget);
 }
 
-void PacketManager::OnNetTargetDisconnection(const NetTarget& InTarget, const ENetDisconnectType InDisconnectType)
+void PacketManager::OnNetTargetDisconnection(const sockaddr_storage& InTarget, const ENetDisconnectType InDisconnectType)
 {
     EventSystem::Get()->onClientDisconnectEvent.Execute(InTarget, InDisconnectType);
 }
 
-void PacketManager::OnAckReturnReceived(const NetTarget& InNetTarget, const PacketComponent& InComponent)
+void PacketManager::OnAckReturnReceived(const sockaddr_storage& InNetTarget, const PacketComponent& InComponent)
 {
     const ReturnAckComponent* ackComponent = static_cast<const ReturnAckComponent*>(&InComponent);
     packetTargetDataMap_.at(InNetTarget).RemoveReturnedPacket(ackComponent->ackIdentifier);

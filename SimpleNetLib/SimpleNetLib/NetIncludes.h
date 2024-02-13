@@ -32,4 +32,7 @@
 #include "Delegates/Delegates.hpp"
 #include "Network/NetStructs.hpp"
 
+#include "Utility/NetOperatorOverloads.hpp"
+#include "Utility/HashUtility.hpp"
+
 #define NET_LIB_EXPORT __declspec(dllexport)

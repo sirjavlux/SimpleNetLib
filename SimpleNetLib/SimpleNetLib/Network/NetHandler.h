@@ -38,8 +38,8 @@ public:
     
     bool IsServer() const { return bIsServer_; }
 
-    void SendPacketToTargetAndResetPacket(const NetTarget& InTarget, Packet& InPacket) const;
-    void SendPacketToTarget(const NetTarget& InTarget, const Packet& InPacket) const;
+    void SendPacketToTargetAndResetPacket(const sockaddr_storage& InTarget, Packet& InPacket) const;
+    void SendPacketToTarget(const sockaddr_storage& InTarget, const Packet& InPacket) const;
     
     bool RetrieveChildConnectionNetTargetInstance(const sockaddr_storage& InAddress, NetTarget& OutNetTarget);
     bool IsConnected(const sockaddr_storage& InAddress);
@@ -48,7 +48,7 @@ private:
     
     bool InitializeWin32();
 
-    static void SendReturnAckBackToNetTarget(const NetTarget& Target, const int32_t Identifier);
+    static void SendReturnAckBackToNetTarget(const sockaddr_storage& Target, int32_t Identifier);
 
     void ProcessPackets();
     
@@ -56,19 +56,19 @@ private:
     
     static void PacketListener(NetHandler* InNetHandler);
     
-    bool HandleReturnAck(const sockaddr_storage& SenderAddress, const int32_t Identifier);
-    void UpdatePacketTracker(const sockaddr_storage& SenderAddress, const int32_t Identifier);
+    bool HandleReturnAck(const sockaddr_storage& SenderAddress, int32_t Identifier);
+    void UpdatePacketTracker(const sockaddr_storage& SenderAddress, int32_t Identifier);
     
-    void PreProcessPackets(const char* Buffer, const int BytesReceived, const sockaddr_storage& SenderAddress);
+    void PreProcessPackets(const char* Buffer, int BytesReceived, const sockaddr_storage& SenderAddress);
 
     void UpdateNetTarget(const sockaddr_storage& InAddress);
 
-    void OnChildDisconnectReceived(const NetTarget& InNetTarget, const PacketComponent& InComponent);
-    void OnChildConnectionReceived(const NetTarget& InNetTarget, const PacketComponent& InComponent);
+    void OnChildDisconnectReceived(const sockaddr_storage& InNetTarget, const PacketComponent& InComponent);
+    void OnChildConnectionReceived(const sockaddr_storage& InNetTarget, const PacketComponent& InComponent);
     
     void KickInactiveNetTargets();
 
-    void KickNetTarget(const sockaddr_storage& InAddress, const ENetDisconnectType InKickReason);
+    void KickNetTarget(const sockaddr_storage& InAddress, ENetDisconnectType InKickReason);
     
     WSADATA wsaData_;
     SOCKET udpSocket_;
@@ -77,7 +77,7 @@ private:
     sockaddr_in connectedParentServerAddress_;
     sockaddr_in address_;
 
-    NetTarget parentConnection_;
+    sockaddr_storage parentConnection_;
     NetConnectionHandler connectionHandler_;
     
     NetSettings netSettings_;

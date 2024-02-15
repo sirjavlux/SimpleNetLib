@@ -67,7 +67,7 @@ void PacketManager::Update()
     }
 }
 
-const PacketComponentAssociatedData* PacketManager::FetchPacketAssociatedData(const uint16_t InIdentifier)
+const PacketComponentAssociatedData* PacketManager::FetchPacketComponentAssociatedData(const uint16_t InIdentifier)
 {
     if (packetAssociatedData_.find(InIdentifier) != packetAssociatedData_.end())
     {
@@ -131,8 +131,10 @@ void PacketManager::UpdatePacketsToSend(const sockaddr_storage& InTarget, Packet
         {
             const EPacketHandlingType handlingType = frequencyData.handlingType;
             Packet packet = Packet(handlingType);
-            std::vector<std::shared_ptr<PacketComponent>>& componentContainer = packetIter->second;
             
+            std::vector<std::shared_ptr<PacketComponent>>& componentContainer = packetIter->second;
+
+            // Add Components to new Packet
             int componentsAdded = 0;
             if (!componentContainer.empty())
             {
@@ -155,7 +157,8 @@ void PacketManager::UpdatePacketsToSend(const sockaddr_storage& InTarget, Packet
                 componentContainer.erase(componentContainer.begin(), componentContainer.begin() + componentsAdded);
                 std::reverse(componentContainer.begin(), componentContainer.end());
             }
-            
+
+            // Add to ack container if of Ack type
             if (handlingType == EPacketHandlingType::Ack)
             {
                 InTargetData.PushAckPacketIfContainingData(frequencyData, packet);
@@ -170,6 +173,7 @@ void PacketManager::UpdatePacketsToSend(const sockaddr_storage& InTarget, Packet
         }
     }
 
+    // Remove empty frequency containers
     for (const PacketFrequencyData& dataToRemove : toRemove)
     {
         packetComponents.erase(dataToRemove);

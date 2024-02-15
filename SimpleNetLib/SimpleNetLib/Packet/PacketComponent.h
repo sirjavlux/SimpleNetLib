@@ -22,10 +22,13 @@ struct PacketFrequencyData
 
 struct PacketComponentAssociatedData
 {
-	bool shouldOverrideQueuedComponent = false;
+	bool shouldOverrideQueuedComponent = false; // TODO: Implement this
 	
 	float packetFrequency = 30.f;
+	
 	EPacketHandlingType handlingType;
+
+	std::map<float, float> cullingDistSqrWithFrequency; // TODO: Implement this or similar
 };
 
 namespace Net

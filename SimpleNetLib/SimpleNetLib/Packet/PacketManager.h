@@ -49,8 +49,8 @@ public:
     ENetworkHandleType GetManagerType() const { return managerType_; }
 
     template<typename ComponentType>
-    const PacketComponentAssociatedData* FetchPacketAssociatedData();
-    const PacketComponentAssociatedData* FetchPacketAssociatedData(uint16_t InIdentifier);
+    const PacketComponentAssociatedData* FetchPacketComponentAssociatedData();
+    const PacketComponentAssociatedData* FetchPacketComponentAssociatedData(uint16_t InIdentifier);
     
 private:
     void HandleComponent(const sockaddr_storage& InComponentSender, const PacketComponent& InPacketComponent);
@@ -195,7 +195,7 @@ void PacketManager::RegisterPacketComponent(const PacketComponentAssociatedData&
 }
 
 template <typename ComponentType>
-const PacketComponentAssociatedData* PacketManager::FetchPacketAssociatedData()
+const PacketComponentAssociatedData* PacketManager::FetchPacketComponentAssociatedData()
 {
     const ComponentType componentDefaultObject = ComponentType();
     if (packetAssociatedData_.find(componentDefaultObject.GetIdentifier()) != packetAssociatedData_.end())

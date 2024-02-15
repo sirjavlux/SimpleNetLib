@@ -6,7 +6,7 @@
 
 void Net::PacketTargetData::AddPacketComponentToSend(const std::shared_ptr<PacketComponent>& InComponent)
 {
-  const PacketComponentAssociatedData* packetComponentSettings = PacketManager::Get()->FetchPacketAssociatedData(InComponent->GetIdentifier());
+  const PacketComponentAssociatedData* packetComponentSettings = PacketManager::Get()->FetchPacketComponentAssociatedData(InComponent->GetIdentifier());
   if (packetComponentSettings == nullptr)
   {
     return;

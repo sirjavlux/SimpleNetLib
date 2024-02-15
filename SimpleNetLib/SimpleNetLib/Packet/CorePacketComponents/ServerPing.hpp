@@ -7,7 +7,7 @@ class NET_LIB_EXPORT ServerPingPacketComponent : public Net::PacketComponent
 public:
     ServerPingPacketComponent();
 
-    
+    NetUtility::NetPosition location;
 };
 
 inline ServerPingPacketComponent::ServerPingPacketComponent()

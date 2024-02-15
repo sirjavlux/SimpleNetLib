@@ -2,18 +2,10 @@
 
 namespace Net
 {
-PacketComponent::PacketComponent(const int16_t InIdentifier, const uint16_t InSize, const bool InShouldOverrideQueuedComponent)
+PacketComponent::PacketComponent(const int16_t InIdentifier, const uint16_t InSize)
 {
     identifier_ = InIdentifier;
-    componentData_ = InSize;
-    if (InShouldOverrideQueuedComponent)
-    {
-        // Flip last bit if should override
-        componentData_ = componentData_ | (static_cast<uint16_t>(1) << 10);
-    }
-
-    //std::cout << "Size " << GetSize() << " " << identifier_ << "\n";
-    //std::cout << "Should Override " << (ShouldOverrideQueuedComponent() ? "true" : "false") << " " << identifier_ << "\n";
+    sizeData_ = InSize;
 }
 
 PacketComponent::PacketComponent(const PacketComponent& InPacketComponent)
@@ -38,6 +30,7 @@ PacketComponent& PacketComponent::operator=(const PacketComponent& InPacketCompo
     if (*this != InPacketComponent)
     {
         identifier_ = InPacketComponent.identifier_;
+        sizeData_ = InPacketComponent.sizeData_;
     }
     return *this;
 }

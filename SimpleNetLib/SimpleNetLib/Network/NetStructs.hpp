@@ -28,8 +28,3 @@ struct NetSettings
     u_short serverPort = DEFAULT_SERVER_PORT;
 };
 }
-
-struct PacketComponentAssociatedData
-{
-    EPacketHandlingType handlingType;
-};

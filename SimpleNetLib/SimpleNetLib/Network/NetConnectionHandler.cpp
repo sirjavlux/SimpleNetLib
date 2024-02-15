@@ -121,22 +121,6 @@ void NetConnectionHandler::UpdatePacketTracker(const sockaddr_storage& InAddress
     mutexLock_.unlock();
 }
 
-int NetConnectionHandler::FetchAndIncreaseComponentSendCount(const sockaddr_storage& InAddress, const uint16_t ComponentIdentifier)
-{
-    mutexLock_.lock();
-
-    int result = 0;
-    NetTarget* netTarget = RetrieveNetTarget(InAddress);
-    if (netTarget)
-    {
-        result = ++netTarget->packetComponentSendTryCount_[ComponentIdentifier];
-    }
-
-    mutexLock_.unlock();
-
-    return result;
-}
-
 void NetConnectionHandler::UpdateNetCullingPosition(const sockaddr_storage& InAddress, const NetUtility::NetPosition& InPosition)
 {
     mutexLock_.lock();

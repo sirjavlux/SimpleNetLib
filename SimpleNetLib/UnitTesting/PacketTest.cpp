@@ -1,11 +1,13 @@
 ﻿#include "gtest/gtest.h"
 
-#include "../SimpleNetLib/SimpleNetCore.h"
+#include "../SimpleNetLib/SimpleNetLibCore.h"
 #include "../SimpleNetLib/Packet/Packet.h"
 #include "../SimpleNetLib/Packet/PacketComponent.h"
 #include "../SimpleNetLib/Delegates/PacketComponentDelegator.h"
 #include "../SimpleNetLib/Events/EventSystem.h"
 #include "../SimpleNetLib/Packet/PacketManager.h"
+
+using namespace Net;
 
 class TestComponent : public PacketComponent
 {
@@ -34,7 +36,7 @@ TEST(PacketTests, PacketCreation)
         packet.AddComponent(testComponent);
     }
 
-    std::vector<PacketComponent*> outComponents;
+    std::vector<const PacketComponent*> outComponents;
     packet.GetComponents(outComponents);
 
     int iter = 0;
@@ -49,14 +51,14 @@ TEST(PacketTests, PacketCreation)
     }
 }
 
-void TestComponentFunction(const NetTarget& InNetTarget, const PacketComponent& InPacketComponent)
+void TestComponentFunction(const sockaddr_storage& InNetTarget, const PacketComponent& InPacketComponent)
 {
     const TestComponent* testComponent = static_cast<const TestComponent*>(&InPacketComponent);
     EXPECT_EQ(testComponent->integerValue, 20);
     std::cout << testComponent->integerValue << std::endl;
 }
 
-void InvalidComponentFunction(const NetTarget& InNetTarget, const PacketComponent& InPacketComponent)
+void InvalidComponentFunction(const sockaddr_storage& InNetTarget, const PacketComponent& InPacketComponent)
 {
     
 }
@@ -72,7 +74,7 @@ TEST(PacketTests, PacketManagerComponentRegestring)
     bool failed = false;
     try
     {
-        packetManager->RegisterPacketComponent<InvalidComponent>(EPacketHandlingType::None, &InvalidComponentFunction);
+        packetManager->RegisterPacketComponent<InvalidComponent>({}, &InvalidComponentFunction);
     }
     catch (...)
     {
@@ -84,7 +86,7 @@ TEST(PacketTests, PacketManagerComponentRegestring)
     failed = false;
     try
     {
-        packetManager->RegisterPacketComponent<TestComponent>(EPacketHandlingType::None, &TestComponentFunction);
+        packetManager->RegisterPacketComponent<TestComponent>({}, &TestComponentFunction);
     }
     catch (...)
     {
@@ -104,7 +106,7 @@ TEST(PacketDelegateTests, HandleDelegate)
     
     delegator.SubscribeToPacketComponentDelegate<TestComponent>(&TestComponentFunction);
 
-    delegator.HandleComponent(NetTarget(), component);
+    delegator.HandleComponent(sockaddr_storage(), component);
 }
 
 class DynamicDelegateHandleClass
@@ -112,7 +114,7 @@ class DynamicDelegateHandleClass
 public:
     int testInt = 0;
     
-    void TestComponentFunction(const NetTarget& InNetTarget, const PacketComponent& InPacketComponent)
+    void TestComponentFunction(const sockaddr_storage& InNetTarget, const PacketComponent& InPacketComponent)
     {
         const TestComponent* testComponent = static_cast<const TestComponent*>(&InPacketComponent);
         EXPECT_EQ(testComponent->integerValue, 20);
@@ -121,7 +123,7 @@ public:
         std::cout << testInt << std::endl;
     }
 
-    void OnConnectEvent(const NetTarget& InNetTarget)
+    void OnConnectEvent(const sockaddr_storage& InNetTarget)
     {
         
     }
@@ -130,7 +132,7 @@ public:
 TEST(PacketDelegateTests, DynamicHandleDelegate)
 {
     const NetSettings settings; // Left empty acting as server with no parent server
-    SimpleNetCore* netCore = SimpleNetCore::Initialize(ENetworkHandleType::Client, settings);
+    SimpleNetLibCore* netCore = SimpleNetLibCore::Initialize(ENetworkHandleType::Client, settings);
     
     PacketComponentDelegator delegator;
 
@@ -142,7 +144,7 @@ TEST(PacketDelegateTests, DynamicHandleDelegate)
     
     delegator.SubscribeToPacketComponentDelegate<TestComponent, DynamicDelegateHandleClass>(&DynamicDelegateHandleClass::TestComponentFunction, &delegateOwner);
 
-    delegator.HandleComponent(NetTarget(), component);
+    delegator.HandleComponent(sockaddr_storage(), component);
 
     EventSystem::Get()->onClientConnectEvent.AddDynamic<DynamicDelegateHandleClass>(&delegateOwner, &DynamicDelegateHandleClass::OnConnectEvent);
     
@@ -154,7 +156,7 @@ TEST(PacketTests, SendPacket)
     const NetSettings settings; // Left empty acting as server with no parent server
     PacketManager* packetManager = PacketManager::Initialize(ENetworkHandleType::Client, settings);
 
-    packetManager->RegisterPacketComponent<TestComponent>(EPacketHandlingType::None, &TestComponentFunction);
+    packetManager->RegisterPacketComponent<TestComponent>({}, &TestComponentFunction);
     
     for (int i = 0; i < 100000; ++i)
     {

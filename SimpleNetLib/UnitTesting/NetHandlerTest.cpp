@@ -4,6 +4,8 @@
 #include "../SimpleNetLib/Packet/PacketComponent.h"
 #include "../SimpleNetLib/Packet/PacketManager.h"
 
+using namespace Net;
+
 int main(int Argc, char** Argv)
 {
     testing::InitGoogleTest(&Argc, Argv);

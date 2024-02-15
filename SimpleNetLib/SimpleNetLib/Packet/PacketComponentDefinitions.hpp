@@ -19,3 +19,18 @@ enum class EPacketComponent : uint16_t
     ServerPing              = 2002
 };
 }
+
+enum class EPacketHandlingType : uint8_t
+{
+    None		= 0,
+    Ack			= 1,
+    
+    Size        = 3
+};
+
+enum class EAddComponentResult : uint8_t
+{
+    Success			    = 0,
+    InvalidComponent	= 1,
+    SizeOutOfBounds	    = 2,
+};

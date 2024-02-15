@@ -41,11 +41,10 @@ private:
     bool HasPacketBeenSent(int32_t InIdentifier) const;
     void UpdatePacketTracker(int32_t InIdentifier);
     
-    std::vector<int32_t> packetsMissingPriorToCurrent_;
+    std::vector<int32_t> packetsMissingPriorToCurrent_; // TODO: Needs to be able to handle lost packets
     int32_t currentPacket_ = INT32_MIN;
 
     NetUtility::NetPosition netCullingPosition_;
-    std::map<uint16_t, int> packetComponentSendTryCount_;
     
     friend class NetConnectionHandler;
 };

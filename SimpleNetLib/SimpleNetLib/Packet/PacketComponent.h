@@ -2,20 +2,44 @@
 
 #include "../NetIncludes.h"
 
+struct PacketFrequencyData
+{
+	uint8_t frequency = 30;
+	EPacketHandlingType handlingType;
+  
+	bool operator==(const PacketFrequencyData& InOther) const
+	{
+		return frequency == InOther.frequency && handlingType == InOther.handlingType;
+	}
+    
+	bool operator<(const PacketFrequencyData& InOther) const
+	{
+		if (frequency != InOther.frequency)
+			return frequency < InOther.frequency;
+		return handlingType < InOther.handlingType;
+	}
+};
+
+struct PacketComponentAssociatedData
+{
+	bool shouldOverrideQueuedComponent = false;
+	
+	float packetFrequency = 30.f;
+	EPacketHandlingType handlingType;
+};
+
 namespace Net
 {
 class NET_LIB_EXPORT PacketComponent
 {
 public:
-	PacketComponent(int16_t InIdentifier, uint16_t InSize, bool InShouldOverrideQueuedComponent = false);
+	PacketComponent(int16_t InIdentifier, uint16_t InSize);
 	PacketComponent(const PacketComponent& InPacketComponent);
 	~PacketComponent();
 
 	uint16_t GetSize() const
 	{
-		// Clear all bits except the size bits
-		constexpr uint16_t mask = (1 << 9) - 1;
-		return componentData_ & mask;
+		return sizeData_;
 	}
 	
 	bool IsValid() const
@@ -25,19 +49,13 @@ public:
 	
 	uint16_t GetIdentifier() const { return identifier_; }
 	
-	bool ShouldOverrideQueuedComponent() const
-	{
-		// Check if last bit is flipped
-		return (componentData_ >> 10) & static_cast<uint16_t>(1);
-	}
-	
 	bool operator!=(const PacketComponent& InPacketComponent) const;
 	bool operator==(const PacketComponent& InPacketComponent) const;
 	
 	PacketComponent& operator=(const PacketComponent& InPacketComponent);
 
 private:
-	uint16_t componentData_ = 0; // bit 10 == ShouldOverrideQueuedComponent, bit 0 - 9 == component size
+	uint16_t sizeData_ = 0;
 	int16_t identifier_ = -1; // Valid identifier can't be negative
 };
 }

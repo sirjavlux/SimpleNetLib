@@ -21,9 +21,7 @@ public:
   // NetTarget functions
   bool HasPacketBeenSent(const sockaddr_storage& InAddress, int32_t InIdentifier);
   void UpdatePacketTracker(const sockaddr_storage& InAddress, int32_t InIdentifier);
-
-  int FetchAndIncreaseComponentSendCount(const sockaddr_storage& InAddress, uint16_t ComponentIdentifier);
-
+  
   void UpdateNetCullingPosition(const sockaddr_storage& InAddress, const NetUtility::NetPosition& InPosition);
   NetUtility::NetPosition GetNetPosition(const sockaddr_storage& InAddress);
   

@@ -10,5 +10,5 @@ public:
 };
 
 inline ServerConnectPacketComponent::ServerConnectPacketComponent()
-    : PacketComponent(static_cast<int16_t>(Net::EPacketComponent::ServerConnect), sizeof(ServerConnectPacketComponent) + 500, true)
+    : PacketComponent(static_cast<int16_t>(Net::EPacketComponent::ServerConnect), sizeof(ServerConnectPacketComponent))
 { }

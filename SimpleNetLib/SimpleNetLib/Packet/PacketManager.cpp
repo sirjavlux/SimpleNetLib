@@ -127,7 +127,7 @@ void PacketManager::UpdatePacketsWaitingForReturnAck(const sockaddr_storage& InT
 
 void PacketManager::UpdatePacketsToSend(const sockaddr_storage& InTarget, PacketTargetData& InTargetData) const
 {
-    std::map<PacketFrequencyData, std::vector<std::shared_ptr<PacketComponent>>>& packetComponents = InTargetData.GetPacketComponentsToSend();
+    std::map<PacketFrequencyData, PacketToSendData>& packetComponents = InTargetData.GetPacketComponentsToSend();
     std::vector<PacketFrequencyData> toRemove;
     for (auto packetIter = packetComponents.begin(); packetIter != packetComponents.end(); ++packetIter)
     {
@@ -137,14 +137,14 @@ void PacketManager::UpdatePacketsToSend(const sockaddr_storage& InTarget, Packet
             const EPacketHandlingType handlingType = frequencyData.handlingType;
             Packet packet = Packet(handlingType);
             
-            std::vector<std::shared_ptr<PacketComponent>>& componentContainer = packetIter->second;
-
+            PacketToSendData& packetSendData = packetIter->second;
+            const std::vector<std::shared_ptr<PacketComponent>>& components = packetSendData.GetComponents();
+            
             // Add Components to new Packet
             int componentsAdded = 0;
-            if (!componentContainer.empty())
+            if (!components.empty())
             {
-                std::reverse(componentContainer.begin(), componentContainer.end());
-                for (auto it = componentContainer.begin(); it != componentContainer.end(); ++it)
+                for (auto it = components.rbegin(); it != components.rend(); ++it)
                 {
                     const EAddComponentResult result = packet.AddComponent(**it);
                     if (result != EAddComponentResult::Success)
@@ -159,8 +159,7 @@ void PacketManager::UpdatePacketsToSend(const sockaddr_storage& InTarget, Packet
             // Remove added components
             if (componentsAdded > 0)
             {
-                componentContainer.erase(componentContainer.begin(), componentContainer.begin() + componentsAdded);
-                std::reverse(componentContainer.begin(), componentContainer.end());
+                packetSendData.RemoveComponents(static_cast<int>(components.size()) - componentsAdded, componentsAdded);
             }
 
             // Add to ack container if of Ack type
@@ -169,7 +168,7 @@ void PacketManager::UpdatePacketsToSend(const sockaddr_storage& InTarget, Packet
                 InTargetData.PushAckPacketIfContainingData(frequencyData, packet);
             }
             
-            if (componentContainer.empty())
+            if (components.empty())
             {
                 toRemove.push_back(frequencyData);
             }

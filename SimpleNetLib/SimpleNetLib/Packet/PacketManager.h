@@ -120,25 +120,6 @@ bool PacketManager::SendPacketComponent(const ComponentType& InPacketComponent, 
 
     packetTargetData.AddPacketComponentToSend(std::make_shared<ComponentType>(InPacketComponent));
     
-    /*
-    Packet& relevantPacket = packetTargetData.GetPacketByHandlingType(packetComponentAssociatedData.handlingType);
-    
-    if (relevantPacket.AddComponent(packetComponent) == EAddComponentResult::SizeOutOfBounds)
-    {
-        if (relevantPacket.GetPacketType() == EPacketHandlingType::Ack)
-        {
-            packetTargetData.PushAckPacketIfContainingData();
-        }
-        else
-        {
-            netHandler_->SendPacketToTargetAndResetPacket(InTarget, relevantPacket);
-        }
-        
-        // Try adding component again
-        relevantPacket.AddComponent(packetComponent);
-    }
-    */
-    
     return true;
 }
 

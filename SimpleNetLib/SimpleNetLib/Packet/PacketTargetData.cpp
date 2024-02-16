@@ -50,7 +50,7 @@ uint8_t Net::PacketTargetData::FromPacketComponentSendFrequencySecondsToTicks(co
 void PacketToSendData::AddComponent(const std::shared_ptr<Net::PacketComponent>& InComponent, const PacketComponentAssociatedData& InAssociatedData)
 {
   const uint16_t componentIdentifier = InComponent->GetIdentifier();
-  if (InAssociatedData.shouldOverrideQueuedComponent)
+  if (InAssociatedData.shouldOverrideOldWaitingComponent)
   {
     if (componentTypeIndexMap_.find(componentIdentifier) != componentTypeIndexMap_.end())
     {

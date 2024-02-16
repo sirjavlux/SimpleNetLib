@@ -22,7 +22,7 @@ struct PacketFrequencyData
 
 struct PacketComponentAssociatedData
 {
-	bool shouldOverrideQueuedComponent = false; // TODO: Implement this
+	bool shouldOverrideOldWaitingComponent = false;
 
 	// Send delay in seconds/60 fps fixed
 	float packetFrequencySeconds = 0.5f;

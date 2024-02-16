@@ -17,10 +17,9 @@ public:
   bool GetNetTargetCopy(const sockaddr_storage& InAddress, NetTarget& OutNetTarget);
   
   void UpdateNetTargetClock(const sockaddr_storage& InAddress);
-  
-  // NetTarget functions
-  bool HasPacketBeenSent(const sockaddr_storage& InAddress, int32_t InIdentifier);
-  void UpdatePacketTracker(const sockaddr_storage& InAddress, int32_t InIdentifier);
+
+  bool HasPacketBeenReceived(const sockaddr_storage& InAddress, uint32_t InIdentifier);
+  void SetPacketMarketAsReceived(const sockaddr_storage& InAddress, uint32_t InIdentifier);
   
   void UpdateNetCullingPosition(const sockaddr_storage& InAddress, const NetUtility::NetPosition& InPosition);
   NetUtility::NetPosition GetNetPosition(const sockaddr_storage& InAddress);

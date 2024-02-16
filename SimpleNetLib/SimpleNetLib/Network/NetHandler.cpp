@@ -234,7 +234,7 @@ void NetHandler::PacketListener(NetHandler* InNetHandler)
     }
 }
 
-void NetHandler::SendReturnAckBackToNetTarget(const sockaddr_storage& Target, const int32_t Identifier)
+void NetHandler::SendReturnAckBackToNetTarget(const sockaddr_storage& Target, const uint32_t Identifier)
 {
     ReturnAckComponent component;
     component.ackIdentifier = Identifier;
@@ -263,28 +263,23 @@ void NetHandler::ProcessPackets()
             PacketManager::Get()->HandleComponent(senderAddress, *component);
         }
 
-        // Update packet tracker
-        UpdatePacketTracker(senderAddress, packet.GetIdentifier());
+        // Mark packet as received
+        if (IsConnected(senderAddress))
+        {
+            connectionHandler_.SetPacketMarketAsReceived(senderAddress, packet.GetIdentifier());
+        }
     }
 }
 
-bool NetHandler::HandleReturnAck(const sockaddr_storage& SenderAddress, const int32_t Identifier)
+bool NetHandler::HandleReturnAck(const sockaddr_storage& SenderAddress, const uint32_t Identifier)
 {
     bool bHasAlreadyBeenReceived = false;
     if (IsConnected(SenderAddress))
     {
         SendReturnAckBackToNetTarget(SenderAddress, Identifier);
-        bHasAlreadyBeenReceived = connectionHandler_.HasPacketBeenSent(SenderAddress, Identifier);
+        bHasAlreadyBeenReceived = connectionHandler_.HasPacketBeenReceived(SenderAddress, Identifier);
     }
     return bHasAlreadyBeenReceived;
-}
-
-void NetHandler::UpdatePacketTracker(const sockaddr_storage& SenderAddress, const int32_t Identifier)
-{
-    if (IsConnected(SenderAddress))
-    {
-        connectionHandler_.UpdatePacketTracker(SenderAddress, Identifier);
-    }
 }
 
 void NetHandler::PreProcessPackets(const char* Buffer, const int BytesReceived, const sockaddr_storage& SenderAddress)
@@ -294,12 +289,9 @@ void NetHandler::PreProcessPackets(const char* Buffer, const int BytesReceived, 
     std::cout << packet.GetIdentifier() << " : " << (packet.GetPacketType() == EPacketHandlingType::Ack ? "Ack" : "Not Ack") << " : " << "Got Packet!\n";
 
     // Send back response if of Ack type
-    if (packet.GetPacketType() == EPacketHandlingType::Ack)
+    if (packet.GetPacketType() == EPacketHandlingType::Ack && HandleReturnAck(SenderAddress, packet.GetIdentifier()))
     {
-        if (HandleReturnAck(SenderAddress, packet.GetIdentifier()))
-        {
-            return; // Packet has already been received
-        }
+        return; // Packet has already been received
     }
 
     packetProcessingMutexLock_.lock();

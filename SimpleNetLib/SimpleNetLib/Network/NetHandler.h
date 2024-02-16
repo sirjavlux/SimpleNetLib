@@ -43,12 +43,14 @@ public:
     
     bool RetrieveChildConnectionNetTargetInstance(const sockaddr_storage& InAddress, NetTarget& OutNetTarget);
     bool IsConnected(const sockaddr_storage& InAddress);
+
+    NetConnectionHandler& GetNetConnectionHandler() { return connectionHandler_; }
     
 private:
     
     bool InitializeWin32();
 
-    static void SendReturnAckBackToNetTarget(const sockaddr_storage& Target, int32_t Identifier);
+    static void SendReturnAckBackToNetTarget(const sockaddr_storage& Target, uint32_t Identifier);
 
     void ProcessPackets();
     
@@ -56,8 +58,7 @@ private:
     
     static void PacketListener(NetHandler* InNetHandler);
     
-    bool HandleReturnAck(const sockaddr_storage& SenderAddress, int32_t Identifier);
-    void UpdatePacketTracker(const sockaddr_storage& SenderAddress, int32_t Identifier);
+    bool HandleReturnAck(const sockaddr_storage& SenderAddress, uint32_t Identifier);
     
     void PreProcessPackets(const char* Buffer, int BytesReceived, const sockaddr_storage& SenderAddress);
 

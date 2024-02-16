@@ -12,7 +12,8 @@ void Net::PacketTargetData::AddPacketComponentToSend(const std::shared_ptr<Packe
     return;
   }
   
-  const PacketFrequencyData frequencyData = { packetComponentSettings->packetFrequency, packetComponentSettings->handlingType }; 
+  const PacketFrequencyData frequencyData = { FromPacketComponentSendFrequencySecondsToTicks(packetComponentSettings->handlingType == EPacketHandlingType::Ack ?
+      packetComponentSettings->packetAckFrequencySeconds : packetComponentSettings->packetFrequencySeconds), packetComponentSettings->handlingType }; 
   if (packetComponentsToSendAtCertainFrequency_.find(frequencyData) == packetComponentsToSendAtCertainFrequency_.end())
   {
     packetComponentsToSendAtCertainFrequency_.insert({ frequencyData, {} });
@@ -34,7 +35,13 @@ void Net::PacketTargetData::PushAckPacketIfContainingData(const PacketFrequencyD
   std::cout << "Added ack packet " << Packet.GetIdentifier() << "\n";
 }
 
-void Net::PacketTargetData::RemoveReturnedPacket(const int32_t InIdentifier)
+void Net::PacketTargetData::RemoveReturnedPacket(const uint32_t InIdentifier)
 {
   ackPacketsNotReturned_.erase(InIdentifier);
+}
+
+uint8_t Net::PacketTargetData::FromPacketComponentSendFrequencySecondsToTicks(const float InFrequencySeconds)
+{
+  const uint8_t result = static_cast<uint8_t>(FIXED_UPDATES_PER_SECOND * InFrequencySeconds);
+  return result <= 0 ? 1 : result;
 }

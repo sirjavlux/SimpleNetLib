@@ -17,13 +17,15 @@ public:
   
   void PushAckPacketIfContainingData(const PacketFrequencyData& PacketFrequencyData, const Packet& Packet);
     
-  const std::map<int32_t, std::pair<PacketFrequencyData, Packet>>& GetPacketsNotReturned() const
+  const std::map<uint32_t, std::pair<PacketFrequencyData, Packet>>& GetPacketsNotReturned() const
   { return ackPacketsNotReturned_; }
   
-  void RemoveReturnedPacket(int32_t InIdentifier);
-    
+  void RemoveReturnedPacket(uint32_t InIdentifier);
+
+  static uint8_t FromPacketComponentSendFrequencySecondsToTicks(float InFrequencySeconds);
+  
 private:
-  std::map<int32_t, std::pair<PacketFrequencyData, Packet>> ackPacketsNotReturned_;
+  std::map<uint32_t, std::pair<PacketFrequencyData, Packet>> ackPacketsNotReturned_;
   std::map<PacketFrequencyData, std::vector<std::shared_ptr<PacketComponent>>> packetComponentsToSendAtCertainFrequency_;
 };
 }

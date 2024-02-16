@@ -23,11 +23,15 @@ struct PacketFrequencyData
 struct PacketComponentAssociatedData
 {
 	bool shouldOverrideQueuedComponent = false; // TODO: Implement this
-	
-	float packetFrequency = 30.f;
+
+	// Send delay in seconds/60 fps fixed
+	float packetFrequencySeconds = 0.5f;
 	
 	EPacketHandlingType handlingType;
 
+	// Acknowledgement send delay in seconds/60 fps fixed
+	float packetAckFrequencySeconds = 1.f; 
+	
 	std::map<float, float> cullingDistSqrWithFrequency; // TODO: Implement this or similar
 };
 

@@ -51,6 +51,8 @@ public:
     template<typename ComponentType>
     const PacketComponentAssociatedData* FetchPacketComponentAssociatedData();
     const PacketComponentAssociatedData* FetchPacketComponentAssociatedData(uint16_t InIdentifier);
+
+    void UpdateClientNetPosition(const sockaddr_storage& InAddress, const NetUtility::NetPosition& InPosition);
     
 private:
     void HandleComponent(const sockaddr_storage& InComponentSender, const PacketComponent& InPacketComponent);

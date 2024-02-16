@@ -23,9 +23,9 @@ bool Packet::IsEmpty() const
     return data_[0] == '\0';
 }
 
-int32_t Packet::GenerateIdentifier()
+uint32_t Packet::GenerateIdentifier()
 {
-    static int32_t identifierIter = INT32_MIN;
+    static uint32_t identifierIter = 1;
     ++identifierIter; // Add before assignment to make use of invalid identifiers of "INT32_MIN"
     return identifierIter;
 }

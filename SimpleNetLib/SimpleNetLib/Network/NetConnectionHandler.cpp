@@ -91,7 +91,7 @@ void NetConnectionHandler::UpdateNetTargetClock(const sockaddr_storage& InAddres
     mutexLock_.unlock();
 }
 
-bool NetConnectionHandler::HasPacketBeenSent(const sockaddr_storage& InAddress, const int32_t InIdentifier)
+bool NetConnectionHandler::HasPacketBeenReceived(const sockaddr_storage& InAddress, const uint32_t InIdentifier)
 {
     bool bResult = false;
     
@@ -100,24 +100,24 @@ bool NetConnectionHandler::HasPacketBeenSent(const sockaddr_storage& InAddress, 
     const NetTarget* netTarget = RetrieveNetTarget(InAddress);
     if (netTarget)
     {
-        bResult = netTarget->HasPacketBeenSent(InIdentifier);
+        bResult = netTarget->sequenceNumberBitmap_.IsReceived(InIdentifier);
     }
     
     mutexLock_.unlock();
-
+    
     return bResult;
 }
 
-void NetConnectionHandler::UpdatePacketTracker(const sockaddr_storage& InAddress, const int32_t InIdentifier)
+void NetConnectionHandler::SetPacketMarketAsReceived(const sockaddr_storage& InAddress, const uint32_t InIdentifier)
 {
     mutexLock_.lock();
 
     NetTarget* netTarget = RetrieveNetTarget(InAddress);
     if (netTarget)
     {
-        netTarget->UpdatePacketTracker(InIdentifier);
+        netTarget->sequenceNumberBitmap_.MarkReceived(InIdentifier);
     }
-
+    
     mutexLock_.unlock();
 }
 

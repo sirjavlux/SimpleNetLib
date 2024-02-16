@@ -32,18 +32,18 @@ public:
 
     const char* GetData() const { return &data_[0]; }
 
-    int32_t GetIdentifier() const { return packetIdentifier_; }
+    uint32_t GetIdentifier() const { return packetIdentifier_; }
 
     EPacketHandlingType GetPacketType() const { return packetHandlingType_; }
     
 private:
     void ExtractComponent(std::vector<const PacketComponent*>& OutComponents, int& Iterator) const;
 
-    int32_t packetIdentifier_ = INT32_MIN;
+    uint32_t packetIdentifier_ = 0;
 
     EPacketHandlingType packetHandlingType_ = EPacketHandlingType::None;
     
-    static int32_t GenerateIdentifier();
+    static uint32_t GenerateIdentifier();
     
     char data_[NET_PACKET_COMPONENT_DATA_SIZE_TOTAL];
 

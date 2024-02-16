@@ -7,7 +7,7 @@ class NET_LIB_EXPORT ReturnAckComponent : public Net::PacketComponent
 public:
     explicit ReturnAckComponent();
 
-    int32_t ackIdentifier;
+    uint32_t ackIdentifier;
 };
 
 inline ReturnAckComponent::ReturnAckComponent()

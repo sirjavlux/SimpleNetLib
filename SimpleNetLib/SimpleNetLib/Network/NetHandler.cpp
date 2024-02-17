@@ -264,11 +264,18 @@ void NetHandler::ProcessPackets()
         UpdateNetTarget(senderAddress);
         
         // Send back response if of Ack type
-        if (packet.GetPacketType() == EPacketHandlingType::Ack && HandleReturnAck(senderAddress, packet.GetIdentifier()))
+        if (packet.GetPacketType() == EPacketHandlingType::Ack && IsConnected(senderAddress))
         {
-            continue; // Packet has already been received
+            SendReturnAck(senderAddress, packet.GetIdentifier());
+        }
+        // Check if packet has already been received
+        if (connectionHandler_.HasPacketBeenReceived(senderAddress, packet.GetIdentifier()))
+        {
+            continue;
         }
         
+        std::cout << packet.GetIdentifier() << " : " << (packet.GetPacketType() == EPacketHandlingType::Ack ? "Ack" : "Not Ack") << " : " << "Got Packet!\n";
+            
         // Handle Components
         std::vector<const PacketComponent*> outComponents;
         packet.GetComponents(outComponents);
@@ -285,22 +292,14 @@ void NetHandler::ProcessPackets()
     }
 }
 
-bool NetHandler::HandleReturnAck(const sockaddr_storage& SenderAddress, const uint32_t Identifier)
+void NetHandler::SendReturnAck(const sockaddr_storage& SenderAddress, const uint32_t Identifier)
 {
-    bool bHasAlreadyBeenReceived = false;
-    if (IsConnected(SenderAddress))
-    {
-        SendReturnAckBackToNetTarget(SenderAddress, Identifier);
-        bHasAlreadyBeenReceived = connectionHandler_.HasPacketBeenReceived(SenderAddress, Identifier);
-    }
-    return bHasAlreadyBeenReceived;
+    SendReturnAckBackToNetTarget(SenderAddress, Identifier);
 }
 
 void NetHandler::PreProcessPackets(const char* Buffer, const int BytesReceived, const sockaddr_storage& SenderAddress)
 {
     const Packet packet = { Buffer, BytesReceived };
-
-    std::cout << packet.GetIdentifier() << " : " << (packet.GetPacketType() == EPacketHandlingType::Ack ? "Ack" : "Not Ack") << " : " << "Got Packet!\n";
 
     packetProcessingMutexLock_.lock();
     packetDataToProcess_.push_back({ SenderAddress, packet });

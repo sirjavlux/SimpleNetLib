@@ -38,7 +38,7 @@ void Net::PacketTargetData::AddPacketComponentToSendWithLod(const std::shared_pt
   AddPacketComponentToSend(InComponent, frequencyData, packetComponentSettings);
 }
 
-void Net::PacketTargetData::PushAckPacketIfContainingData(const PacketFrequencyData& PacketFrequencyData, const Packet& Packet)
+void Net::PacketTargetData::AddAckPacketIfContainingData(const PacketFrequencyData& PacketFrequencyData, const Packet& Packet)
 {
   if (Packet.IsEmpty())
   {

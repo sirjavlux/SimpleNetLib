@@ -165,7 +165,7 @@ void PacketManager::UpdatePacketsToSend(const sockaddr_storage& InTarget, Packet
             // Add to ack container if of Ack type
             if (handlingType == EPacketHandlingType::Ack)
             {
-                InTargetData.PushAckPacketIfContainingData(frequencyData, packet);
+                InTargetData.AddAckPacketIfContainingData(frequencyData, packet);
             }
             
             if (components.empty())

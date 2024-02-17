@@ -55,8 +55,8 @@ private:
     void ProcessPackets();
     
     static void PacketListener(NetHandler* InNetHandler);
-    
-    bool HandleReturnAck(const sockaddr_storage& SenderAddress, uint32_t Identifier);
+
+    static void SendReturnAck(const sockaddr_storage& SenderAddress, uint32_t Identifier);
     
     void PreProcessPackets(const char* Buffer, int BytesReceived, const sockaddr_storage& SenderAddress);
 

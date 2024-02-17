@@ -33,7 +33,7 @@ public:
   std::map<PacketFrequencyData, PacketToSendData>& GetPacketComponentsToSend()
   { return packetComponentsToSendAtCertainFrequency_; }
   
-  void PushAckPacketIfContainingData(const PacketFrequencyData& PacketFrequencyData, const Packet& Packet);
+  void AddAckPacketIfContainingData(const PacketFrequencyData& PacketFrequencyData, const Packet& Packet);
     
   const std::map<uint32_t, std::pair<PacketFrequencyData, Packet>>& GetPacketsNotReturned() const
   { return ackPacketsNotReturned_; }

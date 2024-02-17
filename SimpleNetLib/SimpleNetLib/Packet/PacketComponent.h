@@ -29,10 +29,22 @@ struct PacketComponentAssociatedData
 	
 	EPacketHandlingType handlingType;
 
-	// Acknowledgement send delay in seconds/60 fps fixed
-	float packetAckFrequencySeconds = 1.f; 
+	// The distance at which the packet component will not be sent at if exceeded.
+	// -1 == Will always send
+	int distanceToCullPacketComponentAtSqr = -1;
 	
-	std::map<float, float> cullingDistSqrWithFrequency; // TODO: Implement this or similar
+	// first -> distance : second -> frequency
+	std::vector<std::pair<int, float>> packetLodFrequencies; // TODO: Implement this
+
+	static bool Compare(const std::pair<int, float>& A, const std::pair<int, float>& B)
+	{
+		return A.first < B.first;
+	}
+	
+	void SortLodFrequencies()
+	{
+		std::sort(packetLodFrequencies.begin(), packetLodFrequencies.end(), Compare);
+	}
 };
 
 namespace Net

@@ -28,6 +28,7 @@ public:
   explicit PacketTargetData() = default;
 
   void AddPacketComponentToSend(const std::shared_ptr<PacketComponent>& InComponent);
+  void AddPacketComponentToSendWithLod(const std::shared_ptr<PacketComponent>& InComponent, int InDistanceSqr);
   
   std::map<PacketFrequencyData, PacketToSendData>& GetPacketComponentsToSend()
   { return packetComponentsToSendAtCertainFrequency_; }
@@ -42,6 +43,9 @@ public:
   static uint8_t FromPacketComponentSendFrequencySecondsToTicks(float InFrequencySeconds);
   
 private:
+  void AddPacketComponentToSend(const std::shared_ptr<PacketComponent>& InComponent,
+      const PacketFrequencyData& InFrequencyData, const PacketComponentAssociatedData* InPacketComponentSettings);
+  
   std::map<uint32_t, std::pair<PacketFrequencyData, Packet>> ackPacketsNotReturned_;
   std::map<PacketFrequencyData, PacketToSendData> packetComponentsToSendAtCertainFrequency_;
 };

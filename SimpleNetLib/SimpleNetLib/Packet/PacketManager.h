@@ -33,8 +33,12 @@ public:
     template<typename ComponentType>
     bool SendPacketComponent(const ComponentType& InPacketComponent, const sockaddr_storage& InTarget);
 
+    // Keep in mind, this can be a bit expensive due to no lod or culling
     template<typename ComponentType>
-    bool SendPacketComponentMulticastOrParentConnection(const ComponentType& InPacketComponent);
+    bool SendPacketComponentMulticast(const ComponentType& InPacketComponent);
+    
+    template<typename ComponentType>
+    bool SendPacketComponentMulticastWithLod(const ComponentType& InPacketComponent, const NetUtility::NetPosition& InPosition);
     
     template <typename ComponentType>
     void RegisterPacketComponent(const PacketComponentAssociatedData& InAssociatedData);
@@ -51,7 +55,7 @@ public:
     template<typename ComponentType>
     const PacketComponentAssociatedData* FetchPacketComponentAssociatedData();
     const PacketComponentAssociatedData* FetchPacketComponentAssociatedData(uint16_t InIdentifier);
-
+    
     void UpdateClientNetPosition(const sockaddr_storage& InAddress, const NetUtility::NetPosition& InPosition);
     
 private:
@@ -68,13 +72,13 @@ private:
     static void OnNetTargetConnected(const sockaddr_storage& InTarget);
     static void OnNetTargetDisconnection(const sockaddr_storage& InTarget, ENetDisconnectType InDisconnectType);
 
-    void OnAckReturnReceived(const sockaddr_storage& InNetTarget, const PacketComponent& InComponent);
+    void OnAckReturnReceived(const sockaddr_storage& InTarget, const PacketComponent& InComponent);
     
     template<typename ComponentType>
     bool IsPacketComponentValid();
 
     template <typename ComponentType>
-    void RegisterAssociatedData(const PacketComponentAssociatedData& InComponentSettings);
+    void RegisterAssociatedData(PacketComponentAssociatedData InComponentSettings);
 
     void RegisterDefaultPacketComponents();
 
@@ -109,13 +113,7 @@ bool PacketManager::SendPacketComponent(const ComponentType& InPacketComponent, 
     {
         throw std::runtime_error("ComponentType isn't a valid PacketComponent. Make sure identifier and size is set");
     }
-
-    const PacketComponent& packetComponent = static_cast<const PacketComponent&>(InPacketComponent);
-
-    if (packetTargetDataMap_.find(InTarget) == packetTargetDataMap_.end())
-    {
-        packetTargetDataMap_.insert({InTarget, PacketTargetData()});
-    }
+    
     PacketTargetData& packetTargetData = packetTargetDataMap_.at(InTarget);
 
     packetTargetData.AddPacketComponentToSend(std::make_shared<ComponentType>(InPacketComponent));
@@ -124,25 +122,54 @@ bool PacketManager::SendPacketComponent(const ComponentType& InPacketComponent, 
 }
 
 template <typename ComponentType>
-bool PacketManager::SendPacketComponentMulticastOrParentConnection(const ComponentType& InPacketComponent)
+bool PacketManager::SendPacketComponentMulticast(const ComponentType& InPacketComponent)
 {
-    // Server
+    // Can't multicast upstream from client to server
     if (netHandler_->IsServer())
     {
-        SendPacketComponent<ComponentType>(InPacketComponent, netHandler_->parentConnection_);
-    }
-    // Client
-    else
-    {
-        // TODO: Implement packet net culling settings
-        const std::vector<NetTarget> connections = netHandler_->connectionHandler_.GetCopy(); // TODO: Probably is better solution to this
-        for (const NetTarget& netTarget : connections)
+        const std::unordered_map<sockaddr_in, NetTarget>& connections = netHandler_->connectionHandler_.GetConnections();
+        for (const auto& connection : connections)
         {
-            SendPacketComponent<ComponentType>(InPacketComponent, netTarget);
+            SendPacketComponent(InPacketComponent, NetUtility::RetrieveStorageFromIPv4Address(connection.first));
         }
+        return true;
     }
+    return false;
+}
 
-    return true;
+template <typename ComponentType>
+bool PacketManager::SendPacketComponentMulticastWithLod(const ComponentType& InPacketComponent, const NetUtility::NetPosition& InPosition)
+{
+    // Can't multicast upstream from client to server
+    if (netHandler_->IsServer())
+    {
+        const std::unordered_map<sockaddr_in, NetTarget>& connections = netHandler_->connectionHandler_.GetConnections();
+        for (const auto& connection : connections)
+        {
+            // Check associated data validity
+            const PacketComponentAssociatedData* associatedData = FetchPacketComponentAssociatedData(InPacketComponent.GetIdentifier());
+            if (!associatedData)
+            {
+                continue;
+            }
+            
+            // Preliminary culling check
+            const int distance = InPosition.LengthSqr(connection.second.netCullingPosition);
+            if (associatedData->distanceToCullPacketComponentAtSqr > -1
+                && distance > associatedData->distanceToCullPacketComponentAtSqr)
+            {
+                continue; // Continue if culling distance is exceeded
+            }
+
+            const sockaddr_storage storageAddress = NetUtility::RetrieveStorageFromIPv4Address(connection.first);
+            PacketTargetData& packetTargetData = packetTargetDataMap_.at(storageAddress);
+            
+            // Send packet with the correct lod frequency
+            packetTargetData.AddPacketComponentToSendWithLod(std::make_shared<ComponentType>(InPacketComponent), distance);
+        }
+        return true;
+    }
+    return false;
 }
 
 template <typename ComponentType>
@@ -204,7 +231,7 @@ bool PacketManager::IsPacketComponentValid()
 }
 
 template <typename ComponentType>
-void PacketManager::RegisterAssociatedData(const PacketComponentAssociatedData& InComponentSettings)
+void PacketManager::RegisterAssociatedData(PacketComponentAssociatedData InComponentSettings)
 {
     const ComponentType componentDefaultObject = ComponentType();
     if (!componentDefaultObject.IsValid())
@@ -217,6 +244,8 @@ void PacketManager::RegisterAssociatedData(const PacketComponentAssociatedData& 
     {
         throw std::runtime_error("Component with the same Identifier has already been registered!");
     }
+
+    InComponentSettings.SortLodFrequencies();
     
     packetAssociatedData_.emplace(identifier, InComponentSettings);
 }

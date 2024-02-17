@@ -34,5 +34,6 @@
 
 #include "Utility/NetOperatorOverloads.hpp"
 #include "Utility/HashUtility.hpp"
+#include "Utility/NetPosition.h"
 
 #define NET_LIB_EXPORT __declspec(dllexport)

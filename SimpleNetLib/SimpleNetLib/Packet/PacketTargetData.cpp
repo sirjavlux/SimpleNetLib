@@ -13,15 +13,29 @@ void Net::PacketTargetData::AddPacketComponentToSend(const std::shared_ptr<Packe
     return;
   }
   
-  const PacketFrequencyData frequencyData = { FromPacketComponentSendFrequencySecondsToTicks(packetComponentSettings->handlingType == EPacketHandlingType::Ack ?
-      packetComponentSettings->packetAckFrequencySeconds : packetComponentSettings->packetFrequencySeconds), packetComponentSettings->handlingType }; 
-  if (packetComponentsToSendAtCertainFrequency_.find(frequencyData) == packetComponentsToSendAtCertainFrequency_.end())
+  const PacketFrequencyData frequencyData = { FromPacketComponentSendFrequencySecondsToTicks(packetComponentSettings->packetFrequencySeconds), packetComponentSettings->handlingType }; 
+
+  AddPacketComponentToSend(InComponent, frequencyData, packetComponentSettings);
+}
+
+void Net::PacketTargetData::AddPacketComponentToSendWithLod(const std::shared_ptr<PacketComponent>& InComponent, const int InDistanceSqr)
+{
+  const uint16_t componentIdentifier = InComponent->GetIdentifier();
+  const PacketComponentAssociatedData* packetComponentSettings = PacketManager::Get()->FetchPacketComponentAssociatedData(componentIdentifier);
+
+  float frequencyToSendAt = packetComponentSettings->packetFrequencySeconds;
+  for (const std::pair<int, float>& iter : packetComponentSettings->packetLodFrequencies)
   {
-    packetComponentsToSendAtCertainFrequency_.insert({ frequencyData, {} });
+    if (InDistanceSqr < iter.first)
+    {
+      frequencyToSendAt = iter.second;
+      break;
+    }
   }
 
-  PacketToSendData& sendData = packetComponentsToSendAtCertainFrequency_.at(frequencyData);
-  sendData.AddComponent(InComponent, *packetComponentSettings);
+  const PacketFrequencyData frequencyData = { FromPacketComponentSendFrequencySecondsToTicks(frequencyToSendAt), packetComponentSettings->handlingType }; 
+
+  AddPacketComponentToSend(InComponent, frequencyData, packetComponentSettings);
 }
 
 void Net::PacketTargetData::PushAckPacketIfContainingData(const PacketFrequencyData& PacketFrequencyData, const Packet& Packet)
@@ -45,6 +59,18 @@ uint8_t Net::PacketTargetData::FromPacketComponentSendFrequencySecondsToTicks(co
 {
   const uint8_t result = static_cast<uint8_t>(FIXED_UPDATES_PER_SECOND * InFrequencySeconds);
   return result <= 0 ? 1 : result;
+}
+
+void Net::PacketTargetData::AddPacketComponentToSend(const std::shared_ptr<PacketComponent>& InComponent,
+    const PacketFrequencyData& InFrequencyData, const PacketComponentAssociatedData* InPacketComponentSettings)
+{
+  if (packetComponentsToSendAtCertainFrequency_.find(InFrequencyData) == packetComponentsToSendAtCertainFrequency_.end())
+  {
+    packetComponentsToSendAtCertainFrequency_.insert({ InFrequencyData, {} });
+  }
+
+  PacketToSendData& sendData = packetComponentsToSendAtCertainFrequency_.at(InFrequencyData);
+  sendData.AddComponent(InComponent, *InPacketComponentSettings);
 }
 
 void PacketToSendData::AddComponent(const std::shared_ptr<Net::PacketComponent>& InComponent, const PacketComponentAssociatedData& InAssociatedData)

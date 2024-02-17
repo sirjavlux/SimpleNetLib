@@ -41,7 +41,7 @@ public:
     void SendPacketToTargetAndResetPacket(const sockaddr_storage& InTarget, Packet& InPacket) const;
     void SendPacketToTarget(const sockaddr_storage& InTarget, const Packet& InPacket) const;
     
-    bool RetrieveChildConnectionNetTargetInstance(const sockaddr_storage& InAddress, NetTarget& OutNetTarget);
+    const NetTarget* RetrieveChildConnectionNetTargetInstance(const sockaddr_storage& InAddress) const;
     bool IsConnected(const sockaddr_storage& InAddress);
 
     NetConnectionHandler& GetNetConnectionHandler() { return connectionHandler_; }
@@ -53,8 +53,6 @@ private:
     static void SendReturnAckBackToNetTarget(const sockaddr_storage& Target, uint32_t Identifier);
 
     void ProcessPackets();
-    
-    // Functions below runs on listen thread
     
     static void PacketListener(NetHandler* InNetHandler);
     

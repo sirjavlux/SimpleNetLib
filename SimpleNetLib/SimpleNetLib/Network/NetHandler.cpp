@@ -34,6 +34,12 @@ NetHandler::~NetHandler()
 void NetHandler::Update()
 {
     ProcessPackets();
+
+    // Can only kick connections downstream
+    if (bIsServer_)
+    {
+        KickInactiveNetTargets();
+    }
 }
 
 void NetHandler::SendPacketToTargetAndResetPacket(const sockaddr_storage& InTarget, Packet& InPacket) const
@@ -52,9 +58,9 @@ void NetHandler::SendPacketToTarget(const sockaddr_storage& InTarget, const Pack
     }
 }
 
-bool NetHandler::RetrieveChildConnectionNetTargetInstance(const sockaddr_storage& InAddress, NetTarget& OutNetTarget)
+const NetTarget* NetHandler::RetrieveChildConnectionNetTargetInstance(const sockaddr_storage& InAddress) const
 {
-    return connectionHandler_.GetNetTargetCopy(InAddress, OutNetTarget);
+    return connectionHandler_.GetNetTarget(InAddress);
 }
 
 bool NetHandler::IsConnected(const sockaddr_storage& InAddress)
@@ -189,7 +195,11 @@ bool NetHandler::InitializeWin32()
     {
         parentConnection_ = NetUtility::RetrieveStorageFromIPv4Address(connectedParentServerAddress_);
         connectionHandler_.AddConnection(parentConnection_);
-        
+
+        // Add server target data
+        PacketManager::Get()->packetTargetDataMap_.insert({ parentConnection_, PacketTargetData() });
+
+        // Send packet component
         const ServerConnectPacketComponent connectComponent;
         PacketManager::Get()->SendPacketComponent<ServerConnectPacketComponent>(connectComponent, parentConnection_);
 
@@ -213,7 +223,6 @@ void NetHandler::PacketListener(NetHandler* InNetHandler)
         if (bytesReceived > 0)
         {
             InNetHandler->PreProcessPackets(buffer, bytesReceived, senderAddress); // Important: This needs update to be secure against threaded processing
-            InNetHandler->UpdateNetTarget(senderAddress);
         }
         else if (bytesReceived == 0)
         {
@@ -228,9 +237,6 @@ void NetHandler::PacketListener(NetHandler* InNetHandler)
                 return;
             }
         }
-
-        // Do other logic...
-        InNetHandler->KickInactiveNetTargets();
     }
 }
 
@@ -254,6 +260,14 @@ void NetHandler::ProcessPackets()
     {
         const Packet& packet = data.packet;
         const sockaddr_storage& senderAddress = data.address;
+
+        UpdateNetTarget(senderAddress);
+        
+        // Send back response if of Ack type
+        if (packet.GetPacketType() == EPacketHandlingType::Ack && HandleReturnAck(senderAddress, packet.GetIdentifier()))
+        {
+            continue; // Packet has already been received
+        }
         
         // Handle Components
         std::vector<const PacketComponent*> outComponents;
@@ -287,12 +301,6 @@ void NetHandler::PreProcessPackets(const char* Buffer, const int BytesReceived, 
     const Packet packet = { Buffer, BytesReceived };
 
     std::cout << packet.GetIdentifier() << " : " << (packet.GetPacketType() == EPacketHandlingType::Ack ? "Ack" : "Not Ack") << " : " << "Got Packet!\n";
-
-    // Send back response if of Ack type
-    if (packet.GetPacketType() == EPacketHandlingType::Ack && HandleReturnAck(SenderAddress, packet.GetIdentifier()))
-    {
-        return; // Packet has already been received
-    }
 
     packetProcessingMutexLock_.lock();
     packetDataToProcess_.push_back({ SenderAddress, packet });
@@ -330,16 +338,14 @@ void NetHandler::KickInactiveNetTargets()
     
     static int iterationOffset = 0;
 
-    const std::unordered_map<sockaddr_in, NetTarget> childConnections = connectionHandler_.GetCopy();
-    auto connectionIter = childConnections.begin();
-    for (size_t iter = iterationOffset; iter < childConnections.size(); iter += iterationAddition)
+    const std::unordered_map<sockaddr_in, NetTarget>& childConnections = connectionHandler_.GetConnections();
+    for (const auto& connection : childConnections)
     {
-        std::advance(connectionIter, iter);
-        const NetTarget& netTarget = connectionIter->second;
-        connectionIter = childConnections.begin();
+        const NetTarget& netTarget = connection.second;
         
         const steady_clock::time_point currentTime = steady_clock::now();
         const duration<float> timeDifference = duration_cast<duration<float>>(currentTime - netTarget.lastTimeReceivedNetEvent);
+        
         if (timeDifference.count() > NET_TIME_UNTIL_TIME_OUT_SEC)
         {
             KickNetTarget(netTarget.address, ENetDisconnectType::TimeOut);
@@ -358,6 +364,7 @@ void NetHandler::KickNetTarget(const sockaddr_storage& InAddress, const ENetDisc
     if (connectionHandler_.ContainsConnection(InAddress))
     {
         PacketManager::Get()->OnNetTargetDisconnection(InAddress, InKickReason);
+        
         connectionHandler_.RemoveConnection(InAddress);
     }
 }

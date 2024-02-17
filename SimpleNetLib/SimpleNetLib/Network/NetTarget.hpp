@@ -36,12 +36,10 @@ struct NetTarget
     {
         return !(*this == InNetTarget);
     }
-
-private:
     
-    SequenceNumberBitmap sequenceNumberBitmap_;
+    SequenceNumberBitmap sequenceNumberBitmap;
 
-    NetUtility::NetPosition netCullingPosition_;
+    NetUtility::NetPosition netCullingPosition;
     
     friend class NetConnectionHandler;
 };

@@ -197,18 +197,25 @@ bool PacketManager::DoesUpdateIterMatchPacketFrequency(const PacketFrequencyData
 
 void PacketManager::OnNetTargetConnected(const sockaddr_storage& InTarget)
 {
+    Get()->packetTargetDataMap_.insert({ InTarget, PacketTargetData() });
     EventSystem::Get()->onClientConnectEvent.Execute(InTarget);
 }
 
 void PacketManager::OnNetTargetDisconnection(const sockaddr_storage& InTarget, const ENetDisconnectType InDisconnectType)
 {
+    auto& packetTargetDataMap = Get()->packetTargetDataMap_;
+    if (packetTargetDataMap.find(InTarget) != packetTargetDataMap.end())
+    {
+        packetTargetDataMap.erase(InTarget);
+    }
+    
     EventSystem::Get()->onClientDisconnectEvent.Execute(InTarget, InDisconnectType);
 }
 
-void PacketManager::OnAckReturnReceived(const sockaddr_storage& InNetTarget, const PacketComponent& InComponent)
+void PacketManager::OnAckReturnReceived(const sockaddr_storage& InTarget, const PacketComponent& InComponent)
 {
     const ReturnAckComponent* ackComponent = static_cast<const ReturnAckComponent*>(&InComponent);
-    packetTargetDataMap_.at(InNetTarget).RemoveReturnedPacket(ackComponent->ackIdentifier);
+    packetTargetDataMap_.at(InTarget).RemoveReturnedPacket(ackComponent->ackIdentifier);
 }
 
 void PacketManager::RegisterDefaultPacketComponents()
@@ -216,18 +223,16 @@ void PacketManager::RegisterDefaultPacketComponents()
     {
         const PacketComponentAssociatedData associatedData = PacketComponentAssociatedData{
             false,
-            0.f,
-            EPacketHandlingType::Ack,
-            1.4f
+            1.4f,
+            EPacketHandlingType::Ack
         };
         RegisterPacketComponent<ServerConnectPacketComponent, NetHandler>(associatedData, &NetHandler::OnChildConnectionReceived, netHandler_);
     }
     {
         const PacketComponentAssociatedData associatedData = PacketComponentAssociatedData{
             false,
-            0.f,
-            EPacketHandlingType::Ack,
-            1.4f
+            1.4f,
+            EPacketHandlingType::Ack
         };
         RegisterPacketComponent<ServerDisconnectPacketComponent, NetHandler>(associatedData, &NetHandler::OnChildDisconnectReceived, netHandler_);
     }

@@ -1,4 +1,6 @@
 #pragma once
+
+/*
 #include "Entity.h"
 
 class Player : public Entity
@@ -13,3 +15,4 @@ private:
 	Tga::Sprite2DInstanceData mySpriteInstance = {};
 	Tga::SpriteSharedData sharedData = {};
 };
+*/

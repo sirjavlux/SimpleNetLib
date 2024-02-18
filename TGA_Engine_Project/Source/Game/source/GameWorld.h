@@ -1,6 +1,4 @@
 #pragma once
-#include <unordered_map>
-#include "Entity.h"
 
 class Player;
 
@@ -13,11 +11,11 @@ public:
 	~GameWorld();
 
 	void Init();
-	void Update(float aTimeDelta); 
+	void Update(float InTimeDelta); 
 	void Render();
 
 private:
-	std::unordered_map<short, Entity*> myEnteties;
+	//std::unordered_map<short, Entity*> myEnteties;
 
-	Player* myPlayer;
+	//Player* myPlayer;
 };

@@ -2,24 +2,27 @@
 
 #include "GameWorld.h"
 
+#include "Entity/EntityManager.h"
+
 GameWorld::GameWorld()
 {}
 
-GameWorld::~GameWorld() 
-{}
+GameWorld::~GameWorld()
+{
+	EntityManager::End();
+}
 
 void GameWorld::Init()  
 {
-
+	EntityManager::Initialize();
 }
 
-void GameWorld::Update(float /*aTimeDelta*/)
+void GameWorld::Update(const float InTimeDelta)
 {
-
+	EntityManager::Get()->UpdateEntities(InTimeDelta);
 }
 
 void GameWorld::Render()
 {
-	for (std::pair<short, Entity*> entity : myEnteties)
-		entity.second->Render();
+	EntityManager::Get()->RenderEntities();
 }

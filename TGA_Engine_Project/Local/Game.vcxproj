@@ -76,7 +76,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
       <PreprocessorDefinitions>TGE_PROJECT_SETTINGS_FILE="Game.json";_DEBUG;WIN32;_LIB;TGE_SYSTEM_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\Source\External;..\Source\Engine;..\Source\Game\tools;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Source\External;..\Source\Engine;..\..\SimpleNetLib\SimpleNetLib;..\Source\Game\tools;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <MinimalRebuild>false</MinimalRebuild>
@@ -91,7 +91,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalLibraryDirectories>..\Lib;..\Dependencies;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>ws2_32.lib;SimpleNetLib_Debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\Lib;..\Dependencies;..\..\SimpleNetLib\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -99,7 +100,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
       <PreprocessorDefinitions>TGE_PROJECT_SETTINGS_FILE="Game.json";_RELEASE;WIN32;_LIB;TGE_SYSTEM_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\Source\External;..\Source\Engine;..\Source\Game\tools;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Source\External;..\Source\Engine;..\..\SimpleNetLib\SimpleNetLib;..\Source\Game\tools;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -119,7 +120,8 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <Lib>
-      <AdditionalLibraryDirectories>..\Lib;..\Dependencies;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>ws2_32.lib;SimpleNetLib_Release.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\Lib;..\Dependencies;..\..\SimpleNetLib\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Retail|x64'">
@@ -127,7 +129,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
       <PreprocessorDefinitions>TGE_PROJECT_SETTINGS_FILE="Game.json";_RETAIL;WIN32;_LIB;TGE_SYSTEM_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\Source\External;..\Source\Engine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Source\External;..\Source\Engine;..\..\SimpleNetLib\SimpleNetLib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -147,17 +149,25 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <Lib>
-      <AdditionalLibraryDirectories>..\Lib;..\Dependencies;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>ws2_32.lib;SimpleNetLib_Retail.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\Lib;..\Dependencies;..\..\SimpleNetLib\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\Source\Game\source\Entity.h" />
-    <ClInclude Include="..\Source\Game\source\Flower.h" />
+    <ClInclude Include="..\Source\Game\source\Entity\Entities\Entity.hpp" />
+    <ClInclude Include="..\Source\Game\source\Entity\EntityComponents\EntityComponent.hpp" />
+    <ClInclude Include="..\Source\Game\source\Entity\EntityComponents\RenderComponent.h" />
+    <ClInclude Include="..\Source\Game\source\Entity\EntityManager.h" />
     <ClInclude Include="..\Source\Game\source\GameWorld.h" />
+    <ClInclude Include="..\Source\Game\source\PacketComponents\DespawnEntity.hpp" />
+    <ClInclude Include="..\Source\Game\source\PacketComponents\RequestDespawningEntity.hpp" />
+    <ClInclude Include="..\Source\Game\source\PacketComponents\RequestSpawningEntity.hpp" />
+    <ClInclude Include="..\Source\Game\source\PacketComponents\SpawnEntity.hpp" />
     <ClInclude Include="..\Source\Game\source\Player.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\Source\Game\source\Flower.cpp" />
+    <ClCompile Include="..\Source\Game\source\Entity\EntityComponents\RenderComponent.cpp" />
+    <ClCompile Include="..\Source\Game\source\Entity\EntityManager.cpp" />
     <ClCompile Include="..\Source\Game\source\GameWorld.cpp" />
     <ClCompile Include="..\Source\Game\source\Player.cpp" />
     <ClCompile Include="..\Source\Game\source\main.cpp" />

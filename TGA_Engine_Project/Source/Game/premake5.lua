@@ -35,16 +35,17 @@ project "Game"
 	targetname("%{prj.name}_%{cfg.buildcfg}")
 	objdir ("%{dirs.temp}/%{prj.name}/%{cfg.buildcfg}")
 
-	links {"External", "Engine"}
+	links {"External", "Engine", "ws2_32.lib", "SimpleNetLib_%{cfg.buildcfg}.lib"}
 
-	includedirs { dirs.external, dirs.engine }
+	includedirs { dirs.external, dirs.engine, dirs.simplenetlib }
 
 	files {
 		"source/**.h",
 		"source/**.cpp",
+		"source/**.hpp",
 	}
 
-	libdirs { dirs.lib, dirs.dependencies }
+	libdirs { dirs.lib, dirs.dependencies, dirs.simplenetlib_lib }
 
 	verify_or_create_settings("Game")
 	

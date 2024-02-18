@@ -6,6 +6,7 @@
 #include <tge/texture/TextureManager.h>
 #include <tge/drawers/DebugDrawer.h>
 
+/*
 void Player::Init()
 {
 	myType = EntityType::Player;
@@ -29,11 +30,6 @@ void Player::InitServer()
     myType = EntityType::Player;
 }
 
-void Player::Update(float /*aDeltaTime*/)
-{
-
-}
-
 void Player::Render()
 {
 	auto& engine = *Tga::Engine::GetInstance();
@@ -46,3 +42,4 @@ void Player::Render()
 	Tga::SpriteDrawer& spriteDrawer(engine.GetGraphicsEngine().GetSpriteDrawer());
 	spriteDrawer.Draw(sharedData, mySpriteInstance);
 }
+*/

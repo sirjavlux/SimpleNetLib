@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "Client.h"
+#include "source/GameWorld.h"
 
 void Go(void);
 
@@ -54,12 +55,18 @@ void Go()
 		Client client;
 		client.Init();
 
+		GameWorld gameWorld;
+		gameWorld.Init();
+		
 		Tga::Engine* engine = Tga::Engine::GetInstance();
 		
 		while (engine->BeginFrame())
 		{
 			client.Update(engine->GetDeltaTime());
-
+			
+			gameWorld.Update(engine->GetDeltaTime());
+			gameWorld.Render();
+			
 			engine->EndFrame();
 		}
 	}

@@ -3,9 +3,12 @@
 #include <sstream>
 #include <thread>
 
+#include "../Events/EventSystem.h"
+
 #include "../Packet/PacketManager.h"
 #include "../Packet/CorePacketComponents/ServerConnect.hpp"
 #include "../Packet/CorePacketComponents/ReturnAckComponent.hpp"
+#include "../Packet/CorePacketComponents/SuccessfullyConnectedToServer.hpp"
 
 namespace Net
 {
@@ -51,7 +54,7 @@ void NetHandler::SendPacketToTargetAndResetPacket(const sockaddr_storage& InTarg
 void NetHandler::SendPacketToTarget(const sockaddr_storage& InTarget, const Packet& InPacket) const
 {
     const sockaddr_in targetAddress = NetUtility::RetrieveIPv4AddressFromStorage(InTarget);
-    std::cout << InPacket.GetIdentifier() << " : " << (InPacket.GetPacketType() == EPacketHandlingType::Ack ? "Ack" : "Not Ack") << " : " << "Sent Packet!\n";
+    //std::cout << InPacket.GetIdentifier() << " : " << (InPacket.GetPacketType() == EPacketHandlingType::Ack ? "Ack" : "Not Ack") << " : " << "Sent Packet!\n"; // Temporary Debug
     if (sendto(udpSocket_, reinterpret_cast<const char*>(&InPacket), NET_BUFFER_SIZE_TOTAL, 0, reinterpret_cast<const sockaddr*>(&targetAddress), sizeof(targetAddress)) == SOCKET_ERROR)
     {
         std::cout << "Error: " << WSAGetLastError() << '\n';
@@ -203,7 +206,7 @@ bool NetHandler::InitializeWin32()
         const ServerConnectPacketComponent connectComponent;
         PacketManager::Get()->SendPacketComponent<ServerConnectPacketComponent>(connectComponent, parentConnection_);
 
-        std::cout << "Sending join packet!\n";
+        std::cout << "Connecting to server...\n";
     }
     
     return true;
@@ -273,8 +276,13 @@ void NetHandler::ProcessPackets()
         {
             continue;
         }
+        // Check if checksum of packet is valid with the received packet
+        if (packet.GetCheckSum() != packet.CalculateCheckSum())
+        {
+            continue;
+        }
         
-        std::cout << packet.GetIdentifier() << " : " << (packet.GetPacketType() == EPacketHandlingType::Ack ? "Ack" : "Not Ack") << " : " << "Got Packet!\n";
+        //std::cout << packet.GetIdentifier() << " : " << (packet.GetPacketType() == EPacketHandlingType::Ack ? "Ack" : "Not Ack") << " : " << "Got Packet!\n"; // Temporary Debug
             
         // Handle Components
         std::vector<const PacketComponent*> outComponents;
@@ -321,12 +329,31 @@ void NetHandler::OnChildDisconnectReceived(const sockaddr_storage& InNetTarget, 
 
 void NetHandler::OnChildConnectionReceived(const sockaddr_storage& InNetTarget, const PacketComponent& InComponent)
 {
-    std::cout << "Join retrieved!\n";
+    if (InNetTarget.ss_family == AF_INET)
+    {
+        const sockaddr_in ipv4Address = NetUtility::RetrieveIPv4AddressFromStorage(InNetTarget);
+        char ipString[INET_ADDRSTRLEN];
+        if (inet_ntop(AF_INET, &ipv4Address.sin_addr, ipString, INET_ADDRSTRLEN))
+        {
+            std::cout << ipString << ":" << ntohs(ipv4Address.sin_port) << " connected to the server!\n";    
+        }
+    }
+    
     if (!IsConnected(InNetTarget))
     {
         connectionHandler_.AddConnection(InNetTarget);
         PacketManager::Get()->OnNetTargetConnected(InNetTarget);
+
+        // Send Client connection success packet component back
+        const SuccessfullyConnectedToServer successPacketComponent;
+        PacketManager::Get()->SendPacketComponent(successPacketComponent, InNetTarget);
     }
+}
+
+void NetHandler::OnConnectionToServerSuccessful(const sockaddr_storage& InNetTarget, const PacketComponent& InComponent)
+{
+    std::cout << "Successfully connected to server!\n";
+    EventSystem::Get()->onConnectedToServerEvent.Execute(InNetTarget);
 }
 
 void NetHandler::KickInactiveNetTargets()

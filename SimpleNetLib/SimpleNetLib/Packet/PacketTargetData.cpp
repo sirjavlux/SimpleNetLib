@@ -44,10 +44,10 @@ void Net::PacketTargetData::AddAckPacketIfContainingData(const PacketFrequencyDa
   {
     return;
   }
-        
+  
   ackPacketsNotReturned_.insert({ Packet.GetIdentifier(), { PacketFrequencyData, Packet } });
 
-  std::cout << "Added ack packet " << Packet.GetIdentifier() << "\n";
+  //std::cout << "Added ack packet " << Packet.GetIdentifier() << "\n"; // Temporary debug
 }
 
 void Net::PacketTargetData::RemoveReturnedPacket(const uint32_t InIdentifier)

@@ -19,7 +19,7 @@ class NET_LIB_EXPORT Packet
 {
 public:
     Packet(EPacketHandlingType InPacketHandlingType);
-    Packet(const char* InBuffer, const int InBytesReceived);
+    Packet(const char* InBuffer, int InBytesReceived);
     
     bool IsValid() const;
     bool IsEmpty() const;
@@ -35,16 +35,22 @@ public:
     uint32_t GetIdentifier() const { return packetIdentifier_; }
 
     EPacketHandlingType GetPacketType() const { return packetHandlingType_; }
+
+    uint16_t CalculateAndUpdateCheckSum();
+    uint16_t CalculateCheckSum() const;
+    uint16_t GetCheckSum() const;
     
 private:
     void ExtractComponent(std::vector<const PacketComponent*>& OutComponents, int& Iterator) const;
-
+    
     uint32_t packetIdentifier_ = 0;
-
+    uint16_t checkSum_ = 0; // Not included in checksum calculation
+    
     EPacketHandlingType packetHandlingType_ = EPacketHandlingType::None;
     
     static uint32_t GenerateIdentifier();
     
+    char padding_[1]; // Padding for ability to extract 4 bytes at a time
     char data_[NET_PACKET_COMPONENT_DATA_SIZE_TOTAL];
 
     // Data bypassing the packet size limit

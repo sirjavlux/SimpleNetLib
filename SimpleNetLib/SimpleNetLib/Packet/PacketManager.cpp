@@ -6,6 +6,7 @@
 #include "CorePacketComponents/ServerConnect.hpp"
 #include "CorePacketComponents/ServerDisconnect.hpp"
 #include "CorePacketComponents/ServerPing.hpp"
+#include "CorePacketComponents/SuccessfullyConnectedToServer.hpp"
 
 namespace Net
 {
@@ -155,6 +156,9 @@ void PacketManager::UpdatePacketsToSend(const sockaddr_storage& InTarget, Packet
                     ++componentsAdded;
                 }
             }
+
+            // Update checksum
+            packet.CalculateAndUpdateCheckSum();
             
             // Remove added components
             if (componentsAdded > 0)
@@ -252,6 +256,15 @@ void PacketManager::RegisterDefaultPacketComponents()
             EPacketHandlingType::None
         };
         RegisterPacketComponent<ServerPingPacketComponent>(associatedData);
+    }
+    {
+        const PacketComponentAssociatedData associatedData = PacketComponentAssociatedData
+        {
+            false,
+            1.f,
+            EPacketHandlingType::Ack
+        };
+        RegisterPacketComponent<SuccessfullyConnectedToServer, NetHandler>(associatedData, &NetHandler::OnConnectionToServerSuccessful, netHandler_);
     }
 }
 

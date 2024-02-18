@@ -5,18 +5,19 @@ namespace Net
 {
 enum class EPacketComponent : uint16_t
 {
-    None                    = 0,
+    None                            = 0,
 
     // Client to server
-    ServerConnect           = 1,
-    ServerDisconnect        = 2,
+    ServerConnect                   = 1,
+    ServerDisconnect                = 2,
+    SuccessfullyConnectedToServer   = 3,
     
     // Server to client
-    KickedFromServer        = 1001,
+    KickedFromServer                = 11,
 
     // Other
-    ReturnAck               = 2001,
-    ServerPing              = 2002
+    ReturnAck                       = 21,
+    ServerPing                      = 22
 };
 }
 

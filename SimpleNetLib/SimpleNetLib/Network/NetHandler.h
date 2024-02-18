@@ -64,6 +64,7 @@ private:
 
     void OnChildDisconnectReceived(const sockaddr_storage& InNetTarget, const PacketComponent& InComponent);
     void OnChildConnectionReceived(const sockaddr_storage& InNetTarget, const PacketComponent& InComponent);
+    void OnConnectionToServerSuccessful(const sockaddr_storage& InNetTarget, const PacketComponent& InComponent);
     
     void KickInactiveNetTargets();
 

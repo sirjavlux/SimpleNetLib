@@ -62,6 +62,31 @@ void Packet::Reset()
     packetDataIter_ = 0;
 }
 
+uint16_t Packet::CalculateAndUpdateCheckSum()
+{
+    checkSum_ = CalculateCheckSum();
+    return checkSum_;
+}
+
+uint16_t Packet::CalculateCheckSum() const
+{
+    uint16_t sumResult = 0;
+    sumResult += static_cast<uint16_t>(packetIdentifier_);
+    sumResult += static_cast<uint16_t>(packetHandlingType_);
+    
+    for (uint16_t bufferIter = 0; bufferIter < NET_PACKET_COMPONENT_DATA_SIZE_TOTAL; bufferIter += 4)
+    {
+        sumResult += *reinterpret_cast<const uint16_t*>(&data_[bufferIter]);
+    }
+
+    return sumResult;
+}
+
+uint16_t Packet::GetCheckSum() const
+{
+    return checkSum_;
+}
+
 void Packet::ExtractComponent(std::vector<const PacketComponent*>& OutComponents, int& Iterator) const
 {
     if (NET_PACKET_COMPONENT_DATA_SIZE_TOTAL <= Iterator || data_[Iterator] == '\0')

@@ -23,6 +23,8 @@ public:
 	bool operator==(const NetTag& InTag) const;
 	bool operator!=(const NetTag& InTag) const;
 	
+	bool operator<(const NetTag& InTag) const;
+	
 protected:
 	uint64_t hash_;
 	uint64_t size_;

@@ -1,6 +1,11 @@
 ﻿#include "stdafx.h"
 #include "EntityManager.h"
 
+#include "../PacketComponents/DeSpawnEntityComponent.hpp"
+#include "..\PacketComponents\SpawnEntityComponent.hpp"
+#include "..\PacketComponents\RequestDeSpawnEntityComponent.hpp"
+#include "..\PacketComponents\RequestSpawnEntityComponent.hpp"
+
 EntityManager* EntityManager::instance_ = nullptr;
 
 EntityManager::EntityManager()
@@ -58,7 +63,7 @@ void EntityManager::RequestDestroyEntity(uint16_t InIdentifier)
   
 }
 
-void EntityManager::DestroyEntity(const uint16_t InIdentifier)
+void EntityManager::DestroyEntityServer(const uint16_t InIdentifier)
 {
   if (!IsServer())
   {
@@ -75,22 +80,35 @@ bool EntityManager::IsServer()
 
 void EntityManager::OnEntitySpawnReceived(const sockaddr_storage& InTarget, const Net::PacketComponent& InComponent)
 {
-  
+  const SpawnEntityComponent* component = reinterpret_cast<const SpawnEntityComponent*>(&InComponent);
+  // TODO: Needs way of fetching entity of certain type registered with a NetTag as an example
 }
 
 void EntityManager::OnEntityDespawnReceived(const sockaddr_storage& InTarget, const Net::PacketComponent& InComponent)
 {
+  const DeSpawnEntityComponent* component = reinterpret_cast<const DeSpawnEntityComponent*>(&InComponent);
   
 }
 
 void EntityManager::OnEntitySpawnRequestReceived(const sockaddr_storage& InTarget, const Net::PacketComponent& InComponent)
 {
+  const RequestSpawnEntityComponent* component = reinterpret_cast<const RequestSpawnEntityComponent*>(&InComponent);
   
 }
 
 void EntityManager::OnEntityDespawnRequestReceived(const sockaddr_storage& InTarget, const Net::PacketComponent& InComponent)
 {
+  const RequestDeSpawnEntityComponent* component = reinterpret_cast<const RequestDeSpawnEntityComponent*>(&InComponent);
   
+}
+
+std::shared_ptr<Entity> EntityManager::CreateNewEntityFromTemplate(const NetTag& InTag)
+{
+  if (entityFactoryMap_.find(InTag) != entityFactoryMap_.end())
+  {
+    return entityFactoryMap_.at(InTag)();
+  }
+  return nullptr;
 }
 
 uint16_t EntityManager::GenerateEntityIdentifier()
@@ -101,5 +119,14 @@ uint16_t EntityManager::GenerateEntityIdentifier()
 
 void EntityManager::RegisterPacketComponents()
 {
+  const PacketComponentAssociatedData associatedDataSpawnDeSpawnComps = PacketComponentAssociatedData{
+    false,
+    0.5f,
+    EPacketHandlingType::Ack
+  };
   
+  Net::PacketManager::Get()->RegisterPacketComponent<DeSpawnEntityComponent, EntityManager>(associatedDataSpawnDeSpawnComps, &EntityManager::OnEntityDespawnReceived, this);
+  Net::PacketManager::Get()->RegisterPacketComponent<SpawnEntityComponent, EntityManager>(associatedDataSpawnDeSpawnComps, &EntityManager::OnEntitySpawnReceived, this);
+  Net::PacketManager::Get()->RegisterPacketComponent<RequestDeSpawnEntityComponent, EntityManager>(associatedDataSpawnDeSpawnComps, &EntityManager::OnEntityDespawnRequestReceived, this);
+  Net::PacketManager::Get()->RegisterPacketComponent<RequestSpawnEntityComponent, EntityManager>(associatedDataSpawnDeSpawnComps, &EntityManager::OnEntitySpawnRequestReceived, this);
 }

@@ -159,10 +159,11 @@
     <ClInclude Include="..\Source\Game\source\Entity\EntityComponents\RenderComponent.h" />
     <ClInclude Include="..\Source\Game\source\Entity\EntityManager.h" />
     <ClInclude Include="..\Source\Game\source\GameWorld.h" />
-    <ClInclude Include="..\Source\Game\source\PacketComponents\DespawnEntity.hpp" />
-    <ClInclude Include="..\Source\Game\source\PacketComponents\RequestDespawningEntity.hpp" />
-    <ClInclude Include="..\Source\Game\source\PacketComponents\RequestSpawningEntity.hpp" />
-    <ClInclude Include="..\Source\Game\source\PacketComponents\SpawnEntity.hpp" />
+    <ClInclude Include="..\Source\Game\source\PacketComponents\DeSpawnEntityComponent.hpp" />
+    <ClInclude Include="..\Source\Game\source\PacketComponents\PacketComponentTypes.hpp" />
+    <ClInclude Include="..\Source\Game\source\PacketComponents\RequestDeSpawnEntityComponent.hpp" />
+    <ClInclude Include="..\Source\Game\source\PacketComponents\RequestSpawnEntityComponent.hpp" />
+    <ClInclude Include="..\Source\Game\source\PacketComponents\SpawnEntityComponent.hpp" />
     <ClInclude Include="..\Source\Game\source\Player.h" />
   </ItemGroup>
   <ItemGroup>

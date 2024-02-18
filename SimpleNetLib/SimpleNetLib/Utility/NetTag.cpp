@@ -2,12 +2,12 @@
 
 const char* NetTag::ToCStr() const
 {
-	return static_cast<char*>(data_);
+	return data_;
 }
 
 std::string NetTag::ToStr() const
 {
-	return std::string { ToCStr(), static_cast<unsigned long>(size_) };
+	return std::string(data_, size_);
 }
 
 bool NetTag::IsValid() const
@@ -73,21 +73,9 @@ NetTag& NetTag::operator=(const NetTag& InTag)
 {
 	if (this != &InTag)
 	{
-		// Ensure destination object has enough memory
-		if (size_ != InTag.size_)
-		{
-			delete[] data_;
-			size_ = InTag.size_;
-			data_ = new char[size_ + 1];
-		}
-
-		// Copy data
-		std::memmove(data_, InTag.data_, size_);
-		data_[size_] = '\0';
-
+		SetCharArray(InTag.data_, InTag.size_);
 		hash_ = InTag.hash_;
 	}
-
 	return *this;
 }
 
@@ -99,4 +87,9 @@ bool NetTag::operator==(const NetTag& InTag) const
 bool NetTag::operator!=(const NetTag& InTag) const
 {
 	return hash_ != InTag.hash_;
+}
+
+bool NetTag::operator<(const NetTag& InTag) const
+{
+	return hash_ < InTag.hash_;
 }

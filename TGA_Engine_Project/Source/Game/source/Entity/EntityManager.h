@@ -20,17 +20,17 @@ public:
   
   // Client sided function
   template<typename EntityType>
-  Entity* RequestSpawnEntity(); // TODO:
+  void RequestSpawnEntity(const NetTag& EntityTypeTag); // TODO:
 
   // Client sided function
   void RequestDestroyEntity(uint16_t InIdentifier); // TODO:
   
   // This is a server sided function deciding various data like the entity id
   template<typename EntityType>
-  Entity* SpawnEntity(); // TODO:
+  Entity* SpawnEntityServer(); // TODO:
 
   // This is a server sided function
-  void DestroyEntity(uint16_t InIdentifier); // TODO:
+  void DestroyEntityServer(uint16_t InIdentifier); // TODO:
 
   static bool IsServer();
 
@@ -41,6 +41,9 @@ public:
   // Server sided
   void OnEntitySpawnRequestReceived(const sockaddr_storage& InTarget, const Net::PacketComponent& InComponent); // TODO:
   void OnEntityDespawnRequestReceived(const sockaddr_storage& InTarget, const Net::PacketComponent& InComponent); // TODO:
+
+  template<typename EntityType>
+  void RegisterEntityTemplate(const NetTag& InTag); // TODO: Needs testing
   
 private:
   template<typename EntityType>
@@ -49,28 +52,33 @@ private:
   template<typename EntityType>
   Entity* AddEntity(uint16_t InIdentifier);
 
+  std::shared_ptr<Entity> CreateNewEntityFromTemplate(const NetTag& InTag);
+  
   static uint16_t GenerateEntityIdentifier();
 
-  void RegisterPacketComponents(); // TODO:
+  void RegisterPacketComponents();
   
   std::map<uint16_t, std::shared_ptr<Entity>> entities_;
 
+  using EntityCreator = std::function<std::shared_ptr<Entity>()>;
+  std::map<NetTag, EntityCreator> entityFactoryMap_;
+  
   static EntityManager* instance_;
 };
 
 template <typename EntityType>
-Entity* EntityManager::RequestSpawnEntity()
+void EntityManager::RequestSpawnEntity(const NetTag& EntityTypeTag)
 {
   if (IsEntityTypeValid<EntityType>())
   {
-    return nullptr;
+    return;
   }
 
   
 }
 
 template <typename EntityType>
-Entity* EntityManager::SpawnEntity()
+Entity* EntityManager::SpawnEntityServer()
 {
   if (!IsServer() || IsEntityTypeValid<EntityType>())
   {
@@ -80,6 +88,15 @@ Entity* EntityManager::SpawnEntity()
   
   
   return AddEntity<EntityType>(GenerateEntityIdentifier());
+}
+
+template <typename EntityType>
+void EntityManager::RegisterEntityTemplate(const NetTag& InTag)
+{
+  if (IsEntityTypeValid<EntityType>() && entityFactoryMap_.find(InTag) == entityFactoryMap_.end())
+  {
+    entityFactoryMap_.insert({InTag, [](){ return std::make_shared<EntityType>(); } });
+  }
 }
 
 template <typename EntityType>

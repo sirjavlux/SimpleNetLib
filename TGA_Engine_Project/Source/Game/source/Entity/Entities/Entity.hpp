@@ -4,6 +4,7 @@
 #include "../../../../SimpleNetLib/SimpleNetLib/Utility/NetTag.h"
 #include "../EntityComponents/EntityComponent.hpp"
 
+class RenderComponent;
 class EntityComponent;
 
 class Entity
@@ -24,10 +25,10 @@ public:
 	uint16_t GetId() const { return id_; }
 
 	template<typename ComponentType>
-	ComponentType* AddComponent(); // TODO:
+	ComponentType* AddComponent();
 
 	template<typename ComponentType>
-	ComponentType* GetComponent(); // TODO:
+	ComponentType* GetComponent();
 	
 private:
 	uint16_t id_ = 0;
@@ -42,12 +43,29 @@ private:
 template <typename ComponentType>
 ComponentType* Entity::AddComponent()
 {
-	if (std::is_base_of_v<ComponentType, EntityComponent> || GetComponent<ComponentType>() != nullptr)
+	if (std::is_base_of_v<ComponentType, EntityComponent>)
 	{
 		return nullptr;
 	}
 
+	ComponentType* foundComponent = GetComponent<ComponentType>();
+	if (foundComponent != nullptr)
+	{
+		return foundComponent;
+	}
 	
+	if (std::is_base_of_v<ComponentType, RenderComponent>)
+	{
+		renderComponent_ = std::make_shared<ComponentType>();
+		renderComponent_->SetOwner(*this);
+		return renderComponent_;
+	}
+
+	std::shared_ptr<ComponentType> component = std::make_shared<ComponentType>();
+	component->SetOwner(*this);
+	components_.push_back(component);
+	
+	return component.get();
 }
 
 template <typename ComponentType>
@@ -58,7 +76,20 @@ ComponentType* Entity::GetComponent()
 		return nullptr;
 	}
 
+	if (std::is_base_of_v<ComponentType, RenderComponent>)
+	{
+		return renderComponent_;
+	}
 	
+	for (std::shared_ptr<EntityComponent> component : components_)
+	{
+		if (auto castedComponent = std::dynamic_pointer_cast<ComponentType>(component))
+		{
+			return castedComponent.get();
+		}
+	}
+
+	return nullptr;
 }
 
 inline void Entity::UpdateComponents(const float InDeltaTime)

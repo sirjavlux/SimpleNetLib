@@ -225,7 +225,8 @@ void PacketManager::OnAckReturnReceived(const sockaddr_storage& InTarget, const 
 void PacketManager::RegisterDefaultPacketComponents()
 {
     {
-        const PacketComponentAssociatedData associatedData = PacketComponentAssociatedData{
+        const PacketComponentAssociatedData associatedData = PacketComponentAssociatedData
+        {
             false,
             1.4f,
             EPacketHandlingType::Ack
@@ -233,7 +234,8 @@ void PacketManager::RegisterDefaultPacketComponents()
         RegisterPacketComponent<ServerConnectPacketComponent, NetHandler>(associatedData, &NetHandler::OnChildConnectionReceived, netHandler_);
     }
     {
-        const PacketComponentAssociatedData associatedData = PacketComponentAssociatedData{
+        const PacketComponentAssociatedData associatedData = PacketComponentAssociatedData
+        {
             false,
             1.4f,
             EPacketHandlingType::Ack
@@ -241,7 +243,8 @@ void PacketManager::RegisterDefaultPacketComponents()
         RegisterPacketComponent<ServerDisconnectPacketComponent, NetHandler>(associatedData, &NetHandler::OnChildDisconnectReceived, netHandler_);
     }
     {
-        const PacketComponentAssociatedData associatedData = PacketComponentAssociatedData{
+        const PacketComponentAssociatedData associatedData = PacketComponentAssociatedData
+        {
             false,
             0.3f,
             EPacketHandlingType::None
@@ -266,6 +269,10 @@ void PacketManager::RegisterDefaultPacketComponents()
         };
         RegisterPacketComponent<SuccessfullyConnectedToServer, NetHandler>(associatedData, &NetHandler::OnConnectionToServerSuccessful, netHandler_);
     }
+
+    packetComponentHandleDelegator_.SubscribeToPacketComponentDelegate
+    <ServerDisconnectPacketComponent, NetHandler>(&NetHandler::OnChildDisconnectReceived, netHandler_);
+
 }
 
 void PacketManager::UpdateServerPinging()

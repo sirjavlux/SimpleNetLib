@@ -7,6 +7,8 @@ class DeSpawnEntityComponent : public Net::PacketComponent
 {
 public:
   DeSpawnEntityComponent();
+
+  uint16_t entityId;
 };
 
 inline DeSpawnEntityComponent::DeSpawnEntityComponent()

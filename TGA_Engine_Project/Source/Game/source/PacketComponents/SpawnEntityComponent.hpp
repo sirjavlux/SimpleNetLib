@@ -7,6 +7,9 @@ class SpawnEntityComponent : public Net::PacketComponent
 {
 public:
   SpawnEntityComponent();
+
+  uint16_t entityId;
+  uint64_t entityTypeHash;
 };
 
 inline SpawnEntityComponent::SpawnEntityComponent()

@@ -32,14 +32,15 @@ private:
     std::map<uint16_t, StaticMulticastDelegate<const sockaddr_storage&, const PacketComponent&>> delegatesStatic_;
 
     template <typename ComponentType>
-    void CheckValidityOfPacket();
+    void CheckValidityOfPacketComponentType();
 };
 
 template <typename ComponentType, typename OwningObject>
 void PacketComponentDelegator::SubscribeToPacketComponentDelegate(
-    const std::function<void(OwningObject*, const sockaddr_storage&, const PacketComponent&)>& InFunction, OwningObject* InOwner)
+    const std::function<void(OwningObject*, const sockaddr_storage&, const PacketComponent&)>& InFunction,
+    OwningObject* InOwner)
 {
-    CheckValidityOfPacket<ComponentType>();
+    CheckValidityOfPacketComponentType<ComponentType>();
 
     const ComponentType componentDefaultObject = ComponentType();
     const uint16_t identifier = componentDefaultObject.GetIdentifier();
@@ -53,9 +54,10 @@ void PacketComponentDelegator::SubscribeToPacketComponentDelegate(
 }
 
 template <typename ComponentType>
-void PacketComponentDelegator::SubscribeToPacketComponentDelegate(const std::function<void(const sockaddr_storage&, const PacketComponent&)>& InFunction)
+void PacketComponentDelegator::SubscribeToPacketComponentDelegate(
+    const std::function<void(const sockaddr_storage&, const PacketComponent&)>& InFunction)
 {
-    CheckValidityOfPacket<ComponentType>();
+    CheckValidityOfPacketComponentType<ComponentType>();
 
     const ComponentType componentDefaultObject = ComponentType();
     const uint16_t identifier = componentDefaultObject.GetIdentifier();
@@ -94,7 +96,7 @@ void PacketComponentDelegator::UnSubscribeFromPacketComponentDelegate(const std:
 }
 
 template <typename ComponentType>
-void PacketComponentDelegator::CheckValidityOfPacket()
+void PacketComponentDelegator::CheckValidityOfPacketComponentType()
 {
     static_assert(std::is_base_of_v<PacketComponent, ComponentType>, "ComponentType must be derived from PacketComponent");
 

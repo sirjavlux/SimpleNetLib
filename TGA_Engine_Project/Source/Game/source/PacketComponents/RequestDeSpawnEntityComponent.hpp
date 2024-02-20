@@ -7,6 +7,8 @@ class RequestDeSpawnEntityComponent : public Net::PacketComponent
 {
 public:
   RequestDeSpawnEntityComponent();
+
+  uint16_t entityId;
 };
 
 inline RequestDeSpawnEntityComponent::RequestDeSpawnEntityComponent()

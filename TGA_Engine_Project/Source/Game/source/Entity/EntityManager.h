@@ -4,6 +4,8 @@
 
 #include "Entities\Entity.hpp"
 #include "SimpleNetLib.h"
+#include "../PacketComponents/RequestSpawnEntityComponent.hpp"
+#include "../PacketComponents/SpawnEntityComponent.hpp"
 
 class EntityManager
 {
@@ -20,30 +22,31 @@ public:
   
   // Client sided function
   template<typename EntityType>
-  void RequestSpawnEntity(const NetTag& EntityTypeTag); // TODO:
+  void RequestSpawnEntity(const NetTag& InEntityTypeTag) const;
 
   // Client sided function
-  void RequestDestroyEntity(uint16_t InIdentifier); // TODO:
+  void RequestDestroyEntity(uint16_t InIdentifier);
   
   // This is a server sided function deciding various data like the entity id
   template<typename EntityType>
-  Entity* SpawnEntityServer(); // TODO:
+  Entity* SpawnEntityServer();
 
   // This is a server sided function
-  void DestroyEntityServer(uint16_t InIdentifier); // TODO:
+  void DestroyEntityServer(uint16_t InIdentifier);
 
   static bool IsServer();
 
   // Client sided
-  void OnEntitySpawnReceived(const sockaddr_storage& InTarget, const Net::PacketComponent& InComponent); // TODO:
-  void OnEntityDespawnReceived(const sockaddr_storage& InTarget, const Net::PacketComponent& InComponent); // TODO:
+  void OnEntitySpawnReceived(const sockaddr_storage& InTarget, const Net::PacketComponent& InComponent);
+  void OnEntityDespawnReceived(const sockaddr_storage& InTarget, const Net::PacketComponent& InComponent);
   
   // Server sided
-  void OnEntitySpawnRequestReceived(const sockaddr_storage& InTarget, const Net::PacketComponent& InComponent); // TODO:
-  void OnEntityDespawnRequestReceived(const sockaddr_storage& InTarget, const Net::PacketComponent& InComponent); // TODO:
-
+  void OnEntitySpawnRequestReceived(const sockaddr_storage& InTarget, const Net::PacketComponent& InComponent);
+  void OnEntityDespawnRequestReceived(const sockaddr_storage& InTarget, const Net::PacketComponent& InComponent);
+  void OnConnectionReceived(const sockaddr_storage& InTarget, const Net::PacketComponent& InComponent); // TODO:
+  
   template<typename EntityType>
-  void RegisterEntityTemplate(const NetTag& InTag); // TODO: Needs testing
+  void RegisterEntityTemplate(NetTag InTag); // TODO: Needs testing
   
 private:
   template<typename EntityType>
@@ -51,8 +54,10 @@ private:
   
   template<typename EntityType>
   Entity* AddEntity(uint16_t InIdentifier);
-
-  std::shared_ptr<Entity> CreateNewEntityFromTemplate(const NetTag& InTag);
+  Entity* AddEntity(uint64_t InEntityTypeHash, uint16_t InIdentifier);
+  bool RemoveEntity(uint16_t InIdentifier);
+  
+  std::shared_ptr<Entity> CreateNewEntityFromTemplate(const uint64_t& InTypeHash);
   
   static uint16_t GenerateEntityIdentifier();
 
@@ -61,20 +66,22 @@ private:
   std::map<uint16_t, std::shared_ptr<Entity>> entities_;
 
   using EntityCreator = std::function<std::shared_ptr<Entity>()>;
-  std::map<NetTag, EntityCreator> entityFactoryMap_;
+  std::map<uint64_t, EntityCreator> entityFactoryMap_;
   
   static EntityManager* instance_;
 };
 
 template <typename EntityType>
-void EntityManager::RequestSpawnEntity(const NetTag& EntityTypeTag)
+void EntityManager::RequestSpawnEntity(const NetTag& InEntityTypeTag) const
 {
   if (IsEntityTypeValid<EntityType>())
   {
     return;
   }
 
-  
+  RequestSpawnEntityComponent requestSpawnEntityComponent;
+  requestSpawnEntityComponent.entityTypeHash = InEntityTypeTag.GetHash();
+  Net::PacketManager::Get()->SendPacketComponentToParent<RequestSpawnEntityComponent>(requestSpawnEntityComponent);
 }
 
 template <typename EntityType>
@@ -85,17 +92,28 @@ Entity* EntityManager::SpawnEntityServer()
     return nullptr;
   }
 
+  Entity* newEntity = AddEntity<EntityType>(GenerateEntityIdentifier());
   
+  SpawnEntityComponent spawnEntityComponent;
+  spawnEntityComponent.entityId = newEntity->GetId();
+  spawnEntityComponent.entityTypeHash = newEntity->GetTypeTag().GetHash();
+  Net::PacketManager::Get()->SendPacketComponentMulticast<SpawnEntityComponent>(spawnEntityComponent);
   
-  return AddEntity<EntityType>(GenerateEntityIdentifier());
+  return newEntity;
 }
 
 template <typename EntityType>
-void EntityManager::RegisterEntityTemplate(const NetTag& InTag)
+void EntityManager::RegisterEntityTemplate(const NetTag InTag)
 {
-  if (IsEntityTypeValid<EntityType>() && entityFactoryMap_.find(InTag) == entityFactoryMap_.end())
+  if (IsEntityTypeValid<EntityType>() && entityFactoryMap_.find(InTag.GetHash()) == entityFactoryMap_.end())
   {
-    entityFactoryMap_.insert({InTag, [](){ return std::make_shared<EntityType>(); } });
+    entityFactoryMap_.insert({InTag, [InTag]()
+    {
+      std::shared_ptr<Entity> newEntity = std::make_shared<EntityType>();
+      newEntity->typeTag_ = InTag;
+      return newEntity;
+    }
+    });
   }
 }
 
@@ -111,6 +129,7 @@ template <typename EntityType>
 Entity* EntityManager::AddEntity(uint16_t InIdentifier)
 {
   std::shared_ptr<EntityType> newEntity = std::make_shared<EntityType>();
+  newEntity->id_ = InIdentifier;
   newEntity->Init();
   
   entities_.insert({ InIdentifier, newEntity });

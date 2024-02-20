@@ -35,6 +35,11 @@ NetTag::~NetTag()
 	delete[] data_;
 }
 
+uint64_t NetTag::GetHash() const
+{
+	return hash_;
+}
+
 void NetTag::SetCharArray(const char* InCharArray, const uint64_t InSize)
 {
 	size_ = InSize;
@@ -84,12 +89,27 @@ bool NetTag::operator==(const NetTag& InTag) const
 	return hash_ == InTag.hash_;
 }
 
+bool NetTag::operator==(const uint64_t& InHash) const
+{
+	return hash_ == InHash;
+}
+
 bool NetTag::operator!=(const NetTag& InTag) const
 {
 	return hash_ != InTag.hash_;
 }
 
+bool NetTag::operator!=(const uint64_t& InHash) const
+{
+	return hash_ != InHash;
+}
+
 bool NetTag::operator<(const NetTag& InTag) const
 {
 	return hash_ < InTag.hash_;
+}
+
+bool NetTag::operator<(const uint64_t& InHash) const
+{
+	return hash_ < InHash;
 }

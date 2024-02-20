@@ -29,6 +29,9 @@ public:
     static void End();
     
     void Update();
+
+    template<typename ComponentType>
+    bool SendPacketComponentToParent(const ComponentType& InPacketComponent);
     
     template<typename ComponentType>
     bool SendPacketComponent(const ComponentType& InPacketComponent, const sockaddr_storage& InTarget);
@@ -102,6 +105,17 @@ private:
     
     friend class NetHandler;
 };
+
+template <typename ComponentType>
+bool PacketManager::SendPacketComponentToParent(const ComponentType& InPacketComponent)
+{
+    if (netHandler_->IsServer())
+    {
+        return false;
+    }
+
+    return SendPacketComponent<ComponentType>(InPacketComponent, netHandler_->parentConnection_);
+}
 
 template <typename ComponentType>
 bool PacketManager::SendPacketComponent(const ComponentType& InPacketComponent, const sockaddr_storage& InTarget)

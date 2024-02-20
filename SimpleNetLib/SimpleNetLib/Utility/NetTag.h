@@ -16,14 +16,19 @@ public:
 	NetTag();
 	~NetTag();
 
+	uint64_t GetHash() const;
+	
 	NetTag& operator=(const std::string& InString);
 	NetTag& operator=(const char InCharArray[]);
 	NetTag& operator=(const NetTag& InTag);
 	
 	bool operator==(const NetTag& InTag) const;
+	bool operator==(const uint64_t& InHash) const;
 	bool operator!=(const NetTag& InTag) const;
+	bool operator!=(const uint64_t& InHash) const;
 	
 	bool operator<(const NetTag& InTag) const;
+	bool operator<(const uint64_t& InHash) const;
 	
 protected:
 	uint64_t hash_;

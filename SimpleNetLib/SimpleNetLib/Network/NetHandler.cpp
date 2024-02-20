@@ -319,11 +319,11 @@ void NetHandler::UpdateNetTarget(const sockaddr_storage& InAddress)
     connectionHandler_.UpdateNetTargetClock(InAddress);
 }
 
-void NetHandler::OnChildDisconnectReceived(const sockaddr_storage& InNetTarget, const PacketComponent& InComponent)
+void NetHandler::OnChildDisconnectReceived(const sockaddr_storage& InSender, const PacketComponent& InComponent)
 {
-    if (connectionHandler_.ContainsConnection(InNetTarget))
+    if (connectionHandler_.ContainsConnection(InSender))
     {
-        KickNetTarget(InNetTarget, ENetDisconnectType::Disconnected);
+        KickNetTarget(InSender, ENetDisconnectType::Disconnected);
     }
 }
 
@@ -350,10 +350,10 @@ void NetHandler::OnChildConnectionReceived(const sockaddr_storage& InNetTarget, 
     }
 }
 
-void NetHandler::OnConnectionToServerSuccessful(const sockaddr_storage& InNetTarget, const PacketComponent& InComponent)
+void NetHandler::OnConnectionToServerSuccessful(const sockaddr_storage& InSender, const PacketComponent& InComponent)
 {
     std::cout << "Successfully connected to server!\n";
-    EventSystem::Get()->onConnectedToServerEvent.Execute(InNetTarget);
+    EventSystem::Get()->onConnectedToServerEvent.Execute(InSender);
 }
 
 void NetHandler::KickInactiveNetTargets()

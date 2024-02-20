@@ -7,6 +7,8 @@ class RequestSpawnEntityComponent : public Net::PacketComponent
 {
 public:
   RequestSpawnEntityComponent();
+
+  uint64_t entityTypeHash;
 };
 
 inline RequestSpawnEntityComponent::RequestSpawnEntityComponent()

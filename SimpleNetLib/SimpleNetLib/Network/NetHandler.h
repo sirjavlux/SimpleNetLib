@@ -62,7 +62,7 @@ private:
 
     void UpdateNetTarget(const sockaddr_storage& InAddress);
 
-    void OnChildDisconnectReceived(const sockaddr_storage& InNetTarget, const PacketComponent& InComponent);
+    void OnChildDisconnectReceived(const sockaddr_storage& InSender, const PacketComponent& InComponent);
     void OnChildConnectionReceived(const sockaddr_storage& InNetTarget, const PacketComponent& InComponent);
     void OnConnectionToServerSuccessful(const sockaddr_storage& InNetTarget, const PacketComponent& InComponent);
     

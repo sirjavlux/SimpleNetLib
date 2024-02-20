@@ -58,19 +58,28 @@ void EntityManager::RenderEntities()
   }
 }
 
-void EntityManager::RequestDestroyEntity(uint16_t InIdentifier)
+void EntityManager::RequestDestroyEntity(const uint16_t InIdentifier)
 {
-  
-}
-
-void EntityManager::DestroyEntityServer(const uint16_t InIdentifier)
-{
-  if (!IsServer())
+  if (entities_.find(InIdentifier) == entities_.end())
   {
     return;
   }
 
+  RequestDeSpawnEntityComponent deSpawnRequestEntityComponent;
+  deSpawnRequestEntityComponent.entityId = InIdentifier;
+  Net::PacketManager::Get()->SendPacketComponentToParent(deSpawnRequestEntityComponent);
+}
+
+void EntityManager::DestroyEntityServer(const uint16_t InIdentifier)
+{
+  if (!IsServer() || !RemoveEntity(InIdentifier))
+  {
+    return;
+  }
   
+  DeSpawnEntityComponent deSpawnEntityComponent;
+  deSpawnEntityComponent.entityId = InIdentifier;
+  Net::PacketManager::Get()->SendPacketComponentMulticast<DeSpawnEntityComponent>(deSpawnEntityComponent);
 }
 
 bool EntityManager::IsServer()
@@ -81,32 +90,58 @@ bool EntityManager::IsServer()
 void EntityManager::OnEntitySpawnReceived(const sockaddr_storage& InTarget, const Net::PacketComponent& InComponent)
 {
   const SpawnEntityComponent* component = reinterpret_cast<const SpawnEntityComponent*>(&InComponent);
-  // TODO: Needs way of fetching entity of certain type registered with a NetTag as an example
+  AddEntity(component->entityTypeHash, component->entityId);
 }
 
 void EntityManager::OnEntityDespawnReceived(const sockaddr_storage& InTarget, const Net::PacketComponent& InComponent)
 {
   const DeSpawnEntityComponent* component = reinterpret_cast<const DeSpawnEntityComponent*>(&InComponent);
-  
+  RemoveEntity(component->entityId);
 }
 
 void EntityManager::OnEntitySpawnRequestReceived(const sockaddr_storage& InTarget, const Net::PacketComponent& InComponent)
 {
   const RequestSpawnEntityComponent* component = reinterpret_cast<const RequestSpawnEntityComponent*>(&InComponent);
-  
+  // TODO: Nothing at the moment, needs security if implemented
 }
 
 void EntityManager::OnEntityDespawnRequestReceived(const sockaddr_storage& InTarget, const Net::PacketComponent& InComponent)
 {
   const RequestDeSpawnEntityComponent* component = reinterpret_cast<const RequestDeSpawnEntityComponent*>(&InComponent);
-  
+  // TODO: Nothing at the moment, needs security if implemented
 }
 
-std::shared_ptr<Entity> EntityManager::CreateNewEntityFromTemplate(const NetTag& InTag)
+void EntityManager::OnConnectionReceived(const sockaddr_storage& InTarget, const Net::PacketComponent& InComponent)
 {
-  if (entityFactoryMap_.find(InTag) != entityFactoryMap_.end())
+  // TODO: Implement basic spawn player that can be controlled by correct target
+}
+
+Entity* EntityManager::AddEntity(const uint64_t InEntityTypeHash, const uint16_t InIdentifier)
+{
+  std::shared_ptr<Entity> newEntity = CreateNewEntityFromTemplate(InEntityTypeHash);
+  newEntity->id_ = InIdentifier;
+  newEntity->Init();
+  
+  entities_.insert({ InIdentifier, newEntity });
+  
+  return newEntity.get();
+}
+
+bool EntityManager::RemoveEntity(const uint16_t InIdentifier)
+{
+  if (entities_.find(InIdentifier) != entities_.end())
   {
-    return entityFactoryMap_.at(InTag)();
+    entities_.erase(InIdentifier);
+    return true;
+  }
+  return false;
+}
+
+std::shared_ptr<Entity> EntityManager::CreateNewEntityFromTemplate(const uint64_t& InTypeHash)
+{
+  if (entityFactoryMap_.find(InTypeHash) != entityFactoryMap_.end())
+  {
+    return entityFactoryMap_.at(InTypeHash)();
   }
   return nullptr;
 }
@@ -119,7 +154,8 @@ uint16_t EntityManager::GenerateEntityIdentifier()
 
 void EntityManager::RegisterPacketComponents()
 {
-  const PacketComponentAssociatedData associatedDataSpawnDeSpawnComps = PacketComponentAssociatedData{
+  const PacketComponentAssociatedData associatedDataSpawnDeSpawnComps = PacketComponentAssociatedData
+  {
     false,
     0.5f,
     EPacketHandlingType::Ack

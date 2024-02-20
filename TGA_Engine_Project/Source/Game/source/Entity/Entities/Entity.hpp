@@ -23,6 +23,7 @@ public:
 	Tga::Vector2f GetPosition() const { return position_; }
 
 	uint16_t GetId() const { return id_; }
+	const NetTag& GetTypeTag() const { return typeTag_; }
 
 	template<typename ComponentType>
 	ComponentType* AddComponent();
@@ -38,6 +39,8 @@ private:
 
 	std::vector<std::shared_ptr<EntityComponent>> components_;
 	std::shared_ptr<EntityComponent> renderComponent_;
+
+	friend class EntityManager;
 };
 
 template <typename ComponentType>

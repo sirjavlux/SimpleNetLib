@@ -3,9 +3,9 @@
 #include "../Events/EventSystem.h"
 #include "../Network/NetHandler.h"
 #include "CorePacketComponents/ReturnAckComponent.hpp"
-#include "CorePacketComponents/ServerConnect.hpp"
-#include "CorePacketComponents/ServerDisconnect.hpp"
-#include "CorePacketComponents/ServerPing.hpp"
+#include "CorePacketComponents\ServerConnectPacketComponent.hpp"
+#include "CorePacketComponents\ServerDisconnectPacketComponent.hpp"
+#include "CorePacketComponents\ServerPingPacketComponent.hpp"
 #include "CorePacketComponents/SuccessfullyConnectedToServer.hpp"
 
 namespace Net

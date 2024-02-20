@@ -2,9 +2,10 @@
 #include "EntityManager.h"
 
 #include "../PacketComponents/DeSpawnEntityComponent.hpp"
-#include "..\PacketComponents\SpawnEntityComponent.hpp"
-#include "..\PacketComponents\RequestDeSpawnEntityComponent.hpp"
-#include "..\PacketComponents\RequestSpawnEntityComponent.hpp"
+#include "../PacketComponents/SpawnEntityComponent.hpp"
+#include "../PacketComponents/RequestDeSpawnEntityComponent.hpp"
+#include "../PacketComponents/RequestSpawnEntityComponent.hpp"
+#include "Packet/CorePacketComponents/ServerConnectPacketComponent.hpp"
 
 EntityManager* EntityManager::instance_ = nullptr;
 
@@ -24,6 +25,7 @@ EntityManager* EntityManager::Initialize()
   {
     instance_ = new EntityManager();
     instance_->RegisterPacketComponents();
+    instance_->SubscribeToPacketComponents();
   }
   return instance_;
 }
@@ -58,6 +60,18 @@ void EntityManager::RenderEntities()
   }
 }
 
+void EntityManager::RequestSpawnEntity(const NetTag& InEntityTypeTag) const
+{
+  if (entityFactoryMap_.find(InEntityTypeTag.GetHash()) == entityFactoryMap_.end())
+  {
+    return;
+  }
+
+  RequestSpawnEntityComponent requestSpawnEntityComponent;
+  requestSpawnEntityComponent.entityTypeHash = InEntityTypeTag.GetHash();
+  Net::PacketManager::Get()->SendPacketComponentToParent<RequestSpawnEntityComponent>(requestSpawnEntityComponent);
+}
+
 void EntityManager::RequestDestroyEntity(const uint16_t InIdentifier)
 {
   if (entities_.find(InIdentifier) == entities_.end())
@@ -68,6 +82,23 @@ void EntityManager::RequestDestroyEntity(const uint16_t InIdentifier)
   RequestDeSpawnEntityComponent deSpawnRequestEntityComponent;
   deSpawnRequestEntityComponent.entityId = InIdentifier;
   Net::PacketManager::Get()->SendPacketComponentToParent(deSpawnRequestEntityComponent);
+}
+
+Entity* EntityManager::SpawnEntityServer(const NetTag& InEntityTypeTag)
+{
+  if (!IsServer() || entityFactoryMap_.find(InEntityTypeTag.GetHash()) == entityFactoryMap_.end())
+  {
+    return nullptr;
+  }
+
+  Entity* newEntity = AddEntity(InEntityTypeTag.GetHash(), GenerateEntityIdentifier());
+  
+  SpawnEntityComponent spawnEntityComponent;
+  spawnEntityComponent.entityId = newEntity->GetId();
+  spawnEntityComponent.entityTypeHash = newEntity->GetTypeTag().GetHash();
+  Net::PacketManager::Get()->SendPacketComponentMulticast<SpawnEntityComponent>(spawnEntityComponent);
+  
+  return newEntity;
 }
 
 void EntityManager::DestroyEntityServer(const uint16_t InIdentifier)
@@ -91,6 +122,8 @@ void EntityManager::OnEntitySpawnReceived(const sockaddr_storage& InTarget, cons
 {
   const SpawnEntityComponent* component = reinterpret_cast<const SpawnEntityComponent*>(&InComponent);
   AddEntity(component->entityTypeHash, component->entityId);
+
+  std::cout << "Spawn entity received!" << "\n";
 }
 
 void EntityManager::OnEntityDespawnReceived(const sockaddr_storage& InTarget, const Net::PacketComponent& InComponent)
@@ -113,7 +146,10 @@ void EntityManager::OnEntityDespawnRequestReceived(const sockaddr_storage& InTar
 
 void EntityManager::OnConnectionReceived(const sockaddr_storage& InTarget, const Net::PacketComponent& InComponent)
 {
-  // TODO: Implement basic spawn player that can be controlled by correct target
+  const NetTag playerTypeTag = NetTag("player.ship");
+  SpawnEntityServer(playerTypeTag);
+
+  std::cout << "Join!" << "\n";
 }
 
 Entity* EntityManager::AddEntity(const uint64_t InEntityTypeHash, const uint16_t InIdentifier)
@@ -165,4 +201,11 @@ void EntityManager::RegisterPacketComponents()
   Net::PacketManager::Get()->RegisterPacketComponent<SpawnEntityComponent, EntityManager>(associatedDataSpawnDeSpawnComps, &EntityManager::OnEntitySpawnReceived, this);
   Net::PacketManager::Get()->RegisterPacketComponent<RequestDeSpawnEntityComponent, EntityManager>(associatedDataSpawnDeSpawnComps, &EntityManager::OnEntityDespawnRequestReceived, this);
   Net::PacketManager::Get()->RegisterPacketComponent<RequestSpawnEntityComponent, EntityManager>(associatedDataSpawnDeSpawnComps, &EntityManager::OnEntitySpawnRequestReceived, this);
+}
+
+void EntityManager::SubscribeToPacketComponents()
+{
+  Net::PacketComponentDelegator& componentDelegator = Net::PacketManager::Get()->GetPacketComponentDelegator();
+
+  componentDelegator.SubscribeToPacketComponentDelegate<ServerConnectPacketComponent, EntityManager>(&EntityManager::OnConnectionReceived, this);
 }

@@ -60,6 +60,8 @@ public:
     const PacketComponentAssociatedData* FetchPacketComponentAssociatedData(uint16_t InIdentifier);
     
     void UpdateClientNetPosition(const sockaddr_storage& InAddress, const NetUtility::NetPosition& InPosition);
+
+    PacketComponentDelegator& GetPacketComponentDelegator() { return packetComponentHandleDelegator_; }
     
 private:
     void HandleComponent(const sockaddr_storage& InComponentSender, const PacketComponent& InPacketComponent);

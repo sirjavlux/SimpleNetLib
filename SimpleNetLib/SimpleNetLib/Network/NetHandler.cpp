@@ -6,7 +6,7 @@
 #include "../Events/EventSystem.h"
 
 #include "../Packet/PacketManager.h"
-#include "../Packet/CorePacketComponents/ServerConnect.hpp"
+#include "..\Packet\CorePacketComponents\ServerConnectPacketComponent.hpp"
 #include "../Packet/CorePacketComponents/ReturnAckComponent.hpp"
 #include "../Packet/CorePacketComponents/SuccessfullyConnectedToServer.hpp"
 

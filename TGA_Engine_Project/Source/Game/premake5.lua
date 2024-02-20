@@ -19,12 +19,12 @@ include (dirs.client)
 include (dirs.server)
 include (dirs.external)
 include (dirs.engine)
-
+include (dirs.simplenetlib)
 
 -------------------------------------------------------------
 project "Game"
 	location (dirs.projectfiles)
-	dependson { "External", "Engine" }
+	dependson { "External", "Engine", "SimpleNetLib" }
 		
 	kind "ConsoleApp"
 	language "C++"

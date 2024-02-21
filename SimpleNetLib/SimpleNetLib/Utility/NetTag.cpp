@@ -43,22 +43,29 @@ uint64_t NetTag::GetHash() const
 void NetTag::SetCharArray(const char* InCharArray, const uint64_t InSize)
 {
 	size_ = InSize;
-
-	// Allocate + 1 for null termination
-	delete[] data_;
-	data_ = new char[size_ + 1];
 	
-	std::memmove(data_, InCharArray, size_);
-	data_[size_] = '\0';
+	char* newData = new (std::nothrow) char[size_ + 1];
+	if (newData == nullptr)
+	{
+		return;
+	}
+	
+	std::memmove(newData, InCharArray, size_);
+	newData[size_] = '\0';
+	
+	delete[] data_;
+	
+	data_ = newData;
 	
 	HashName();
 }
 
 void NetTag::HashName()
 {
-	for (uint64_t i = 0; i < size_; i += 1)
+	hash_ = 0;
+	for (uint64_t i = 0; i < size_; ++i)
 	{
-		hash_ = (hash_ ^ (std::hash<char>()(data_[i]) << 1)) >> 1;
+		hash_ = (hash_ << 5) ^ (hash_ >> 27) ^ static_cast<uint64_t>(data_[i]);
 	}
 }
 
@@ -79,7 +86,6 @@ NetTag& NetTag::operator=(const NetTag& InTag)
 	if (this != &InTag)
 	{
 		SetCharArray(InTag.data_, InTag.size_);
-		hash_ = InTag.hash_;
 	}
 	return *this;
 }

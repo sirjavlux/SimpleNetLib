@@ -68,7 +68,7 @@ void NetConnectionHandler::SetPacketMarketAsReceived(const sockaddr_storage& InA
     }
 }
 
-void NetConnectionHandler::UpdateNetCullingPosition(const sockaddr_storage& InAddress, const NetUtility::NetPosition& InPosition)
+void NetConnectionHandler::UpdateNetCullingPosition(const sockaddr_storage& InAddress, const NetUtility::NetVector3& InPosition)
 {
     NetTarget* netTarget = RetrieveNetTarget(InAddress);
     if (netTarget)
@@ -77,7 +77,7 @@ void NetConnectionHandler::UpdateNetCullingPosition(const sockaddr_storage& InAd
     }
 }
 
-NetUtility::NetPosition NetConnectionHandler::GetNetPosition(const sockaddr_storage& InAddress) const
+NetUtility::NetVector3 NetConnectionHandler::GetNetPosition(const sockaddr_storage& InAddress) const
 {
     const NetTarget* netTarget = GetNetTarget(InAddress);
     if (netTarget)

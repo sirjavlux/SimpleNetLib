@@ -243,10 +243,11 @@ void NetHandler::PacketListener(NetHandler* InNetHandler)
     }
 }
 
-void NetHandler::SendReturnAckBackToNetTarget(const sockaddr_storage& Target, const uint32_t Identifier)
+void NetHandler::SendReturnAckBackToNetTarget(const sockaddr_storage& Target, const Packet& InPacket)
 {
     ReturnAckComponent component;
-    component.ackIdentifier = Identifier;
+    component.ackIdentifier = InPacket.GetIdentifier();
+    component.packetComponentType = static_cast<uint16_t>(InPacket.GetPacketType());
     PacketManager::Get()->SendPacketComponent(component, Target);
 }
 
@@ -269,7 +270,7 @@ void NetHandler::ProcessPackets()
         // Send back response if of Ack type
         if (packet.GetPacketType() == EPacketHandlingType::Ack && IsConnected(senderAddress))
         {
-            SendReturnAck(senderAddress, packet.GetIdentifier());
+            SendReturnAck(senderAddress, packet);
         }
         // Check if packet has already been received
         if (connectionHandler_.HasPacketBeenReceived(senderAddress, packet.GetIdentifier()))
@@ -300,9 +301,9 @@ void NetHandler::ProcessPackets()
     }
 }
 
-void NetHandler::SendReturnAck(const sockaddr_storage& SenderAddress, const uint32_t Identifier)
+void NetHandler::SendReturnAck(const sockaddr_storage& SenderAddress, const Packet& InPacket)
 {
-    SendReturnAckBackToNetTarget(SenderAddress, Identifier);
+    SendReturnAckBackToNetTarget(SenderAddress, InPacket);
 }
 
 void NetHandler::PreProcessPackets(const char* Buffer, const int BytesReceived, const sockaddr_storage& SenderAddress)

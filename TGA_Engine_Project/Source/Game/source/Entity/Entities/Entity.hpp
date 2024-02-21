@@ -3,6 +3,7 @@
 
 #include "../../../../SimpleNetLib/SimpleNetLib/Utility/NetTag.h"
 #include "../EntityComponents/EntityComponent.hpp"
+#include "../EntityComponents/RenderComponent.h"
 
 class RenderComponent;
 class EntityComponent;
@@ -12,7 +13,7 @@ class Entity
 public:
 	virtual ~Entity() = default;
 
-	virtual void Init() {}
+	virtual void Init() = 0;
 	
 	virtual void Update(float InDeltaTime) = 0;
 	void UpdateComponents(float InDeltaTime);
@@ -36,7 +37,7 @@ private:
 	Tga::Vector2f position_;
 
 	NetTag typeTag_;
-
+	
 	std::vector<std::shared_ptr<EntityComponent>> components_;
 	std::shared_ptr<EntityComponent> renderComponent_;
 
@@ -59,9 +60,10 @@ ComponentType* Entity::AddComponent()
 	
 	if (std::is_base_of_v<ComponentType, RenderComponent>)
 	{
-		renderComponent_ = std::make_shared<ComponentType>();
+		std::shared_ptr<ComponentType> component = std::make_shared<ComponentType>();
+		renderComponent_ = component;
 		renderComponent_->SetOwner(*this);
-		return renderComponent_;
+		return component.get();
 	}
 
 	std::shared_ptr<ComponentType> component = std::make_shared<ComponentType>();
@@ -81,7 +83,10 @@ ComponentType* Entity::GetComponent()
 
 	if (std::is_base_of_v<ComponentType, RenderComponent>)
 	{
-		return renderComponent_;
+		if (auto castedComponent = std::dynamic_pointer_cast<ComponentType>(renderComponent_))
+		{
+			return castedComponent.get();
+		}
 	}
 	
 	for (std::shared_ptr<EntityComponent> component : components_)

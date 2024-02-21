@@ -1,7 +1,5 @@
 ﻿#pragma once
 
-#include <memory>
-
 class Entity;
 
 class EntityComponent
@@ -13,6 +11,8 @@ public:
   }
   
   virtual ~EntityComponent() = default;
+
+  virtual void Init() = 0;
   
   virtual void Update(float InDeltaTime) = 0;
   

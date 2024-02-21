@@ -41,7 +41,7 @@ public:
     bool SendPacketComponentMulticast(const ComponentType& InPacketComponent);
     
     template<typename ComponentType>
-    bool SendPacketComponentMulticastWithLod(const ComponentType& InPacketComponent, const NetUtility::NetPosition& InPosition);
+    bool SendPacketComponentMulticastWithLod(const ComponentType& InPacketComponent, const NetUtility::NetVector3& InPosition);
     
     template <typename ComponentType>
     void RegisterPacketComponent(const PacketComponentAssociatedData& InAssociatedData);
@@ -59,7 +59,7 @@ public:
     const PacketComponentAssociatedData* FetchPacketComponentAssociatedData();
     const PacketComponentAssociatedData* FetchPacketComponentAssociatedData(uint16_t InIdentifier);
     
-    void UpdateClientNetPosition(const sockaddr_storage& InAddress, const NetUtility::NetPosition& InPosition);
+    void UpdateClientNetPosition(const sockaddr_storage& InAddress, const NetUtility::NetVector3& InPosition);
 
     PacketComponentDelegator& GetPacketComponentDelegator() { return packetComponentHandleDelegator_; }
     
@@ -154,7 +154,7 @@ bool PacketManager::SendPacketComponentMulticast(const ComponentType& InPacketCo
 }
 
 template <typename ComponentType>
-bool PacketManager::SendPacketComponentMulticastWithLod(const ComponentType& InPacketComponent, const NetUtility::NetPosition& InPosition)
+bool PacketManager::SendPacketComponentMulticastWithLod(const ComponentType& InPacketComponent, const NetUtility::NetVector3& InPosition)
 {
     // Can't multicast upstream from client to server
     if (netHandler_->IsServer())

@@ -155,18 +155,25 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\Source\Game\source\Entity\Entities\Entity.hpp" />
+    <ClInclude Include="..\Source\Game\source\Entity\Entities\PlayerShipEntity.h" />
+    <ClInclude Include="..\Source\Game\source\Entity\EntityComponents\ControllerComponent.h" />
     <ClInclude Include="..\Source\Game\source\Entity\EntityComponents\EntityComponent.hpp" />
     <ClInclude Include="..\Source\Game\source\Entity\EntityComponents\RenderComponent.h" />
     <ClInclude Include="..\Source\Game\source\Entity\EntityManager.h" />
     <ClInclude Include="..\Source\Game\source\GameWorld.h" />
     <ClInclude Include="..\Source\Game\source\PacketComponents\DeSpawnEntityComponent.hpp" />
+    <ClInclude Include="..\Source\Game\source\PacketComponents\InputComponent.hpp" />
     <ClInclude Include="..\Source\Game\source\PacketComponents\PacketComponentTypes.hpp" />
     <ClInclude Include="..\Source\Game\source\PacketComponents\RequestDeSpawnEntityComponent.hpp" />
     <ClInclude Include="..\Source\Game\source\PacketComponents\RequestSpawnEntityComponent.hpp" />
+    <ClInclude Include="..\Source\Game\source\PacketComponents\SetEntityPossessedComponent.hpp" />
     <ClInclude Include="..\Source\Game\source\PacketComponents\SpawnEntityComponent.hpp" />
+    <ClInclude Include="..\Source\Game\source\PacketComponents\UpdateEntityPositionComponent.hpp" />
     <ClInclude Include="..\Source\Game\source\Player.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\Source\Game\source\Entity\Entities\PlayerShipEntity.cpp" />
+    <ClCompile Include="..\Source\Game\source\Entity\EntityComponents\ControllerComponent.cpp" />
     <ClCompile Include="..\Source\Game\source\Entity\EntityComponents\RenderComponent.cpp" />
     <ClCompile Include="..\Source\Game\source\Entity\EntityManager.cpp" />
     <ClCompile Include="..\Source\Game\source\GameWorld.cpp" />

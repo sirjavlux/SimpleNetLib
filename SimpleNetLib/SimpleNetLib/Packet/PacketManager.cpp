@@ -77,7 +77,7 @@ const PacketComponentAssociatedData* PacketManager::FetchPacketComponentAssociat
     return nullptr;
 }
 
-void PacketManager::UpdateClientNetPosition(const sockaddr_storage& InAddress, const NetUtility::NetPosition& InPosition)
+void PacketManager::UpdateClientNetPosition(const sockaddr_storage& InAddress, const NetUtility::NetVector3& InPosition)
 {
     netHandler_->GetNetConnectionHandler().UpdateNetCullingPosition(InAddress, InPosition);
 }

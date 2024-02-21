@@ -3,7 +3,7 @@
 #include <chrono>
 
 #include "SequenceNumberBitmap.hpp"
-#include "../Utility/NetPosition.h"
+#include "../Utility/NetVector3.h"
 #include "../Utility/NetOperatorOverloads.hpp"
 
 namespace Net
@@ -39,7 +39,7 @@ struct NetTarget
     
     SequenceNumberBitmap sequenceNumberBitmap;
 
-    NetUtility::NetPosition netCullingPosition;
+    NetUtility::NetVector3 netCullingPosition;
     
     friend class NetConnectionHandler;
 };

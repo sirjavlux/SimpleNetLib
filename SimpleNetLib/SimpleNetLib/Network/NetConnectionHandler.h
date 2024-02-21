@@ -18,8 +18,8 @@ public:
   bool HasPacketBeenReceived(const sockaddr_storage& InAddress, uint32_t InIdentifier) const;
   void SetPacketMarketAsReceived(const sockaddr_storage& InAddress, uint32_t InIdentifier);
   
-  void UpdateNetCullingPosition(const sockaddr_storage& InAddress, const NetUtility::NetPosition& InPosition);
-  NetUtility::NetPosition GetNetPosition(const sockaddr_storage& InAddress) const;
+  void UpdateNetCullingPosition(const sockaddr_storage& InAddress, const NetUtility::NetVector3& InPosition);
+  NetUtility::NetVector3 GetNetPosition(const sockaddr_storage& InAddress) const;
 
   std::unordered_map<sockaddr_in, NetTarget> GetConnections() const { return connections_; }
 

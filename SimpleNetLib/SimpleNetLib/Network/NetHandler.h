@@ -50,13 +50,13 @@ private:
     
     bool InitializeWin32();
 
-    static void SendReturnAckBackToNetTarget(const sockaddr_storage& Target, uint32_t Identifier);
+    static void SendReturnAckBackToNetTarget(const sockaddr_storage& Target, const Packet& InPacket);
 
     void ProcessPackets();
     
     static void PacketListener(NetHandler* InNetHandler);
 
-    static void SendReturnAck(const sockaddr_storage& SenderAddress, uint32_t Identifier);
+    static void SendReturnAck(const sockaddr_storage& SenderAddress, const Packet& InPacket);
     
     void PreProcessPackets(const char* Buffer, int BytesReceived, const sockaddr_storage& SenderAddress);
 

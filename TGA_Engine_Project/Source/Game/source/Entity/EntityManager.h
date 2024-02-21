@@ -41,7 +41,11 @@ public:
   // Server sided
   void OnEntitySpawnRequestReceived(const sockaddr_storage& InTarget, const Net::PacketComponent& InComponent);
   void OnEntityDespawnRequestReceived(const sockaddr_storage& InTarget, const Net::PacketComponent& InComponent);
-  void OnConnectionReceived(const sockaddr_storage& InTarget, const Net::PacketComponent& InComponent); // TODO:
+  void OnConnectionReceived(const sockaddr_storage& InTarget, const Net::PacketComponent& InComponent);
+  void OnInputReceived(const sockaddr_storage& InTarget, const Net::PacketComponent& InComponent); // TODO:
+  void OnPositionUpdateReceived(const sockaddr_storage& InTarget, const Net::PacketComponent& InComponent);
+  void OnSetEntityPossessedReceived(const sockaddr_storage& InTarget, const Net::PacketComponent& InComponent);
+  void OnReturnAckReceived(const sockaddr_storage& InTarget, const Net::PacketComponent& InComponent);
   
   template<typename EntityType>
   void RegisterEntityTemplate(NetTag InTag); // TODO: Needs testing
@@ -62,6 +66,9 @@ private:
   
   std::map<uint16_t, std::shared_ptr<Entity>> entities_;
 
+  bool bPossession_ = false;
+  int16_t entityToUpdatePossess_ = -1;
+  
   using EntityCreator = std::function<std::shared_ptr<Entity>()>;
   std::map<uint64_t, EntityCreator> entityFactoryMap_;
   
@@ -73,7 +80,7 @@ void EntityManager::RegisterEntityTemplate(const NetTag InTag)
 {
   if (IsEntityTypeValid<EntityType>() && entityFactoryMap_.find(InTag.GetHash()) == entityFactoryMap_.end())
   {
-    entityFactoryMap_.insert({InTag, [InTag]()
+    entityFactoryMap_.insert({InTag.GetHash(), [InTag]()
     {
       std::shared_ptr<Entity> newEntity = std::make_shared<EntityType>();
       newEntity->typeTag_ = InTag;
@@ -86,7 +93,6 @@ void EntityManager::RegisterEntityTemplate(const NetTag InTag)
 template <typename EntityType>
 bool EntityManager::IsEntityTypeValid() const
 {
-  bool isDerived = std::is_base_of_v<Entity, EntityType>;
-  static_assert(isDerived, "EntityType must be derived from Entity!");
+  const bool isDerived = std::is_base_of_v<Entity, EntityType>;
   return isDerived;
 }

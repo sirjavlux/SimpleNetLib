@@ -3,6 +3,7 @@
 #include "GameWorld.h"
 
 #include "Entity/EntityManager.h"
+#include "Entity/Entities/PlayerShipEntity.h"
 
 GameWorld::GameWorld()
 {}
@@ -15,6 +16,9 @@ GameWorld::~GameWorld()
 void GameWorld::Init()  
 {
 	EntityManager::Initialize();
+
+	// Register entities
+	EntityManager::Get()->RegisterEntityTemplate<PlayerShipEntity>(NetTag("player.ship"));
 }
 
 void GameWorld::Update(const float InTimeDelta)

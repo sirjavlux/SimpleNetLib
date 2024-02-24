@@ -169,6 +169,16 @@ void EntityManager::OnEntityDespawnRequestReceived(const sockaddr_storage& InTar
 
 void EntityManager::OnConnectionReceived(const sockaddr_storage& InTarget, const Net::PacketComponent& InComponent)
 {
+  // Spawn existing entities // TODO: Might need to update this to not be as intense, sending data pieces culled by range
+  for (const std::pair<uint16_t, std::shared_ptr<Entity>>& entity : entities_)
+  {
+    SpawnEntityComponent spawnEntityComponent;
+    spawnEntityComponent.entityId = entity.second->GetId();
+    spawnEntityComponent.entityTypeHash = entity.second->GetTypeTag().GetHash();
+    Net::PacketManager::Get()->SendPacketComponent<SpawnEntityComponent>(spawnEntityComponent, InTarget);
+  }
+
+  // Spawn player controllable entity
   const NetTag playerTypeTag = NetTag("player.ship");
   PlayerShipEntity* entitySpawned = static_cast<PlayerShipEntity*>(SpawnEntityServer(playerTypeTag));
   entitySpawned->GetComponent<ControllerComponent>()->SetPossessedBy(InTarget);

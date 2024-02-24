@@ -229,7 +229,10 @@ void PacketManager::OnNetTargetDisconnection(const sockaddr_storage& InTarget, c
 void PacketManager::OnAckReturnReceived(const sockaddr_storage& InTarget, const PacketComponent& InComponent)
 {
     const ReturnAckComponent* ackComponent = static_cast<const ReturnAckComponent*>(&InComponent);
-    packetTargetDataMap_.at(InTarget).RemoveReturnedPacket(ackComponent->ackIdentifier);
+    if (packetTargetDataMap_.find(InTarget) != packetTargetDataMap_.end())
+    {
+        packetTargetDataMap_.at(InTarget).RemoveReturnedPacket(ackComponent->ackIdentifier);
+    }
 }
 
 void PacketManager::RegisterDefaultPacketComponents()

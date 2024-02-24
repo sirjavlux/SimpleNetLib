@@ -46,6 +46,7 @@ public:
   void OnPositionUpdateReceived(const sockaddr_storage& InTarget, const Net::PacketComponent& InComponent);
   void OnSetEntityPossessedReceived(const sockaddr_storage& InTarget, const Net::PacketComponent& InComponent);
   void OnReturnAckReceived(const sockaddr_storage& InTarget, const Net::PacketComponent& InComponent);
+  void OnClientDisconnect(const sockaddr_storage& InTarget, ENetDisconnectType InDisconnectType); // TODO:
   
   template<typename EntityType>
   void RegisterEntityTemplate(NetTag InTag); // TODO: Needs testing

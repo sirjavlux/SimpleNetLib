@@ -10,6 +10,7 @@
 #include "../PacketComponents/UpdateEntityPositionComponent.hpp"
 #include "Entities/PlayerShipEntity.h"
 #include "EntityComponents/ControllerComponent.h"
+#include "Events/EventSystem.h"
 #include "Packet/CorePacketComponents/ReturnAckComponent.hpp"
 #include "Packet/CorePacketComponents/ServerConnectPacketComponent.hpp"
 
@@ -176,8 +177,6 @@ void EntityManager::OnConnectionReceived(const sockaddr_storage& InTarget, const
   setEntityPossessed.entityIdentifier = entitySpawned->GetId();
   setEntityPossessed.bShouldPossess = true;
   Net::PacketManager::Get()->SendPacketComponent<SetEntityPossessedComponent>(setEntityPossessed, InTarget);
-  
-  std::cout << "Join!" << "\n";
 }
 
 void EntityManager::OnInputReceived(const sockaddr_storage& InTarget, const Net::PacketComponent& InComponent)
@@ -203,7 +202,7 @@ void EntityManager::OnInputReceived(const sockaddr_storage& InTarget, const Net:
       updateEntityPositionComponent.yPos = entity->GetPosition().y + yVelocity;
       Net::PacketManager::Get()->SendPacketComponentMulticast<UpdateEntityPositionComponent>(updateEntityPositionComponent);
 
-      std::cout << "Received Velocity " << xVelocity << " : " << yVelocity << " : " << deltaTime << "\n";
+      // std::cout << "Received Velocity " << xVelocity << " : " << yVelocity << " : " << deltaTime << "\n";
       
       // Update location on server
       controllerComponent->UpdatePosition(updateEntityPositionComponent.xPos, updateEntityPositionComponent.yPos);
@@ -227,10 +226,10 @@ void EntityManager::OnPositionUpdateReceived(const sockaddr_storage& InTarget, c
       controllerComponent->UpdatePosition(component->xPos, component->yPos);
 
       // Debug for client self position
-      if (entity == possessedEntity_)
-      {
-        std::cout << "Updated Position " << component->xPos << " : " << component->yPos << "\n";
-      }
+      //if (entity == possessedEntity_)
+      //{
+      //  std::cout << "Updated Position " << component->xPos << " : " << component->yPos << "\n";
+      //}
     }
   }
 }
@@ -245,6 +244,11 @@ void EntityManager::OnSetEntityPossessedReceived(const sockaddr_storage& InTarge
 void EntityManager::OnReturnAckReceived(const sockaddr_storage& InTarget, const Net::PacketComponent& InComponent)
 {
   const ReturnAckComponent* component = reinterpret_cast<const ReturnAckComponent*>(&InComponent);
+}
+
+void EntityManager::OnClientDisconnect(const sockaddr_storage& InTarget, const ENetDisconnectType InDisconnectType)
+{
+  // TODO: Erase and handle traces of client on server
 }
 
 Entity* EntityManager::AddEntity(const uint64_t InEntityTypeHash, const uint16_t InIdentifier)
@@ -318,6 +322,8 @@ void EntityManager::RegisterPacketComponents()
   };
   Net::PacketManager::Get()->RegisterPacketComponent<InputComponent, EntityManager>(associatedDataEveryTick, &EntityManager::OnInputReceived, this);
   Net::PacketManager::Get()->RegisterPacketComponent<UpdateEntityPositionComponent, EntityManager>(associatedDataEveryTick, &EntityManager::OnPositionUpdateReceived, this);
+
+  Net::EventSystem::Get()->onClientDisconnectEvent.AddDynamic<EntityManager>(this, &EntityManager::OnClientDisconnect);
 }
 
 void EntityManager::SubscribeToPacketComponents()

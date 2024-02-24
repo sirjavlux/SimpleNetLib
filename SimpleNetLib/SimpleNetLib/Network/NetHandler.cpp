@@ -266,9 +266,11 @@ void NetHandler::ProcessPackets()
         const sockaddr_storage& senderAddress = data.address;
 
         UpdateNetTarget(senderAddress);
+
+        const bool bIsConnected = IsConnected(senderAddress);
         
         // Send back response if of Ack type
-        if (packet.GetPacketType() == EPacketHandlingType::Ack && IsConnected(senderAddress))
+        if (packet.GetPacketType() == EPacketHandlingType::Ack && bIsConnected)
         {
             SendReturnAck(senderAddress, packet);
         }
@@ -284,10 +286,36 @@ void NetHandler::ProcessPackets()
         }
         
         //std::cout << packet.GetIdentifier() << " : " << (packet.GetPacketType() == EPacketHandlingType::Ack ? "Ack" : "Not Ack") << " : " << "Got Packet!\n"; // Temporary Debug
-            
+        
         // Handle Components
         std::vector<const PacketComponent*> outComponents;
         packet.GetComponents(outComponents);
+
+        // If not connected, check if has connect component and process first
+        if (!bIsConnected)
+        {
+            bool bFoundConnectComponent = false;
+            int iter = 0;
+            for (const PacketComponent* component : outComponents)
+            {
+                if (component->GetIdentifier() == static_cast<uint16_t>(EPacketComponent::ServerConnect))
+                {
+                    PacketManager::Get()->HandleComponent(senderAddress, *component);
+                    outComponents.erase(outComponents.begin() + iter);
+                    bFoundConnectComponent = true;
+                    break;
+                }
+                ++iter;
+            }
+
+            // Return if not connecting
+            if (!bFoundConnectComponent)
+            {
+                return;
+            }
+        }
+        
+        // Handle Components
         for (const PacketComponent* component : outComponents)
         {
             PacketManager::Get()->HandleComponent(senderAddress, *component);
@@ -393,6 +421,16 @@ void NetHandler::KickNetTarget(const sockaddr_storage& InAddress, const ENetDisc
         PacketManager::Get()->OnNetTargetDisconnection(InAddress, InKickReason);
         
         connectionHandler_.RemoveConnection(InAddress);
+
+        if (InAddress.ss_family == AF_INET)
+        {
+            const sockaddr_in ipv4Address = NetUtility::RetrieveIPv4AddressFromStorage(InAddress);
+            char ipString[INET_ADDRSTRLEN];
+            if (inet_ntop(AF_INET, &ipv4Address.sin_addr, ipString, INET_ADDRSTRLEN))
+            {
+                std::cout << ipString << ":" << ntohs(ipv4Address.sin_port) << " kicked/disconnected from the server!\n";    
+            }
+        }
     }
 }
 }

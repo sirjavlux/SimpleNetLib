@@ -20,10 +20,11 @@ public:
   void SetPossessed(const bool InShouldBePossessed) { bIsPossessed_ = InShouldBePossessed; }
   void SetPossessedBy(const sockaddr_storage& InAddress) { possessedBy_ = InAddress; }
   bool IsPossessedBy(const sockaddr_storage& InAddress) const { return possessedBy_ == InAddress; }
-  
+
+  float GetSpeed() const { return speed_; }
   void SetSpeed(const float InSpeed) { speed_ = InSpeed; }
 
-  void UpdatePosition(int InX, int InY); // TODO: Implement
+  void UpdatePosition(float InX, float InY); // TODO: Implement better version
   
 private:
   void UpdateInput();

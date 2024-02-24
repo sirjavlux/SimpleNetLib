@@ -10,8 +10,8 @@ public:
 
   uint16_t entityIdentifier = 0;
   
-  int xPos = 0;
-  int yPos = 0;
+  float xPos = 0;
+  float yPos = 0;
 };
 
 inline UpdateEntityPositionComponent::UpdateEntityPositionComponent()

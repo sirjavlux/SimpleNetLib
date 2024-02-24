@@ -60,6 +60,7 @@ void EntityManager::UpdateEntities(const float InDeltaTime)
       if (controllerComponent)
       {
         controllerComponent->SetPossessed(bPossession_);
+        possessedEntity_ = controllerComponent->GetOwner();
       }
       entityToUpdatePossess_ = -1; // Reset
     }
@@ -174,7 +175,7 @@ void EntityManager::OnConnectionReceived(const sockaddr_storage& InTarget, const
   SetEntityPossessedComponent setEntityPossessed;
   setEntityPossessed.entityIdentifier = entitySpawned->GetId();
   setEntityPossessed.bShouldPossess = true;
-  Net::PacketManager::Get()->SendPacketComponentMulticast<SetEntityPossessedComponent>(setEntityPossessed);
+  Net::PacketManager::Get()->SendPacketComponent<SetEntityPossessedComponent>(setEntityPossessed, InTarget);
   
   std::cout << "Join!" << "\n";
 }
@@ -185,13 +186,30 @@ void EntityManager::OnInputReceived(const sockaddr_storage& InTarget, const Net:
   if (entities_.find(component->entityIdentifier) != entities_.end())
   {
     Entity* entity = entities_.at(component->entityIdentifier).get();
-    const ControllerComponent* controllerComponent = entity->GetComponent<ControllerComponent>();
+    ControllerComponent* controllerComponent = entity->GetComponent<ControllerComponent>();
 
     // Check if target entity is possessed by the client
     if (controllerComponent && controllerComponent->IsPossessedBy(InTarget))
     {
-      // TODO: Update movement
+      // TODO: Update input with rollback and forward system to get accurate input from packet delays. Rollback a something like 5 frames depending on lag.
+
+      const float deltaTime = Net::PacketManager::Get()->GetDeltaTime();
+      const float xVelocity = component->xAxis * controllerComponent->GetSpeed() * deltaTime;
+      const float yVelocity = component->yAxis * controllerComponent->GetSpeed() * deltaTime;
       
+      UpdateEntityPositionComponent updateEntityPositionComponent;
+      updateEntityPositionComponent.entityIdentifier = entity->GetId();
+      updateEntityPositionComponent.xPos = entity->GetPosition().x + xVelocity;
+      updateEntityPositionComponent.yPos = entity->GetPosition().y + yVelocity;
+      Net::PacketManager::Get()->SendPacketComponentMulticast<UpdateEntityPositionComponent>(updateEntityPositionComponent);
+
+      std::cout << "Received Velocity " << xVelocity << " : " << yVelocity << " : " << deltaTime << "\n";
+      
+      // Update location on server
+      controllerComponent->UpdatePosition(updateEntityPositionComponent.xPos, updateEntityPositionComponent.yPos);
+
+      // Update net position for culling
+      Net::PacketManager::Get()->UpdateClientNetPosition(InTarget, { entity->GetPosition().x, entity->GetPosition().y, 0.f });
     }
   }
 }
@@ -207,6 +225,12 @@ void EntityManager::OnPositionUpdateReceived(const sockaddr_storage& InTarget, c
     if (controllerComponent)
     {
       controllerComponent->UpdatePosition(component->xPos, component->yPos);
+
+      // Debug for client self position
+      if (entity == possessedEntity_)
+      {
+        std::cout << "Updated Position " << component->xPos << " : " << component->yPos << "\n";
+      }
     }
   }
 }
@@ -288,7 +312,7 @@ void EntityManager::RegisterPacketComponents()
 
   const PacketComponentAssociatedData associatedDataEveryTick = PacketComponentAssociatedData
   {
-    false,
+    true,
     FIXED_UPDATE_TIME,
     EPacketHandlingType::None
   };

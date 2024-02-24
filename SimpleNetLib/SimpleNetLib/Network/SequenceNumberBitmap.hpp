@@ -22,7 +22,7 @@ public:
     // If exceeds max number, grow vector
     if (InSequenceNumber > maxSequenceNumber_)
     {
-      Grow();
+      Grow(InSequenceNumber);
     }
     
     const uint64_t index = InSequenceNumber / BITSIZE_PER_STORAGE_UNIT;
@@ -44,10 +44,15 @@ public:
   }
 
 private:
-  void Grow()
+  void Grow(const uint64_t InNumber)
   {
-      maxSequenceNumber_ *= 2;
-      bitmap_.resize(maxSequenceNumber_ / BITSIZE_PER_STORAGE_UNIT);
+    // Calculate Grow Size
+      const int index = InNumber / BITSIZE_PER_STORAGE_UNIT;
+      const int indexesNeeded = floor(log2f(index));
+      const int sizeToGrowTo = powf(2, indexesNeeded + 1);
+    
+      maxSequenceNumber_ = sizeToGrowTo;
+      bitmap_.resize(maxSequenceNumber_);
   }
   
   uint64_t maxSequenceNumber_;

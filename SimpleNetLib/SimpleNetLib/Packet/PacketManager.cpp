@@ -27,8 +27,13 @@ PacketManager* PacketManager::Initialize(const ENetworkHandleType InPacketManage
 {
     if (instance_ == nullptr)
     {
+        using namespace std::chrono;
+        
         instance_ = new PacketManager(InPacketManagerType, InNetSettings);
         instance_->netHandler_ = new NetHandler(InNetSettings);
+
+        instance_->lastUpdateTime_ = steady_clock::now();
+        instance_->lastUpdateFinishedTime_ = steady_clock::now();
         
         instance_->RegisterDefaultPacketComponents();
         instance_->netHandler_->Initialize();
@@ -63,8 +68,13 @@ void PacketManager::Update()
 
     if (updateLag_ >= FIXED_UPDATE_TIME)
     {
+        const duration<float> deltaTimeSinceLastFinishedUpdate = duration_cast<duration<float>>(currentTime - lastUpdateFinishedTime_);
+        lastDeltaTime_ = deltaTimeSinceLastFinishedUpdate.count();
+        
         FixedUpdate();
+        
         updateLag_ -= FIXED_UPDATE_TIME;
+        lastUpdateFinishedTime_ = steady_clock::now();
     }
 }
 

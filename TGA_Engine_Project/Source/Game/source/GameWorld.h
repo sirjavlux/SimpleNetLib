@@ -15,7 +15,5 @@ public:
 	void Render();
 
 private:
-	//std::unordered_map<short, Entity*> myEnteties;
-
-	//Player* myPlayer;
+	
 };

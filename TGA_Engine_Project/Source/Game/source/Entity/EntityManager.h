@@ -49,6 +49,8 @@ public:
   
   template<typename EntityType>
   void RegisterEntityTemplate(NetTag InTag); // TODO: Needs testing
+
+  Entity* GetPossessedEntity() { return possessedEntity_; }
   
 private:
   template<typename EntityType>
@@ -71,6 +73,8 @@ private:
   
   using EntityCreator = std::function<std::shared_ptr<Entity>()>;
   std::map<uint64_t, EntityCreator> entityFactoryMap_;
+
+  Entity* possessedEntity_ = nullptr;
   
   static EntityManager* instance_;
 };

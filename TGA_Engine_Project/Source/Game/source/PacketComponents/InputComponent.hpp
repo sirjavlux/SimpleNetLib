@@ -10,8 +10,8 @@ public:
 
   uint16_t entityIdentifier = 0;
   
-  int8_t xAxis = 0;
-  int8_t yAxis = 0;
+  float xAxis = 0;
+  float yAxis = 0;
 };
 
 inline InputComponent::InputComponent()

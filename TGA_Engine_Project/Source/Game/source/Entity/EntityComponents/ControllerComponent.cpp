@@ -1,5 +1,7 @@
 ﻿#include "ControllerComponent.h"
 
+#include "../../PacketComponents/InputComponent.hpp"
+#include "../Entities/Entity.hpp"
 #include "Packet/PacketManager.h"
 
 void ControllerComponent::Init()
@@ -11,25 +13,31 @@ void ControllerComponent::Update(float InDeltaTime)
 {
   if (bIsPossessed_)
   {
-    UpdateInput();
+    const auto& engine = *Tga::Engine::GetInstance();
+    if (const HWND focusWind = GetFocus(); focusWind == *engine.GetHWND())
+    {
+      UpdateInput();
+    }
   }
 }
 
-void ControllerComponent::UpdatePosition(const int InX, const int InY)
+void ControllerComponent::UpdatePosition(const float InX, const float InY)
 {
-  // TODO: Implement
+  // TODO: Implement better system with position rollback
+
+  owner_->SetPosition({ InX, InY });
 }
 
 void ControllerComponent::UpdateInput()
 {
   // Input Direction
-  if (GetAsyncKeyState('A'))
+  if (GetAsyncKeyState('W'))
   {
-    inputDirection_.x += -1.f;
+    inputDirection_.y += 1.f;
   }
-  if (GetAsyncKeyState('D'))
+  if (GetAsyncKeyState('S'))
   {
-    inputDirection_.x += 1.f;
+    inputDirection_.y += -1.f;
   }
   if (GetAsyncKeyState('A'))
   {
@@ -41,5 +49,12 @@ void ControllerComponent::UpdateInput()
   }
 
   // Send Input packet
-  // TODO: Send
+  InputComponent inputComponent;
+  inputComponent.entityIdentifier = owner_->GetId();
+  inputComponent.xAxis = inputDirection_.x;
+  inputComponent.yAxis = inputDirection_.y;
+  Net::PacketManager::Get()->SendPacketComponentToParent(inputComponent);
+
+  // Reset Input
+  inputDirection_ = { 0.f, 0.f, 0.f };
 }

@@ -7,19 +7,19 @@ namespace NetUtility
 {
 struct NetVector3
 {
-    std::atomic<int> x, y, z;
+    float x, y, z;
 
     NetVector3(const NetVector3& InPosition);
-    NetVector3(int X, int Y, int Z);
+    NetVector3(float X, float Y, float Z);
     NetVector3() = default;
     
-    int LengthSqr(const NetVector3& InPosition) const;
+    float LengthSqr(const NetVector3& InPosition) const;
 
     void operator=(const NetVector3& InPosition)
     {
-        x = InPosition.x.load();
-        y = InPosition.y.load();
-        z = InPosition.z.load();
+        x = InPosition.x;
+        y = InPosition.y;
+        z = InPosition.z;
     }
     
     bool operator==(const NetVector3& InPosition) const

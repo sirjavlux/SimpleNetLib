@@ -62,8 +62,10 @@ public:
     void UpdateClientNetPosition(const sockaddr_storage& InAddress, const NetUtility::NetVector3& InPosition);
 
     PacketComponentDelegator& GetPacketComponentDelegator() { return packetComponentHandleDelegator_; }
+
+    float GetDeltaTime() const { return lastDeltaTime_; }
     
-private:
+private: 
     void HandleComponent(const sockaddr_storage& InComponentSender, const PacketComponent& InPacketComponent);
     
     void FixedUpdate();
@@ -72,6 +74,8 @@ private:
     std::chrono::steady_clock::time_point lastUpdateTime_;
     double updateLag_ = 0.0;
 
+    std::chrono::steady_clock::time_point lastUpdateFinishedTime_;
+    
     bool DoesUpdateIterMatchPacketFrequency(const PacketFrequencyData& InPacketFrequencyData) const;
     
     static void OnNetTargetConnected(const sockaddr_storage& InTarget);
@@ -104,6 +108,8 @@ private:
     const NetSettings netSettings_;
 
     int updateIterator_ = 0;
+
+    float lastDeltaTime_ = 0.f;
     
     friend class NetHandler;
 };

@@ -35,6 +35,7 @@ void RenderManager::End()
 		delete instance_;
 	}
 }
+
 void RenderManager::Render()
 {
 	// TODO: Render

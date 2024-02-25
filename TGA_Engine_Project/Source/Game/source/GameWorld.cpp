@@ -42,6 +42,7 @@ void GameWorld::Update(const float InTimeDelta)
 void GameWorld::Render()
 {
 	EntityManager::Get()->RenderEntities();
+	RenderManager::Get()->Render();
 }
 
 

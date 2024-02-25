@@ -418,9 +418,8 @@ void NetHandler::KickNetTarget(const sockaddr_storage& InAddress, const ENetDisc
 {
     if (connectionHandler_.ContainsConnection(InAddress))
     {
-        PacketManager::Get()->OnNetTargetDisconnection(InAddress, InKickReason);
-        
         connectionHandler_.RemoveConnection(InAddress);
+        PacketManager::Get()->OnNetTargetDisconnection(InAddress, InKickReason);
 
         if (InAddress.ss_family == AF_INET)
         {

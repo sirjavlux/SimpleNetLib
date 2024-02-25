@@ -6,10 +6,13 @@
 class SpawnEntityComponent : public Net::PacketComponent
 {
 public:
-  SpawnEntityComponent();
+	SpawnEntityComponent();
 
-  uint16_t entityId;
-  uint64_t entityTypeHash;
+	uint16_t entityId;
+	uint64_t entityTypeHash;
+
+	float xPos = 0.f;
+	float yPos = 0.f;
 };
 
 inline SpawnEntityComponent::SpawnEntityComponent()

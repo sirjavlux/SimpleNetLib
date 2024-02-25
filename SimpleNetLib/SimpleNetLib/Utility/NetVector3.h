@@ -13,13 +13,31 @@ struct NetVector3
     NetVector3(float X, float Y, float Z);
     NetVector3() = default;
     
-    float LengthSqr(const NetVector3& InPosition) const;
+    float DistanceSqr(const NetVector3& InPosition) const;
+    float LengthSqr() const;
+    float Length() const;
 
+    void Normalize();
+    
     void operator=(const NetVector3& InPosition)
     {
         x = InPosition.x;
         y = InPosition.y;
         z = InPosition.z;
+    }
+
+    void operator*=(const NetVector3& InPosition)
+    {
+        x *= InPosition.x;
+        y *= InPosition.y;
+        z *= InPosition.z;
+    }
+
+    void operator*=(const float InScalar)
+    {
+        x *= InScalar;
+        y *= InScalar;
+        z *= InScalar;
     }
     
     bool operator==(const NetVector3& InPosition) const

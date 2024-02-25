@@ -5,8 +5,8 @@
 void PlayerShipEntity::Init()
 {
   RenderComponent* renderComponent = AddComponent<RenderComponent>();
-  // TODO: Set Render Details
-
+  renderComponent->SetRenderSortingPriority(50);
+  
   AddComponent<ControllerComponent>();
 }
 

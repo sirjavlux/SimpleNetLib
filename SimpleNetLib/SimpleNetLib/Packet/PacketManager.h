@@ -60,7 +60,7 @@ public:
     const PacketComponentAssociatedData* FetchPacketComponentAssociatedData(uint16_t InIdentifier);
     
     void UpdateClientNetPosition(const sockaddr_storage& InAddress, const NetUtility::NetVector3& InPosition);
-
+    
     PacketComponentDelegator& GetPacketComponentDelegator() { return packetComponentHandleDelegator_; }
 
     float GetDeltaTime() const { return lastDeltaTime_; }
@@ -176,7 +176,7 @@ bool PacketManager::SendPacketComponentMulticastWithLod(const ComponentType& InP
             }
             
             // Preliminary culling check
-            const int distance = InPosition.LengthSqr(connection.second.netCullingPosition);
+            const int distance = InPosition.DistanceSqr(connection.second.netCullingPosition);
             if (associatedData->distanceToCullPacketComponentAtSqr > -1
                 && distance > associatedData->distanceToCullPacketComponentAtSqr)
             {

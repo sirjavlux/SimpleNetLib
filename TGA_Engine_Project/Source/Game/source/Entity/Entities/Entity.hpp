@@ -24,7 +24,7 @@ public:
 	Tga::Vector2f GetPosition() const { return position_; }
 
 	uint16_t GetId() const { return id_; }
-	const NetTag& GetTypeTag() const { return typeTag_; }
+	uint64_t GetTypeTagHash() const { return typeTagHash_; }
 
 	template<typename ComponentType>
 	ComponentType* AddComponent();
@@ -36,7 +36,7 @@ private:
 	uint16_t id_ = 0;
 	Tga::Vector2f position_;
 
-	NetTag typeTag_;
+	uint64_t typeTagHash_;
 	
 	std::vector<std::shared_ptr<EntityComponent>> components_;
 	std::shared_ptr<EntityComponent> renderComponent_;

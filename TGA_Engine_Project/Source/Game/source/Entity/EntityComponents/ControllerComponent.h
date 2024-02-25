@@ -18,7 +18,7 @@ public:
   void Update(float InDeltaTime) override;
   
   void SetPossessed(const bool InShouldBePossessed) { bIsPossessed_ = InShouldBePossessed; }
-  void SetPossessedBy(const sockaddr_storage& InAddress) { possessedBy_ = InAddress; }
+  void SetPossessedBy(const sockaddr_storage& InAddress);
   bool IsPossessedBy(const sockaddr_storage& InAddress) const { return possessedBy_ == InAddress; }
 
   float GetSpeed() const { return speed_; }

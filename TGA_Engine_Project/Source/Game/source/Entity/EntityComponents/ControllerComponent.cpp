@@ -3,6 +3,8 @@
 #include "../../PacketComponents/InputComponent.hpp"
 #include "../Entities/Entity.hpp"
 #include "Packet/PacketManager.h"
+#include "../EntityManager.h"
+#include "../RenderManager.h"
 
 void ControllerComponent::Init()
 {
@@ -21,11 +23,25 @@ void ControllerComponent::Update(float InDeltaTime)
   }
 }
 
+void ControllerComponent::SetPossessedBy(const sockaddr_storage& InAddress)
+{
+  possessedBy_ = InAddress;
+
+  if (Net::PacketManager::Get()->GetManagerType() == ENetworkHandleType::Server)
+  {
+    EntityManager::Get()->SetPossessedEntityByNetTarget(InAddress, owner_->GetId());
+  }
+}
+
 void ControllerComponent::UpdatePosition(const float InX, const float InY)
 {
   // TODO: Implement better system with position rollback
 
   owner_->SetPosition({ InX, InY });
+  if (EntityManager::Get()->GetPossessedEntity() == owner_)
+  {
+    RenderManager::Get()->GetCamera().cameraPosition = owner_->GetPosition();
+  }
 }
 
 void ControllerComponent::UpdateInput()

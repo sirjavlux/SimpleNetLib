@@ -21,7 +21,7 @@ public:
   void UpdateNetCullingPosition(const sockaddr_storage& InAddress, const NetUtility::NetVector3& InPosition);
   NetUtility::NetVector3 GetNetPosition(const sockaddr_storage& InAddress) const;
 
-  std::unordered_map<sockaddr_in, NetTarget> GetConnections() const { return connections_; }
+  const std::unordered_map<sockaddr_in, NetTarget>& GetConnections() const { return connections_; }
 
   const NetTarget* GetNetTarget(const sockaddr_storage& InAddress) const;
   

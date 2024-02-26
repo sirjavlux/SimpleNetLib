@@ -15,9 +15,11 @@ public:
 
 	virtual void Init() = 0;
 	
-	virtual void Update(float InDeltaTime) = 0;
+	virtual void Update(float InDeltaTime) {}
+	virtual void FixedUpdate(float InDeltaTime) {}
 	void UpdateComponents(float InDeltaTime);
-
+	void FixedUpdateComponents(float InDeltaTime);
+	
 	void UpdateRender();
 	
 	void SetPosition(const Tga::Vector2f& InPos) { position_ = InPos; }
@@ -105,6 +107,14 @@ inline void Entity::UpdateComponents(const float InDeltaTime)
 	for (std::shared_ptr<EntityComponent> component : components_)
 	{
 		component->Update(InDeltaTime);
+	}
+}
+
+inline void Entity::FixedUpdateComponents(float InDeltaTime)
+{
+	for (std::shared_ptr<EntityComponent> component : components_)
+	{
+		component->FixedUpdate(InDeltaTime);
 	}
 }
 

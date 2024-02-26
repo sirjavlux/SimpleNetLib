@@ -8,6 +8,7 @@
 #include "Entity/RenderManager.h"
 #include "Entity/Entities/PlayerShipEntity.h"
 #include "Entity/Entities/SpriteEntity.h"
+#include "Definitions.hpp"
 
 GameWorld::GameWorld()
 {}

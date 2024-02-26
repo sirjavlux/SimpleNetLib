@@ -12,7 +12,8 @@ public:
 
   virtual void Init() = 0;
   
-  virtual void Update(float InDeltaTime) = 0;
+  virtual void Update(float InDeltaTime) {}
+  virtual void FixedUpdate(float InDeltaTime) {}
   
 protected:
   Entity* owner_ = nullptr;

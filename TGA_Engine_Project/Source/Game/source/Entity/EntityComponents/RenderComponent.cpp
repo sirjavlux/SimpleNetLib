@@ -91,3 +91,9 @@ RenderData RenderComponent::GetRenderData() const
 {
   return { sortingPriority_, textureIdentifier_.GetHash(), sharedData_ };
 }
+
+void RenderComponent::SetDirection(const float InX, const float InY)
+{
+  const float rotation = atan2f(InY, InX);
+  spriteInstance_.myRotation = rotation;
+}

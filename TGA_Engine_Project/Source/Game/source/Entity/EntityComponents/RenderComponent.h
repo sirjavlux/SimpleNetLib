@@ -64,6 +64,8 @@ public:
 
   void SetSpriteSize(const Tga::Vector2f InSpriteSize) { spriteSize_ = InSpriteSize; }
   void SetSpriteSizeMultiplier(const Tga::Vector2f InSpriteSizeMultiplier) { spriteSizeMultiplier_ = InSpriteSizeMultiplier; }
+
+  void SetDirection(float InX, float InY);
   
 private:
   Tga::Sprite2DInstanceData spriteInstance_ = {};

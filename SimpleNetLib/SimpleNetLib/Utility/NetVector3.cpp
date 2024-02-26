@@ -25,6 +25,26 @@ float NetUtility::NetVector3::Length() const
     return std::sqrt(LengthSqr());
 }
 
+NetUtility::NetVector3 NetUtility::NetVector3::GetNormalized() const
+{
+    NetVector3 result = *this;
+    const float length = Length();
+    if (length < 0.0001f)
+    {
+        result.x = 0.f;
+        result.y = 0.f;
+        result.z = 0.f;
+        
+        return result;
+    }
+    
+    result.x /= length;
+    result.y /= length;
+    result.z /= length;
+    
+    return result;
+}
+
 void NetUtility::NetVector3::Normalize()
 {
     const float length = Length();

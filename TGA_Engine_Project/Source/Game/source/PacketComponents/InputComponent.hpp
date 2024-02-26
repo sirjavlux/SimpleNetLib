@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "PacketComponentTypes.hpp"
+#include "../Entity/EntityComponents/ControllerComponent.h"
 #include "Packet/PacketComponent.h"
 
 class InputComponent : public Net::PacketComponent
@@ -10,8 +11,7 @@ public:
 
   uint16_t entityIdentifier = 0;
   
-  float xAxis = 0;
-  float yAxis = 0;
+  InputUpdateEntry inputUpdateEntry;
 };
 
 inline InputComponent::InputComponent()

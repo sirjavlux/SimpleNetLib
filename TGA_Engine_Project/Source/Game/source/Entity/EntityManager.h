@@ -45,6 +45,7 @@ public:
   void OnEntityDespawnRequestReceived(const sockaddr_storage& InAddress, const Net::PacketComponent& InComponent);
   void OnConnectionReceived(const sockaddr_storage& InAddress, const Net::PacketComponent& InComponent);
   void OnInputReceived(const sockaddr_storage& InAddress, const Net::PacketComponent& InComponent);
+  void OnControllerPositionUpdateReceived(const sockaddr_storage& InAddress, const Net::PacketComponent& InComponent);
   void OnPositionUpdateReceived(const sockaddr_storage& InAddress, const Net::PacketComponent& InComponent);
   void OnSetEntityPossessedReceived(const sockaddr_storage& InAddress, const Net::PacketComponent& InComponent);
   void OnReturnAckReceived(const sockaddr_storage& InAddress, const Net::PacketComponent& InComponent);
@@ -58,6 +59,8 @@ public:
   Entity* GetPossessedEntity() { return possessedEntity_; }
   
 private:
+  void UpdateEntityPossession();
+  
   template<typename EntityType>
   bool IsEntityTypeValid() const;
   
@@ -82,6 +85,9 @@ private:
 
   std::map<sockaddr_storage, uint64_t> entitiesPossessed_;
   Entity* possessedEntity_ = nullptr;
+
+  std::chrono::steady_clock::time_point lastUpdateTime_;
+  double updateLag_ = 0.0;
   
   static EntityManager* instance_;
 };

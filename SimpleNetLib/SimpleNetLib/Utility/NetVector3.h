@@ -17,6 +17,7 @@ struct NetVector3
     float LengthSqr() const;
     float Length() const;
 
+    NetVector3 GetNormalized() const;
     void Normalize();
     
     void operator=(const NetVector3& InPosition)

@@ -2,6 +2,9 @@
 
 #include "RenderManager.h"
 
+#include "tge/drawers/SpriteDrawer.h"
+#include "tge/graphics/GraphicsEngine.h"
+
 RenderManager* RenderManager::instance_ = nullptr;
 
 RenderManager::RenderManager()
@@ -38,8 +41,19 @@ void RenderManager::End()
 
 void RenderManager::Render()
 {
-	// TODO: Render
+	const auto& engine = *Tga::Engine::GetInstance();
+	Tga::SpriteDrawer& spriteDrawer(engine.GetGraphicsEngine().GetSpriteDrawer());
 	
+	// Batch render sprites
+	for (const auto& renderCall : renderCallsThisFrame_)
+	{
+		const RenderData& renderData = renderCall.first;
+		Tga::SpriteBatchScope scope = spriteDrawer.BeginBatch(renderData.sharedData);
+		for (const Tga::Sprite2DInstanceData& sprite2DInstanceData : renderCall.second)
+		{
+			scope.Draw(sprite2DInstanceData);
+		}
+	}
 	
 	// Clear old calls
 	renderCallsThisFrame_.clear();

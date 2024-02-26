@@ -74,10 +74,6 @@ void RenderComponent::Update(float InDeltaTime)
   }
   
   RenderManager::Get()->AddRenderCall(*this);
-  
-  // Todo: remove this when render manager is up and running
-  Tga::SpriteDrawer& spriteDrawer(engine.GetGraphicsEngine().GetSpriteDrawer());
-  spriteDrawer.Draw(sharedData_, spriteInstance_);
 }
 
 void RenderComponent::SetSpriteTexture(const char* InTexturePath)

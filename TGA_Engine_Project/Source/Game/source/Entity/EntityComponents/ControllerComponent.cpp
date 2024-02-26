@@ -44,6 +44,41 @@ void ControllerComponent::UpdatePosition(const float InX, const float InY)
   }
 }
 
+void ControllerComponent::UpdateVelocity(const float InInputX, const float InInputY)
+{
+  // TODO: Needs to be compatible with rollback and forward system
+  
+  const float xVelocity = InInputX;
+  const float yVelocity = InInputY;
+  NetUtility::NetVector3 netVector = { xVelocity, yVelocity, 0.f };
+  netVector.Normalize();
+  netVector *= GetSpeed();
+
+  netVector *= acceleration_;
+  velocity_ += netVector;
+  velocity_.x -= velocity_.x < 0.f ? resistance_ * -1.f
+    : resistance_;
+  velocity_.y -= velocity_.y < 0.f ? resistance_ * -1.f
+    : resistance_;
+
+  // Clamp minimum velocity
+  if (netVector.x == 0 && std::abs(velocity_.x) < 0.0005f)
+  {
+    velocity_.x = 0.f;
+  }
+  if (netVector.y == 0 && std::abs(velocity_.y) < 0.0005f)
+  {
+    velocity_.y = 0.f;
+  }
+
+  // Clamp maximum velocity
+  if (velocity_.LengthSqr() >= maxVelocity_ * maxVelocity_)
+  {
+    velocity_.Normalize();
+    velocity_ *= maxVelocity_;
+  }
+}
+
 void ControllerComponent::UpdateInput()
 {
   // Input Direction
@@ -63,7 +98,7 @@ void ControllerComponent::UpdateInput()
   {
     inputDirection_.x += 1.f;
   }
-
+  
   // Send Input packet
   InputComponent inputComponent;
   inputComponent.entityIdentifier = owner_->GetId();

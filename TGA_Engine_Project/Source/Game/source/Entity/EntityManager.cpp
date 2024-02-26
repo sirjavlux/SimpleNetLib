@@ -230,18 +230,13 @@ void EntityManager::OnInputReceived(const sockaddr_storage& InAddress, const Net
     if (controllerComponent && controllerComponent->IsPossessedBy(InAddress))
     {
       // TODO: Update input with rollback and forward system to get accurate input from packet delays. Rollback a something like 5 frames depending on lag.
-
-      const float deltaTime = Net::PacketManager::Get()->GetDeltaTime();
-      const float xVelocity = component->xAxis;
-      const float yVelocity = component->yAxis;
-      NetUtility::NetVector3 netVector = { xVelocity, yVelocity, 0.f };
-      netVector.Normalize();
-      netVector *= controllerComponent->GetSpeed() * deltaTime;
+      controllerComponent->UpdateVelocity(component->xAxis, component->yAxis);
+      const NetUtility::NetVector3& velocity = controllerComponent->GetVelocity();
       
       UpdateEntityPositionComponent updateEntityPositionComponent;
       updateEntityPositionComponent.entityIdentifier = entity->GetId();
-      updateEntityPositionComponent.xPos = entity->GetPosition().x + netVector.x;
-      updateEntityPositionComponent.yPos = entity->GetPosition().y + netVector.y;
+      updateEntityPositionComponent.xPos = entity->GetPosition().x + velocity.x;
+      updateEntityPositionComponent.yPos = entity->GetPosition().y + velocity.y;
       Net::PacketManager::Get()->SendPacketComponentMulticast<UpdateEntityPositionComponent>(updateEntityPositionComponent);
 
       // std::cout << "Received Velocity " << xVelocity << " : " << yVelocity << " : " << deltaTime << "\n";

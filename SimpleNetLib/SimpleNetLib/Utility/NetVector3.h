@@ -39,6 +39,30 @@ struct NetVector3
         y *= InScalar;
         z *= InScalar;
     }
+
+    NetVector3 operator*(const float InScalar) const
+    {
+        NetVector3 result = *this;
+        result.x *= InScalar;
+        result.y *= InScalar;
+        result.z *= InScalar;
+
+        return result;
+    }
+
+    void operator+=(const NetVector3& InPosition)
+    {
+        x += InPosition.x;
+        y += InPosition.y;
+        z += InPosition.z;
+    }
+
+    void operator-=(const NetVector3& InPosition)
+    {
+        x -= InPosition.x;
+        y -= InPosition.y;
+        z -= InPosition.z;
+    }
     
     bool operator==(const NetVector3& InPosition) const
     {

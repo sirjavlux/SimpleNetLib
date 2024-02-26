@@ -25,14 +25,25 @@ public:
   void SetSpeed(const float InSpeed) { speed_ = InSpeed; }
 
   void UpdatePosition(float InX, float InY); // TODO: Implement better version
+
+  void UpdateVelocity(float InInputX, float InInputY);
+
+  const NetUtility::NetVector3& GetVelocity() const { return velocity_; }
   
 private:
   void UpdateInput();
+
+  NetUtility::NetVector3 velocity_;
+
+  // Character movement settings
+  const float maxVelocity_ = 0.5f * FIXED_UPDATE_TIME;
+  const float acceleration_ = 0.04f * FIXED_UPDATE_TIME;
+  const float resistance_ = 0.004f * FIXED_UPDATE_TIME;
   
   NetUtility::NetVector3 inputDirection_;
-
+  
   sockaddr_storage possessedBy_;
   
-  float speed_ = 1.f;
+  float speed_ = 0.5f;
   bool bIsPossessed_ = false;
 };

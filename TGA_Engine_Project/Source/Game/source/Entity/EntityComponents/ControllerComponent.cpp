@@ -25,10 +25,6 @@ void ControllerComponent::Update(float InDeltaTime)
     {
       renderComponent->SetDirection(currentDirection_.x, currentDirection_.y);
     }
-
-    // Lerp position
-    const Tga::Vector2f newPosition = targetPosition_; //Tga::Vector2f::Lerp(owner_->GetPosition(), targetPosition_, 0.2f); //targetPositionLerpSpeed_ * InDeltaTime);
-    owner_->SetPosition(newPosition, false);
   }
 }
 
@@ -143,7 +139,7 @@ void ControllerComponent::UpdateServerPosition()
   entryData.xVelocity = velocity_.x;
   entryData.yVelocity = velocity_.y;
   
-  owner_->SetPosition({newPos.x, newPos.y});
+  owner_->SetPosition({newPos.x, newPos.y}, true);
 
   // Send new packet
   UpdateEntityControllerPositionComponent updateEntityPositionComponent;
@@ -167,13 +163,12 @@ void ControllerComponent::UpdateClientPositionFromServerPositionUpdate()
   velocity_ = { updateEntry.xVelocity, updateEntry.yVelocity };
   
   positionUpdateSequenceNr_ = updateEntry.sequenceNr;
-
-  owner_->SetPosition(newTargetPos);
   
   // Forward position
   if (bIsPossessed_)
   {
-    for (int i = 0; i < INPUT_BUFFER_SIZE; ++i)
+    constexpr int indexesBehind = 8;
+    for (int i = indexesBehind; i < INPUT_BUFFER_SIZE; ++i)
     {
       const InputUpdateEntry& entry = inputHistoryBuffer_[i];
       if (entry.sequenceNr <= positionUpdateSequenceNr_)
@@ -186,7 +181,10 @@ void ControllerComponent::UpdateClientPositionFromServerPositionUpdate()
   }
 
   // Update Target Position
-  targetPosition_ = newTargetPos;
+  owner_->SetTargetPosition(newTargetPos);
+
+  // Update target direction
+  targetDirection_ = velocity_.GetNormalized();
 }
 
 void ControllerComponent::UpdateVelocity(const float InInputX, const float InInputY)
@@ -219,12 +217,6 @@ void ControllerComponent::UpdateVelocity(const float InInputX, const float InInp
   {
     velocity_.Normalize();
     velocity_ *= maxVelocity_;
-  }
-
-  // Update target direction
-  if (Net::PacketManager::Get()->GetManagerType() == ENetworkHandleType::Client)
-  {
-    targetDirection_ = velocity_.GetNormalized();
   }
 }
 

@@ -11,7 +11,8 @@ NetUtility::NetVector3::NetVector3(const float X, const float Y, const float Z) 
 
 float NetUtility::NetVector3::DistanceSqr(const NetVector3& InPosition) const
 {
-    return InPosition.x * x + InPosition.y * y + InPosition.z * z;
+    const NetVector3 direction = InPosition - *this;
+    return direction.LengthSqr();
 }
 
 float NetUtility::NetVector3::LengthSqr() const

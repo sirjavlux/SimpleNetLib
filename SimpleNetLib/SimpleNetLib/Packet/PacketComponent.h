@@ -31,12 +31,12 @@ struct PacketComponentAssociatedData
 
 	// The distance at which the packet component will not be sent at if exceeded.
 	// -1 == Will always send
-	int distanceToCullPacketComponentAtSqr = -1;
+	float distanceToCullPacketComponentAt = -1.f;
 	
 	// first -> distance : second -> frequency
-	std::vector<std::pair<int, float>> packetLodFrequencies; // TODO: Implement this
+	std::vector<std::pair<float, float>> packetLodFrequencies;
 
-	static bool Compare(const std::pair<int, float>& A, const std::pair<int, float>& B)
+	static bool Compare(const std::pair<float, float>& A, const std::pair<float, float>& B)
 	{
 		return A.first < B.first;
 	}

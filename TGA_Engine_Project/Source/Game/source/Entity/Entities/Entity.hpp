@@ -16,6 +16,18 @@ public:
 	virtual ~Entity() = default;
 
 	virtual void Init() = 0;
+
+	virtual void UpdateSmoothMovement(const float InDeltaTime)
+	{
+		if (Net::PacketManager::Get()->GetManagerType() == ENetworkHandleType::Server)
+		{
+			return;
+		}
+		
+		// Lerp position
+		const Tga::Vector2f newPosition = Tga::Vector2f::Lerp(position_, targetPosition_, targetPositionLerpSpeed_ * InDeltaTime);
+		SetPosition(newPosition, false);
+	}
 	
 	virtual void Update(float InDeltaTime) {}
 	virtual void FixedUpdate(float InDeltaTime) {}
@@ -23,7 +35,8 @@ public:
 	void FixedUpdateComponents(float InDeltaTime);
 	
 	void UpdateRender();
-	
+
+	void SetTargetPosition(const Tga::Vector2f& InPos) { targetPosition_ = InPos; }
 	void SetPosition(const Tga::Vector2f& InPos, bool InIsTeleport = true);
 	Tga::Vector2f GetPosition() const { return position_; }
 
@@ -45,6 +58,9 @@ private:
 	std::vector<std::shared_ptr<EntityComponent>> components_;
 	std::shared_ptr<EntityComponent> renderComponent_;
 
+	Tga::Vector2f targetPosition_ = {};
+	float targetPositionLerpSpeed_ = 5.f;
+	
 	friend class EntityManager;
 };
 
@@ -133,10 +149,6 @@ inline void Entity::SetPosition(const Tga::Vector2f& InPos, const bool InIsTelep
 	position_ = InPos;
 	if (InIsTeleport && Net::PacketManager::Get()->GetManagerType() != ENetworkHandleType::Server)
 	{
-		ControllerComponent* controllerComponent = GetComponent<ControllerComponent>();
-		if (controllerComponent)
-		{
-			controllerComponent->targetPosition_ = InPos;
-		}
+		targetPosition_ = InPos;
 	}
 }

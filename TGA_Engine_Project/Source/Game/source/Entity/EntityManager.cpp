@@ -90,11 +90,13 @@ void EntityManager::UpdateEntities(const float InDeltaTime)
   {
     entityData.second->Update(InDeltaTime);
     entityData.second->UpdateComponents(InDeltaTime);
+    entityData.second->UpdateSmoothMovement(InDeltaTime);
   }
   for (auto& entityData : entitiesLocal_)
   {
     entityData.second->Update(InDeltaTime);
     entityData.second->UpdateComponents(InDeltaTime);
+    entityData.second->UpdateSmoothMovement(InDeltaTime);
   }
 }
 
@@ -142,7 +144,7 @@ Entity* EntityManager::SpawnEntityServer(const NetTag& InEntityTypeTag, const Ne
   }
 
   Entity* newEntity = AddEntity(InEntityTypeTag.GetHash(), GenerateEntityIdentifier());
-  newEntity->SetPosition({InPosition.x, InPosition.y});
+  newEntity->SetPosition({InPosition.x, InPosition.y}, true);
   
   SpawnEntityComponent spawnEntityComponent;
   spawnEntityComponent.entityId = newEntity->GetId();
@@ -162,7 +164,7 @@ Entity* EntityManager::SpawnEntityLocal(const NetTag& InEntityTypeTag, const Net
   }
 
   Entity* newEntity = AddEntity(InEntityTypeTag.GetHash(), GenerateEntityIdentifier(), true);
-  newEntity->SetPosition({InPosition.x, InPosition.y});
+  newEntity->SetPosition({InPosition.x, InPosition.y}, true);
   
   return newEntity;
 }
@@ -188,7 +190,7 @@ void EntityManager::OnEntitySpawnReceived(const sockaddr_storage& InAddress, con
 {
   const SpawnEntityComponent* component = reinterpret_cast<const SpawnEntityComponent*>(&InComponent);
   Entity* entitySpawned = AddEntity(component->entityTypeHash, component->entityId);
-  entitySpawned->SetPosition({ component->xPos, component->yPos });
+  entitySpawned->SetPosition({ component->xPos, component->yPos }, true);
   
   std::cout << "Spawn entity received! " << entitySpawned->GetTypeTagHash() << " : " <<  component->entityId << "\n";
 }
@@ -271,7 +273,7 @@ void EntityManager::OnPositionUpdateReceived(const sockaddr_storage& InAddress, 
   if (entities_.find(component->entityIdentifier) != entities_.end())
   {
     Entity* entity = entities_.at(component->entityIdentifier).get();
-    entity->SetPosition({ component->xPos, component->yPos });
+    entity->SetPosition({ component->xPos, component->yPos }, true);
   }
 }
 
@@ -389,22 +391,26 @@ void EntityManager::RegisterPacketComponents()
   Net::PacketManager::Get()->RegisterPacketComponent<RequestSpawnEntityComponent, EntityManager>(associatedDataSpawnDeSpawnComps, &EntityManager::OnEntitySpawnRequestReceived, this);
 
   Net::PacketManager::Get()->RegisterPacketComponent<SetEntityPossessedComponent, EntityManager>(associatedDataSpawnDeSpawnComps, &EntityManager::OnSetEntityPossessedReceived, this);
-
+  
   const PacketComponentAssociatedData associatedDataEveryTick = PacketComponentAssociatedData
   {
     false,
     FIXED_UPDATE_DELTA_TIME,
-    EPacketHandlingType::None
+    EPacketHandlingType::None,
   };
   Net::PacketManager::Get()->RegisterPacketComponent<InputComponent, EntityManager>(associatedDataEveryTick, &EntityManager::OnInputReceived, this);
   Net::PacketManager::Get()->RegisterPacketComponent<UpdateEntityPositionComponent, EntityManager>(associatedDataEveryTick, &EntityManager::OnPositionUpdateReceived, this);
 
+  std::vector<std::pair<float, float>> packetLodFrequencies;
+  packetLodFrequencies.push_back({ 1.f, 0.15f });
   const PacketComponentAssociatedData associatedEntityControllerPositionComponent = PacketComponentAssociatedData
-{
-  true,
-  FIXED_UPDATE_DELTA_TIME,
-  EPacketHandlingType::None
-};
+  {
+    true,
+    FIXED_UPDATE_DELTA_TIME,
+    EPacketHandlingType::None,
+    2.f,
+    packetLodFrequencies
+  };
   Net::PacketManager::Get()->RegisterPacketComponent<UpdateEntityControllerPositionComponent, EntityManager>(associatedEntityControllerPositionComponent, &EntityManager::OnControllerPositionUpdateReceived, this);
   
   Net::EventSystem::Get()->onClientDisconnectEvent.AddDynamic<EntityManager>(this, &EntityManager::OnClientDisconnect);

@@ -176,9 +176,9 @@ bool PacketManager::SendPacketComponentMulticastWithLod(const ComponentType& InP
             }
             
             // Preliminary culling check
-            const int distance = InPosition.DistanceSqr(connection.second.netCullingPosition);
-            if (associatedData->distanceToCullPacketComponentAtSqr > -1
-                && distance > associatedData->distanceToCullPacketComponentAtSqr)
+            const float distanceSqr = InPosition.DistanceSqr(connection.second.netCullingPosition);
+            if (associatedData->distanceToCullPacketComponentAt > -1
+                && distanceSqr > std::powf(associatedData->distanceToCullPacketComponentAt, 2.f))
             {
                 continue; // Continue if culling distance is exceeded
             }
@@ -187,7 +187,7 @@ bool PacketManager::SendPacketComponentMulticastWithLod(const ComponentType& InP
             PacketTargetData& packetTargetData = packetTargetDataMap_.at(storageAddress);
             
             // Send packet with the correct lod frequency
-            packetTargetData.AddPacketComponentToSendWithLod(std::make_shared<ComponentType>(InPacketComponent), distance);
+            packetTargetData.AddPacketComponentToSendWithLod(std::make_shared<ComponentType>(InPacketComponent), distanceSqr);
         }
         return true;
     }

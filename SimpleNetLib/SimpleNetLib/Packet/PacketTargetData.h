@@ -28,7 +28,7 @@ public:
   explicit PacketTargetData() = default;
 
   void AddPacketComponentToSend(const std::shared_ptr<PacketComponent>& InComponent);
-  void AddPacketComponentToSendWithLod(const std::shared_ptr<PacketComponent>& InComponent, int InDistanceSqr);
+  void AddPacketComponentToSendWithLod(const std::shared_ptr<PacketComponent>& InComponent, float InDistanceSqr);
   
   std::map<PacketFrequencyData, PacketToSendData>& GetPacketComponentsToSend()
   { return packetComponentsToSendAtCertainFrequency_; }

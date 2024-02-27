@@ -20,17 +20,20 @@ void Net::PacketTargetData::AddPacketComponentToSend(const std::shared_ptr<Packe
   AddPacketComponentToSend(InComponent, frequencyData, packetComponentSettings);
 }
 
-void Net::PacketTargetData::AddPacketComponentToSendWithLod(const std::shared_ptr<PacketComponent>& InComponent, const int InDistanceSqr)
+void Net::PacketTargetData::AddPacketComponentToSendWithLod(const std::shared_ptr<PacketComponent>& InComponent, const float InDistanceSqr)
 {
   const uint16_t componentIdentifier = InComponent->GetIdentifier();
   const PacketComponentAssociatedData* packetComponentSettings = PacketManager::Get()->FetchPacketComponentAssociatedData(componentIdentifier);
 
   float frequencyToSendAt = packetComponentSettings->packetFrequencySeconds;
-  for (const std::pair<int, float>& iter : packetComponentSettings->packetLodFrequencies)
+  size_t iter = 0;
+  for (const std::pair<float, float>& frequencyData : packetComponentSettings->packetLodFrequencies)
   {
-    if (InDistanceSqr < iter.first)
+    ++iter;
+    if (InDistanceSqr > std::powf(frequencyData.first, 2.f)
+      && (iter >= packetComponentSettings->packetLodFrequencies.size() || (iter < packetComponentSettings->packetLodFrequencies.size() && InDistanceSqr < std::powf(packetComponentSettings->packetLodFrequencies[iter].first, 2.f))))
     {
-      frequencyToSendAt = iter.second;
+      frequencyToSendAt = frequencyData.second;
       break;
     }
   }

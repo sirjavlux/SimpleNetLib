@@ -7,8 +7,8 @@
 
 // TODO: Implement prediction and movement smoothing during lag
 
-#define POSITION_BUFFER_SIZE 20
-#define INPUT_BUFFER_SIZE 30
+#define POSITION_BUFFER_SIZE 10
+#define INPUT_BUFFER_SIZE 40
 
 struct PositionUpdateEntry
 {
@@ -84,8 +84,6 @@ private:
 
   // Client
   uint32_t positionUpdateSequenceNr_ = 0;
-  Tga::Vector2f targetPosition_ = {};
-  float targetPositionLerpSpeed_ = 100.f;
   
   // Server
   uint32_t lastInputSequenceNr_ = 0;

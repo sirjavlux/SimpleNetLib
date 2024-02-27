@@ -64,7 +64,12 @@ struct NetVector3
         y -= InPosition.y;
         z -= InPosition.z;
     }
-    
+
+    NetVector3 operator-(const NetVector3& InVector) const
+    {
+        return { x - InVector.x, y - InVector.y, z - InVector.z };
+    }
+
     bool operator==(const NetVector3& InPosition) const
     {
         return std::memcmp(this, &InPosition, sizeof(NetVector3)) == 0;

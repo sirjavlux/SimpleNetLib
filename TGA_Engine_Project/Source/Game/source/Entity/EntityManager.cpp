@@ -248,8 +248,30 @@ void EntityManager::OnInputReceived(const sockaddr_storage& InAddress, const Net
     // Check if target entity is possessed by the client
     if (controllerComponent && controllerComponent->IsPossessedBy(InAddress))
     {
+      InputUpdateEntry entry = {};
+      entry.sequenceNr = component->sequenceNr;
+
+      // Handle AWSD Input
+      const EKeyInput input = static_cast<EKeyInput>(component->keysPressBuffer);
+      if ((input & EKeyInput::W) != EKeyInput::None)
+      {
+        entry.yInputDir += 1.f;
+      }
+      if ((input & EKeyInput::S) != EKeyInput::None)
+      {
+        entry.yInputDir += -1.f;
+      }
+      if ((input & EKeyInput::A) != EKeyInput::None)
+      {
+        entry.xInputDir += -1.f;
+      }
+      if ((input & EKeyInput::D) != EKeyInput::None)
+      {
+        entry.xInputDir += 1.f;
+      }
+      
       // Update input buffer
-      controllerComponent->UpdateInputBuffer(component->inputUpdateEntry);
+      controllerComponent->UpdateInputBuffer(entry);
     }
   }
 }

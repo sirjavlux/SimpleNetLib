@@ -154,6 +154,8 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\Source\Game\source\Combat\BulletEntity.h" />
+    <ClInclude Include="..\Source\Game\source\Combat\BulletManager.h" />
     <ClInclude Include="..\Source\Game\source\Definitions.hpp" />
     <ClInclude Include="..\Source\Game\source\Entity\RenderCamera.h" />
     <ClInclude Include="..\Source\Game\source\Entity\Entities\Entity.hpp" />
@@ -165,6 +167,7 @@
     <ClInclude Include="..\Source\Game\source\Entity\EntityManager.h" />
     <ClInclude Include="..\Source\Game\source\Entity\RenderManager.h" />
     <ClInclude Include="..\Source\Game\source\GameWorld.h" />
+    <ClInclude Include="..\Source\Game\source\Locator\Locator.h" />
     <ClInclude Include="..\Source\Game\source\PacketComponents\DeSpawnEntityComponent.hpp" />
     <ClInclude Include="..\Source\Game\source\PacketComponents\InputComponent.hpp" />
     <ClInclude Include="..\Source\Game\source\PacketComponents\PacketComponentTypes.hpp" />
@@ -177,6 +180,8 @@
     <ClInclude Include="..\Source\Game\source\Player.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\Source\Game\source\Combat\BulletEntity.cpp" />
+    <ClCompile Include="..\Source\Game\source\Combat\BulletManager.cpp" />
     <ClCompile Include="..\Source\Game\source\Entity\RenderCamera.cpp" />
     <ClCompile Include="..\Source\Game\source\Entity\Entities\PlayerShipEntity.cpp" />
     <ClCompile Include="..\Source\Game\source\Entity\Entities\SpriteEntity.cpp">
@@ -260,6 +265,7 @@
     <ClCompile Include="..\Source\Game\source\Entity\EntityManager.cpp" />
     <ClCompile Include="..\Source\Game\source\Entity\RenderManager.cpp" />
     <ClCompile Include="..\Source\Game\source\GameWorld.cpp" />
+    <ClCompile Include="..\Source\Game\source\Locator\Locator.cpp" />
     <ClCompile Include="..\Source\Game\source\Player.cpp" />
     <ClCompile Include="..\Source\Game\source\main.cpp" />
   </ItemGroup>

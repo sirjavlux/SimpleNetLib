@@ -222,6 +222,8 @@ void ControllerComponent::UpdateVelocity(const float InInputX, const float InInp
 
 void ControllerComponent::UpdateInput()
 {
+  EKeyInput keyInput = EKeyInput::None;
+  
   // Input Direction
   const auto& engine = *Tga::Engine::GetInstance();
   if (const HWND focusWind = GetFocus(); focusWind == *engine.GetHWND())
@@ -229,31 +231,47 @@ void ControllerComponent::UpdateInput()
     if (GetAsyncKeyState('W'))
     {
       inputDirection_.y += 1.f;
+      keyInput = keyInput | EKeyInput::W;
     }
     if (GetAsyncKeyState('S'))
     {
       inputDirection_.y += -1.f;
+      keyInput = keyInput | EKeyInput::S;
     }
     if (GetAsyncKeyState('A'))
     {
       inputDirection_.x += -1.f;
+      keyInput = keyInput | EKeyInput::A;
     }
     if (GetAsyncKeyState('D'))
     {
       inputDirection_.x += 1.f;
+      keyInput = keyInput | EKeyInput::D;
+    }
+    if (GetAsyncKeyState(VK_SPACE))
+    {
+      keyInput = keyInput | EKeyInput::Space;
+    }
+    if (GetAsyncKeyState(VK_SHIFT))
+    {
+      keyInput = keyInput | EKeyInput::Shift;
     }
   }
+
+  InputUpdateEntry entry;
+  entry.sequenceNr = ++sequenceNumberIter_;
+  entry.xInputDir = inputDirection_.x;
+  entry.yInputDir = inputDirection_.y;
   
   // Send Input packet
   InputComponent inputComponent;
   inputComponent.entityIdentifier = owner_->GetId();
-  inputComponent.inputUpdateEntry.sequenceNr = ++sequenceNumberIter_;
-  inputComponent.inputUpdateEntry.xInputDir = inputDirection_.x;
-  inputComponent.inputUpdateEntry.yInputDir = inputDirection_.y;
+  inputComponent.sequenceNr = entry.sequenceNr;
+  inputComponent.keysPressBuffer = static_cast<uint16_t>(keyInput);
   Net::PacketManager::Get()->SendPacketComponentToParent(inputComponent);
 
   // Update client input buffer
-  UpdateInputBuffer(inputComponent.inputUpdateEntry);
+  UpdateInputBuffer(entry);
   
   // Reset Input
   inputDirection_ = { 0.f, 0.f, 0.f };

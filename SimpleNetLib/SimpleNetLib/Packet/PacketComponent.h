@@ -55,7 +55,7 @@ public:
 	PacketComponent(int16_t InIdentifier, uint16_t InSize);
 	PacketComponent(const PacketComponent& InPacketComponent);
 	~PacketComponent();
-
+	
 	uint16_t GetSize() const
 	{
 		return sizeData_;
@@ -72,9 +72,12 @@ public:
 	bool operator==(const PacketComponent& InPacketComponent) const;
 	
 	PacketComponent& operator=(const PacketComponent& InPacketComponent);
-
+	
 private:
 	uint16_t sizeData_ = 0;
 	int16_t identifier_ = -1; // Valid identifier can't be negative
+
+public:
+	uint16_t overrideDefiningData = 0;
 };
 }

@@ -398,7 +398,14 @@ void EntityManager::RegisterPacketComponents()
   };
   Net::PacketManager::Get()->RegisterPacketComponent<InputComponent, EntityManager>(associatedDataEveryTick, &EntityManager::OnInputReceived, this);
   Net::PacketManager::Get()->RegisterPacketComponent<UpdateEntityPositionComponent, EntityManager>(associatedDataEveryTick, &EntityManager::OnPositionUpdateReceived, this);
-  Net::PacketManager::Get()->RegisterPacketComponent<UpdateEntityControllerPositionComponent, EntityManager>(associatedDataEveryTick, &EntityManager::OnControllerPositionUpdateReceived, this);
+
+  const PacketComponentAssociatedData associatedEntityControllerPositionComponent = PacketComponentAssociatedData
+{
+  true,
+  FIXED_UPDATE_DELTA_TIME,
+  EPacketHandlingType::None
+};
+  Net::PacketManager::Get()->RegisterPacketComponent<UpdateEntityControllerPositionComponent, EntityManager>(associatedEntityControllerPositionComponent, &EntityManager::OnControllerPositionUpdateReceived, this);
   
   Net::EventSystem::Get()->onClientDisconnectEvent.AddDynamic<EntityManager>(this, &EntityManager::OnClientDisconnect);
 }

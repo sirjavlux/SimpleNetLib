@@ -31,6 +31,7 @@ PacketComponent& PacketComponent::operator=(const PacketComponent& InPacketCompo
     {
         identifier_ = InPacketComponent.identifier_;
         sizeData_ = InPacketComponent.sizeData_;
+        overrideDefiningData = InPacketComponent.overrideDefiningData;
     }
     return *this;
 }

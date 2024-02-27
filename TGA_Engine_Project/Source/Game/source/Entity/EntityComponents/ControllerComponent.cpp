@@ -150,10 +150,13 @@ void ControllerComponent::UpdateServerPosition()
   updateEntityPositionComponent.entityIdentifier = owner_->GetId();
   updateEntityPositionComponent.positionUpdateEntry = entryData;
   
-  Net::PacketManager::Get()->SendPacketComponentMulticast<UpdateEntityControllerPositionComponent>(updateEntityPositionComponent);
+  updateEntityPositionComponent.overrideDefiningData = updateEntityPositionComponent.entityIdentifier;
+
+  const NetUtility::NetVector3 lodPos = { owner_->GetPosition().x, owner_->GetPosition().y, 0.f };
+  Net::PacketManager::Get()->SendPacketComponentMulticastWithLod<UpdateEntityControllerPositionComponent>(updateEntityPositionComponent, lodPos);
 
   // Update net position for culling
-  Net::PacketManager::Get()->UpdateClientNetPosition(possessedBy_, { owner_->GetPosition().x, owner_->GetPosition().y, 0.f });
+  Net::PacketManager::Get()->UpdateClientNetPosition(possessedBy_, lodPos);
 }
 
 void ControllerComponent::UpdateClientPositionFromServerPositionUpdate()

@@ -4,6 +4,8 @@
 
 #include "CorePacketComponents/ReturnAckComponent.hpp"
 
+#include <memory>
+
 void Net::PacketTargetData::AddPacketComponentToSend(const std::shared_ptr<PacketComponent>& InComponent)
 {
   const uint16_t componentIdentifier = InComponent->GetIdentifier();
@@ -81,8 +83,12 @@ void PacketToSendData::AddComponent(const std::shared_ptr<Net::PacketComponent>&
     if (componentTypeIndexMap_.find(componentIdentifier) != componentTypeIndexMap_.end())
     {
       const uint16_t index = componentTypeIndexMap_.at(componentIdentifier);
-      components_[index] = InComponent;
-      return;
+      const std::shared_ptr<Net::PacketComponent> component = components_[index];
+      if (component->overrideDefiningData == InComponent->overrideDefiningData)
+      {
+        components_[index] = InComponent;
+        return;
+      }
     }
   }
  

@@ -156,7 +156,7 @@ Entity* EntityManager::SpawnEntityServer(const NetTag& InEntityTypeTag, const Ne
 
 Entity* EntityManager::SpawnEntityLocal(const NetTag& InEntityTypeTag, const NetUtility::NetVector3& InPosition)
 {
-  if (entityFactoryMap_.find(InEntityTypeTag.GetHash()) == entityFactoryMap_.end())
+  if (IsServer() || entityFactoryMap_.find(InEntityTypeTag.GetHash()) == entityFactoryMap_.end())
   {
     return nullptr;
   }
@@ -190,7 +190,7 @@ void EntityManager::OnEntitySpawnReceived(const sockaddr_storage& InAddress, con
   Entity* entitySpawned = AddEntity(component->entityTypeHash, component->entityId);
   entitySpawned->SetPosition({ component->xPos, component->yPos });
   
-  std::cout << "Spawn entity received! " << entitySpawned->GetTypeTagHash() << "\n";
+  std::cout << "Spawn entity received! " << entitySpawned->GetTypeTagHash() << " : " <<  component->entityId << "\n";
 }
 
 void EntityManager::OnEntityDespawnReceived(const sockaddr_storage& InAddress, const Net::PacketComponent& InComponent)
@@ -246,20 +246,8 @@ void EntityManager::OnInputReceived(const sockaddr_storage& InAddress, const Net
     // Check if target entity is possessed by the client
     if (controllerComponent && controllerComponent->IsPossessedBy(InAddress))
     {
-      // Fetch and update input buffer
+      // Update input buffer
       controllerComponent->UpdateInputBuffer(component->inputUpdateEntry);
-      const PositionUpdateEntry entryData = controllerComponent->FetchNewServerPosition();
-
-      UpdateEntityControllerPositionComponent updateEntityPositionComponent;
-      updateEntityPositionComponent.entityIdentifier = entity->GetId();
-      updateEntityPositionComponent.positionUpdateEntry = entryData;
-
-      // std::cout << "Received Velocity " << xVelocity << " : " << yVelocity << " : " << deltaTime << "\n";
-      
-      Net::PacketManager::Get()->SendPacketComponentMulticast<UpdateEntityControllerPositionComponent>(updateEntityPositionComponent);
-
-      // Update net position for culling
-      Net::PacketManager::Get()->UpdateClientNetPosition(InAddress, { entity->GetPosition().x, entity->GetPosition().y, 0.f });
     }
   }
 }
@@ -270,9 +258,7 @@ void EntityManager::OnControllerPositionUpdateReceived(const sockaddr_storage& I
   if (entities_.find(component->entityIdentifier) != entities_.end())
   {
     Entity* entity = entities_.at(component->entityIdentifier).get();
-    ControllerComponent* controllerComponent = entity->GetComponent<ControllerComponent>();
-    
-    if (controllerComponent)
+    if (ControllerComponent* controllerComponent = entity->GetComponent<ControllerComponent>())
     {
       controllerComponent->UpdatePositionBuffer(component->positionUpdateEntry);
     }
@@ -406,7 +392,7 @@ void EntityManager::RegisterPacketComponents()
 
   const PacketComponentAssociatedData associatedDataEveryTick = PacketComponentAssociatedData
   {
-    true,
+    false,
     FIXED_UPDATE_DELTA_TIME,
     EPacketHandlingType::None
   };

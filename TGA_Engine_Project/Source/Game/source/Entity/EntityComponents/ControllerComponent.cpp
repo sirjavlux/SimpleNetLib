@@ -1,5 +1,6 @@
 ﻿#include "ControllerComponent.h"
 
+#include "../../PacketComponents/UpdateEntityControllerPositionComponent.hpp"
 #include "../../PacketComponents/InputComponent.hpp"
 #include "../Entities/Entity.hpp"
 #include "Packet/PacketManager.h"
@@ -36,12 +37,13 @@ void ControllerComponent::FixedUpdate(float InDeltaTime)
   if (Net::PacketManager::Get()->GetManagerType() == ENetworkHandleType::Client)
   {
     UpdateClientPositionFromServerPositionUpdate();
-
     if (bIsPossessed_)
     {
       UpdateInput();
     }
   }
+
+  UpdateServerPosition();
 }
 
 void ControllerComponent::SetPossessedBy(const sockaddr_storage& InAddress)
@@ -91,12 +93,11 @@ bool ControllerComponent::UpdateInputBuffer(const InputUpdateEntry& InUpdateEntr
   return false;
 }
 
-PositionUpdateEntry ControllerComponent::FetchNewServerPosition()
+void ControllerComponent::UpdateServerPosition()
 {
-  PositionUpdateEntry result = {};
   if (Net::PacketManager::Get()->GetManagerType() != ENetworkHandleType::Server)
   {
-    return result;
+    return;
   }
   
   Tga::Vector2f newPos = owner_->GetPosition();
@@ -134,23 +135,31 @@ PositionUpdateEntry ControllerComponent::FetchNewServerPosition()
   newPos.x = newPos.x < -WORLD_SIZE_X / 2.f ? -WORLD_SIZE_X / 2.f : newPos.x;
   newPos.y = newPos.y > WORLD_SIZE_Y / 2.f ? WORLD_SIZE_Y / 2.f : newPos.y;
   newPos.y = newPos.y < -WORLD_SIZE_Y / 2.f ? -WORLD_SIZE_Y / 2.f : newPos.y;
-  
-  result.sequenceNr = lastInputSequenceNr_;
-  result.xPosition = newPos.x;
-  result.yPosition = newPos.y;
-  result.xVelocity = velocity_.x;
-  result.yVelocity = velocity_.y;
 
-  owner_->SetPosition({newPos.x, newPos.y});
+  PositionUpdateEntry entryData;
+  entryData.sequenceNr = lastInputSequenceNr_;
+  entryData.xPosition = newPos.x;
+  entryData.yPosition = newPos.y;
+  entryData.xVelocity = velocity_.x;
+  entryData.yVelocity = velocity_.y;
   
-  return result;
+  owner_->SetPosition({newPos.x, newPos.y});
+
+  // Send new packet
+  UpdateEntityControllerPositionComponent updateEntityPositionComponent;
+  updateEntityPositionComponent.entityIdentifier = owner_->GetId();
+  updateEntityPositionComponent.positionUpdateEntry = entryData;
+  
+  Net::PacketManager::Get()->SendPacketComponentMulticast<UpdateEntityControllerPositionComponent>(updateEntityPositionComponent);
+
+  // Update net position for culling
+  Net::PacketManager::Get()->UpdateClientNetPosition(possessedBy_, { owner_->GetPosition().x, owner_->GetPosition().y, 0.f });
 }
 
 void ControllerComponent::UpdateClientPositionFromServerPositionUpdate()
 {
   constexpr int indexToFetchPositionFrom = 0;
   const PositionUpdateEntry& updateEntry = positionUpdatesBuffer_[indexToFetchPositionFrom];
-  
   Tga::Vector2f newTargetPos = {updateEntry.xPosition, updateEntry.yPosition};
   velocity_ = { updateEntry.xVelocity, updateEntry.yVelocity };
   
@@ -159,15 +168,18 @@ void ControllerComponent::UpdateClientPositionFromServerPositionUpdate()
   owner_->SetPosition(newTargetPos);
   
   // Forward position
-  for (int i = 0; i < INPUT_BUFFER_SIZE; ++i)
+  if (bIsPossessed_)
   {
-    const InputUpdateEntry& entry = inputHistoryBuffer_[i];
-    if (entry.sequenceNr <= positionUpdateSequenceNr_)
+    for (int i = 0; i < INPUT_BUFFER_SIZE; ++i)
     {
-      break;
+      const InputUpdateEntry& entry = inputHistoryBuffer_[i];
+      if (entry.sequenceNr <= positionUpdateSequenceNr_)
+      {
+        break;
+      }
+      UpdateVelocity(entry.xInputDir, entry.yInputDir);
+      newTargetPos += velocity_;
     }
-    UpdateVelocity(entry.xInputDir, entry.yInputDir);
-    newTargetPos += velocity_;
   }
 
   // Update Target Position

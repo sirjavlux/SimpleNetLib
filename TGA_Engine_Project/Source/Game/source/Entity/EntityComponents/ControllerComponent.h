@@ -45,17 +45,17 @@ public:
   float GetSpeed() const { return speed_; }
   void SetSpeed(const float InSpeed) { speed_ = InSpeed; }
 
-  void UpdatePositionBuffer(const PositionUpdateEntry& InUpdateEntry); // TODO: Implement better version
+  void UpdatePositionBuffer(const PositionUpdateEntry& InUpdateEntry);
   bool UpdateInputBuffer(const InputUpdateEntry& InUpdateEntry);
-
-  PositionUpdateEntry FetchNewServerPosition();
-  void UpdateClientPositionFromServerPositionUpdate();
   
   void UpdateVelocity(float InInputX, float InInputY);
 
   const Tga::Vector2f& GetVelocity() const { return velocity_; }
   
 private:
+  void UpdateServerPosition();
+  void UpdateClientPositionFromServerPositionUpdate();
+  
   void UpdateInput();
 
   const float directionLerpSpeed_ = 2.f;

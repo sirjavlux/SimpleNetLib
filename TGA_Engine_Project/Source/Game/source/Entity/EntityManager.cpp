@@ -1,6 +1,7 @@
 ﻿#include "stdafx.h"
 #include "EntityManager.h"
 
+#include "../Combat/BulletManager.h"
 #include "../PacketComponents/DeSpawnEntityComponent.hpp"
 #include "../PacketComponents/InputComponent.hpp"
 #include "../PacketComponents/SpawnEntityComponent.hpp"
@@ -14,7 +15,7 @@
 #include "Events/EventSystem.h"
 #include "Packet/CorePacketComponents/ReturnAckComponent.hpp"
 #include "Packet/CorePacketComponents/ServerConnectPacketComponent.hpp"
-#include "../GameWorld.h"
+#include "../Locator/Locator.h"
 
 EntityManager* EntityManager::instance_ = nullptr;
 
@@ -272,6 +273,11 @@ void EntityManager::OnInputReceived(const sockaddr_storage& InAddress, const Net
       
       // Update input buffer
       controllerComponent->UpdateInputBuffer(entry);
+      
+      if ((input & EKeyInput::Space) != EKeyInput::None)
+      {
+        Locator::Get()->GetBulletManager()->TryShootBulletServer(entity->GetId());
+      }
     }
   }
 }

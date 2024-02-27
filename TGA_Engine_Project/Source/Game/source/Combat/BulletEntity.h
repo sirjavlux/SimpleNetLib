@@ -8,6 +8,7 @@ public:
 	void Init() override;
 	
 	void Update(float InDeltaTime) override;
+	void FixedUpdate(float InDeltaTime) override;
 
 	void SetShooter(const uint16_t InIdentifier) { shooterId_ = InIdentifier; }
 	uint16_t GetShooterId() const { return shooterId_; }

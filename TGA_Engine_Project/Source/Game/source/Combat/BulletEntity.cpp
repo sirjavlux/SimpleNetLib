@@ -11,3 +11,8 @@ void BulletEntity::Update(float InDeltaTime)
 {
 	
 }
+
+void BulletEntity::FixedUpdate(float InDeltaTime)
+{
+	
+}

@@ -9,6 +9,8 @@
 #include "Entity/Entities/PlayerShipEntity.h"
 #include "Entity/Entities/SpriteEntity.h"
 #include "Definitions.hpp"
+#include "Combat/BulletManager.h"
+#include "Locator/Locator.h"
 
 GameWorld::GameWorld()
 {}
@@ -22,6 +24,7 @@ void GameWorld::Init()
 {
 	EntityManager::Initialize();
 	RenderManager::Initialize();
+	Locator::Initialize();
 	
 	// Register entities
 	EntityManager::Get()->RegisterEntityTemplate<PlayerShipEntity>(NetTag("player.ship"));
@@ -37,6 +40,7 @@ void GameWorld::Init()
 
 void GameWorld::Update(const float InTimeDelta)
 {
+	Locator::Get()->GetBulletManager()->Update(InTimeDelta);
 	EntityManager::Get()->UpdateEntities(InTimeDelta);
 }
 

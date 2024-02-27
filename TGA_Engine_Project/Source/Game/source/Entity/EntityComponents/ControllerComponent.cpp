@@ -24,14 +24,23 @@ void ControllerComponent::Update(float InDeltaTime)
     {
       renderComponent->SetDirection(currentDirection_.x, currentDirection_.y);
     }
+
+    // Lerp position
+    const Tga::Vector2f newPosition = targetPosition_; //Tga::Vector2f::Lerp(owner_->GetPosition(), targetPosition_, 0.2f); //targetPositionLerpSpeed_ * InDeltaTime);
+    owner_->SetPosition(newPosition, false);
   }
 }
 
 void ControllerComponent::FixedUpdate(float InDeltaTime)
 {
-  if (Net::PacketManager::Get()->GetManagerType() == ENetworkHandleType::Client && bIsPossessed_)
+  if (Net::PacketManager::Get()->GetManagerType() == ENetworkHandleType::Client)
   {
-    UpdateInput();
+    UpdateClientPositionFromServerPositionUpdate();
+
+    if (bIsPossessed_)
+    {
+      UpdateInput();
+    }
   }
 }
 
@@ -63,7 +72,7 @@ void ControllerComponent::UpdatePositionBuffer(const PositionUpdateEntry& InUpda
   }
 }
 
-void ControllerComponent::UpdateInputBuffer(const InputUpdateEntry& InUpdateEntry)
+bool ControllerComponent::UpdateInputBuffer(const InputUpdateEntry& InUpdateEntry)
 {
   for (int i = 0; i < INPUT_BUFFER_SIZE - 1; ++i)
   {
@@ -71,14 +80,15 @@ void ControllerComponent::UpdateInputBuffer(const InputUpdateEntry& InUpdateEntr
     {
       std::memcpy(&inputHistoryBuffer_[i + 1], &inputHistoryBuffer_[i], sizeof(InputUpdateEntry) * (INPUT_BUFFER_SIZE - (i + 1)));
       inputHistoryBuffer_[i] = InUpdateEntry;
-      return;
+      return true;
     }
     if (InUpdateEntry.sequenceNr == inputHistoryBuffer_[i].sequenceNr)
     {
       inputHistoryBuffer_[i] = InUpdateEntry;
-      return;
+      return true;
     }
   }
+  return false;
 }
 
 PositionUpdateEntry ControllerComponent::FetchNewServerPosition()
@@ -90,8 +100,9 @@ PositionUpdateEntry ControllerComponent::FetchNewServerPosition()
   }
   
   Tga::Vector2f newPos = owner_->GetPosition();
-  
-  for (int i = 0; i < INPUT_BUFFER_SIZE; ++i)
+
+  constexpr int indexesBehind = 4;
+  for (int i = indexesBehind; i < INPUT_BUFFER_SIZE - 1; ++i)
   {
     const InputUpdateEntry& input = inputHistoryBuffer_[i];
     if (input.sequenceNr <= lastInputSequenceNr_)
@@ -106,14 +117,17 @@ PositionUpdateEntry ControllerComponent::FetchNewServerPosition()
     // Predict lost inputs
     while (sequenceNr > sequenceNrBehind + 1 && sequenceNr != sequenceNrBehind)
     {
-      UpdateInputBuffer({sequenceNrBehind + 1, inputBehind.xInputDir, inputBehind.yInputDir });
+      if (!UpdateInputBuffer({sequenceNrBehind + 1, inputBehind.xInputDir, inputBehind.yInputDir }))
+      {
+        break; 
+      }
       ++sequenceNrBehind;
     }
     
     UpdateVelocity(input.xInputDir, input.yInputDir);
-    newPos += { velocity_.x, velocity_.y };
+    newPos += velocity_;
   }
-  lastInputSequenceNr_ = inputHistoryBuffer_[0].sequenceNr;
+  lastInputSequenceNr_ = inputHistoryBuffer_[indexesBehind].sequenceNr;
 
   // Snap position to map bounds
   newPos.x = newPos.x > WORLD_SIZE_X / 2.f ? WORLD_SIZE_X / 2.f : newPos.x;
@@ -132,16 +146,42 @@ PositionUpdateEntry ControllerComponent::FetchNewServerPosition()
   return result;
 }
 
+void ControllerComponent::UpdateClientPositionFromServerPositionUpdate()
+{
+  constexpr int indexToFetchPositionFrom = 0;
+  const PositionUpdateEntry& updateEntry = positionUpdatesBuffer_[indexToFetchPositionFrom];
+  
+  Tga::Vector2f newTargetPos = {updateEntry.xPosition, updateEntry.yPosition};
+  velocity_ = { updateEntry.xVelocity, updateEntry.yVelocity };
+  
+  positionUpdateSequenceNr_ = updateEntry.sequenceNr;
+
+  owner_->SetPosition(newTargetPos);
+  
+  // Forward position
+  for (int i = 0; i < INPUT_BUFFER_SIZE; ++i)
+  {
+    const InputUpdateEntry& entry = inputHistoryBuffer_[i];
+    if (entry.sequenceNr <= positionUpdateSequenceNr_)
+    {
+      break;
+    }
+    UpdateVelocity(entry.xInputDir, entry.yInputDir);
+    newTargetPos += velocity_;
+  }
+
+  // Update Target Position
+  targetPosition_ = newTargetPos;
+}
+
 void ControllerComponent::UpdateVelocity(const float InInputX, const float InInputY)
 {
-  // TODO: Needs to be compatible with rollback and forward system
-  
   const float xVelocity = InInputX;
   const float yVelocity = InInputY;
-  NetUtility::NetVector3 netVector = { xVelocity, yVelocity, 0.f };
+  Tga::Vector2f netVector = { xVelocity, yVelocity };
   netVector.Normalize();
+  
   netVector *= GetSpeed();
-
   netVector *= acceleration_;
   velocity_ += netVector;
   velocity_.x -= velocity_.x < 0.f ? resistance_ * -1.f
@@ -204,6 +244,9 @@ void ControllerComponent::UpdateInput()
   inputComponent.inputUpdateEntry.xInputDir = inputDirection_.x;
   inputComponent.inputUpdateEntry.yInputDir = inputDirection_.y;
   Net::PacketManager::Get()->SendPacketComponentToParent(inputComponent);
+
+  // Update client input buffer
+  UpdateInputBuffer(inputComponent.inputUpdateEntry);
   
   // Reset Input
   inputDirection_ = { 0.f, 0.f, 0.f };

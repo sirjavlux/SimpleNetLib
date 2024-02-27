@@ -393,7 +393,7 @@ void NetHandler::KickInactiveNetTargets()
     
     static int iterationOffset = 0;
 
-    const std::unordered_map<sockaddr_in, NetTarget>& childConnections = connectionHandler_.GetConnections();
+    const std::unordered_map<sockaddr_in, NetTarget> childConnections = connectionHandler_.GetConnections();
     for (const auto& connection : childConnections)
     {
         const NetTarget& netTarget = connection.second;

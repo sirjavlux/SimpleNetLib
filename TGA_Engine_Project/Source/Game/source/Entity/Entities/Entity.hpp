@@ -4,6 +4,8 @@
 #include "../../../../SimpleNetLib/SimpleNetLib/Utility/NetTag.h"
 #include "../EntityComponents/EntityComponent.hpp"
 #include "../EntityComponents/RenderComponent.h"
+#include "../EntityComponents/ControllerComponent.h"
+#include "Packet/PacketManager.h"
 
 class RenderComponent;
 class EntityComponent;
@@ -22,7 +24,7 @@ public:
 	
 	void UpdateRender();
 	
-	void SetPosition(const Tga::Vector2f& InPos) { position_ = InPos; }
+	void SetPosition(const Tga::Vector2f& InPos, bool InIsTeleport = true);
 	Tga::Vector2f GetPosition() const { return position_; }
 
 	uint16_t GetId() const { return id_; }
@@ -123,5 +125,18 @@ inline void Entity::UpdateRender()
 	if (renderComponent_ != nullptr)
 	{
 		renderComponent_->Update(0.f);
+	}
+}
+
+inline void Entity::SetPosition(const Tga::Vector2f& InPos, const bool InIsTeleport)
+{
+	position_ = InPos;
+	if (InIsTeleport && Net::PacketManager::Get()->GetManagerType() != ENetworkHandleType::Server)
+	{
+		ControllerComponent* controllerComponent = GetComponent<ControllerComponent>();
+		if (controllerComponent)
+		{
+			controllerComponent->targetPosition_ = InPos;
+		}
 	}
 }

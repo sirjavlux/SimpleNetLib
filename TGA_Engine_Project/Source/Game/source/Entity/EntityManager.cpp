@@ -65,7 +65,7 @@ void EntityManager::UpdateEntities(const float InDeltaTime)
 
   updateLag_ += deltaTime.count();
 
-  if (updateLag_ >= FIXED_UPDATE_TIME)
+  if (updateLag_ >= FIXED_UPDATE_DELTA_TIME)
   {
     // Check possession
     UpdateEntityPossession();
@@ -82,7 +82,7 @@ void EntityManager::UpdateEntities(const float InDeltaTime)
       entityData.second->FixedUpdateComponents(InDeltaTime);
     }
     
-    updateLag_ -= FIXED_UPDATE_TIME;
+    updateLag_ -= FIXED_UPDATE_DELTA_TIME;
   }
   
   // Update entities
@@ -246,8 +246,6 @@ void EntityManager::OnInputReceived(const sockaddr_storage& InAddress, const Net
     // Check if target entity is possessed by the client
     if (controllerComponent && controllerComponent->IsPossessedBy(InAddress))
     {
-      // TODO: Update input with rollback and forward system to get accurate input from packet delays. Rollback a something like 5 frames depending on lag.
-      
       // Fetch and update input buffer
       controllerComponent->UpdateInputBuffer(component->inputUpdateEntry);
       const PositionUpdateEntry entryData = controllerComponent->FetchNewServerPosition();
@@ -276,8 +274,7 @@ void EntityManager::OnControllerPositionUpdateReceived(const sockaddr_storage& I
     
     if (controllerComponent)
     {
-      // TODO: Needs to update this to account for net lag
-      entity->SetPosition({ component->positionUpdateEntry.xPosition, component->positionUpdateEntry.yPosition });
+      controllerComponent->UpdatePositionBuffer(component->positionUpdateEntry);
     }
   }
 }
@@ -410,7 +407,7 @@ void EntityManager::RegisterPacketComponents()
   const PacketComponentAssociatedData associatedDataEveryTick = PacketComponentAssociatedData
   {
     true,
-    FIXED_UPDATE_TIME,
+    FIXED_UPDATE_DELTA_TIME,
     EPacketHandlingType::None
   };
   Net::PacketManager::Get()->RegisterPacketComponent<InputComponent, EntityManager>(associatedDataEveryTick, &EntityManager::OnInputReceived, this);

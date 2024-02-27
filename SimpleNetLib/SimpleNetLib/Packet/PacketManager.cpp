@@ -66,14 +66,14 @@ void PacketManager::Update()
 
     updateLag_ += deltaTime.count();
 
-    if (updateLag_ >= FIXED_UPDATE_TIME)
+    if (updateLag_ >= FIXED_UPDATE_DELTA_TIME)
     {
         const duration<float> deltaTimeSinceLastFinishedUpdate = duration_cast<duration<float>>(currentTime - lastUpdateFinishedTime_);
         lastDeltaTime_ = deltaTimeSinceLastFinishedUpdate.count();
         
         FixedUpdate();
         
-        updateLag_ -= FIXED_UPDATE_TIME;
+        updateLag_ -= FIXED_UPDATE_DELTA_TIME;
         lastUpdateFinishedTime_ = steady_clock::now();
     }
 }

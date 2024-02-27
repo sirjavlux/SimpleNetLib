@@ -3,6 +3,7 @@
 #include "EntityComponent.hpp"
 #include "Utility/NetVector3.h"
 #include "NetIncludes.h"
+#include "tge/math/Vector2.h"
 
 // TODO: Implement prediction and movement smoothing during lag
 
@@ -45,27 +46,28 @@ public:
   void SetSpeed(const float InSpeed) { speed_ = InSpeed; }
 
   void UpdatePositionBuffer(const PositionUpdateEntry& InUpdateEntry); // TODO: Implement better version
-  void UpdateInputBuffer(const InputUpdateEntry& InUpdateEntry);
+  bool UpdateInputBuffer(const InputUpdateEntry& InUpdateEntry);
 
   PositionUpdateEntry FetchNewServerPosition();
+  void UpdateClientPositionFromServerPositionUpdate();
   
   void UpdateVelocity(float InInputX, float InInputY);
 
-  const NetUtility::NetVector3& GetVelocity() const { return velocity_; }
+  const Tga::Vector2f& GetVelocity() const { return velocity_; }
   
 private:
   void UpdateInput();
 
   const float directionLerpSpeed_ = 2.f;
-  NetUtility::NetVector3 targetDirection_ = {};
-  NetUtility::NetVector3 currentDirection_ = {};
+  Tga::Vector2f targetDirection_ = {};
+  Tga::Vector2f currentDirection_ = {};
   
-  NetUtility::NetVector3 velocity_ = {};
+  Tga::Vector2f velocity_ = {};
 
   // Character movement settings
-  const float maxVelocity_ = 0.5f * FIXED_UPDATE_TIME;
-  const float acceleration_ = 0.04f * FIXED_UPDATE_TIME;
-  const float resistance_ = 0.004f * FIXED_UPDATE_TIME;
+  const float maxVelocity_ = 0.5f * FIXED_UPDATE_DELTA_TIME;
+  const float acceleration_ = 0.04f * FIXED_UPDATE_DELTA_TIME;
+  const float resistance_ = 0.004f * FIXED_UPDATE_DELTA_TIME;
   
   NetUtility::NetVector3 inputDirection_ = {};
   
@@ -80,6 +82,13 @@ private:
   PositionUpdateEntry positionUpdatesBuffer_[POSITION_BUFFER_SIZE] = {};
   InputUpdateEntry inputHistoryBuffer_[INPUT_BUFFER_SIZE] = {};
 
+  // Client
+  uint32_t positionUpdateSequenceNr_ = 0;
+  Tga::Vector2f targetPosition_ = {};
+  float targetPositionLerpSpeed_ = 100.f;
+  
   // Server
   uint32_t lastInputSequenceNr_ = 0;
+
+  friend class Entity;
 };

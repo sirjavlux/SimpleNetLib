@@ -13,7 +13,7 @@ public:
   virtual void Init() = 0;
   
   virtual void Update(float InDeltaTime) {}
-  virtual void FixedUpdate(float InDeltaTime) {}
+  virtual void FixedUpdate() {}
   
 protected:
   Entity* owner_ = nullptr;

@@ -36,7 +36,7 @@ public:
   void Init() override;
   
   void Update(float InDeltaTime) override;
-  void FixedUpdate(float InDeltaTime) override;
+  void FixedUpdate() override;
   
   void SetPossessed(const bool InShouldBePossessed) { bIsPossessed_ = InShouldBePossessed; }
   void SetPossessedBy(const sockaddr_storage& InAddress);
@@ -51,6 +51,7 @@ public:
   void UpdateVelocity(float InInputX, float InInputY);
 
   const Tga::Vector2f& GetVelocity() const { return velocity_; }
+  const Tga::Vector2f& GetCurrentDirection() const { return currentDirection_; }
   
 private:
   void UpdateServerPosition();
@@ -59,8 +60,8 @@ private:
   void UpdateInput();
 
   const float directionLerpSpeed_ = 2.f;
-  Tga::Vector2f targetDirection_ = {};
-  Tga::Vector2f currentDirection_ = {};
+  Tga::Vector2f targetDirection_ = { 0, 1 };
+  Tga::Vector2f currentDirection_ = { 0, 1 };
   
   Tga::Vector2f velocity_ = {};
 

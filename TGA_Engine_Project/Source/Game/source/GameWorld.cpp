@@ -9,6 +9,7 @@
 #include "Entity/Entities/PlayerShipEntity.h"
 #include "Entity/Entities/SpriteEntity.h"
 #include "Definitions.hpp"
+#include "Combat/BulletEntity.h"
 #include "Combat/BulletManager.h"
 #include "Locator/Locator.h"
 
@@ -29,6 +30,7 @@ void GameWorld::Init()
 	// Register entities
 	EntityManager::Get()->RegisterEntityTemplate<PlayerShipEntity>(NetTag("player.ship"));
 	EntityManager::Get()->RegisterEntityTemplate<SpriteEntity>(NetTag("sprite"));
+	EntityManager::Get()->RegisterEntityTemplate<BulletEntity>(NetTag("bullet"));
 
 	// Generate background stars
 	if (Net::PacketManager::Get()->GetManagerType() == ENetworkHandleType::Client)
@@ -88,7 +90,7 @@ void GameWorld::GenerateStars() const
 		const float randomXValue = distributionX(generator);
 		const float randomYValue = distributionY(generator);
 
-		Entity* entity = EntityManager::Get()->SpawnEntityLocal(NetTag("sprite"), { randomXValue, randomYValue, 0.f });
+		Entity* entity = EntityManager::Get()->SpawnEntityLocal(NetTag("sprite"), { randomXValue, randomYValue });
 		RenderComponent* renderComponent = entity->GetComponent<RenderComponent>();
 		renderComponent->SetSpriteSizeMultiplier(2.f);
 		

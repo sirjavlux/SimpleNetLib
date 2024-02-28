@@ -22,6 +22,7 @@ Locator* Locator::Initialize()
 	{
 		instance_ = new Locator();
 		instance_->bulletManager_ = std::make_shared<BulletManager>();
+		instance_->bulletManager_->Initialize();
 	}
 	return instance_;
 }

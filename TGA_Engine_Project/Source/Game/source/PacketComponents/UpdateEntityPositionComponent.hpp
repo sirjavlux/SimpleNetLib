@@ -6,12 +6,13 @@
 class UpdateEntityPositionComponent : public Net::PacketComponent
 {
 public:
-  UpdateEntityPositionComponent();
+	UpdateEntityPositionComponent();
 
-  uint16_t entityIdentifier = 0;
-  
-  float xPos = 0;
-  float yPos = 0;
+	bool bIsTeleport = true;
+	uint16_t entityIdentifier = 0;
+	  
+	float xPos = 0;
+	float yPos = 0;
 };
 
 inline UpdateEntityPositionComponent::UpdateEntityPositionComponent()

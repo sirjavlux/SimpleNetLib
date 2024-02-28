@@ -5,6 +5,7 @@
 #include "../EntityComponents/EntityComponent.hpp"
 #include "../EntityComponents/RenderComponent.h"
 #include "../EntityComponents/ControllerComponent.h"
+#include "../../PacketComponents/UpdateEntityPositionComponent.hpp"
 #include "Packet/PacketManager.h"
 
 class RenderComponent;
@@ -30,16 +31,22 @@ public:
 	}
 	
 	virtual void Update(float InDeltaTime) {}
-	virtual void FixedUpdate(float InDeltaTime) {}
+	virtual void FixedUpdate() {}
 	void UpdateComponents(float InDeltaTime);
-	void FixedUpdateComponents(float InDeltaTime);
+	void FixedUpdateComponents();
+
+	void NativeFixedUpdate();
 	
 	void UpdateRender();
 
-	void SetTargetPosition(const Tga::Vector2f& InPos) { targetPosition_ = InPos; }
+	void SetShouldReplicatePosition(const bool InShouldReplicatePosition) { bShouldReplicatePosition_ = InShouldReplicatePosition; }
+	
+	void SetTargetPosition(const Tga::Vector2f& InPos) { previousTargetPosition_ = targetPosition_; targetPosition_ = InPos; }
 	void SetPosition(const Tga::Vector2f& InPos, bool InIsTeleport = true);
 	Tga::Vector2f GetPosition() const { return position_; }
 
+	Tga::Vector2f GetTargetDirection() const { return (targetPosition_ - previousTargetPosition_).GetNormalized(); }
+	
 	uint16_t GetId() const { return id_; }
 	uint64_t GetTypeTagHash() const { return typeTagHash_; }
 
@@ -49,7 +56,9 @@ public:
 	template<typename ComponentType>
 	ComponentType* GetComponent();
 	
-private:
+protected:
+	void UpdateReplication();
+	
 	uint16_t id_ = 0;
 	Tga::Vector2f position_;
 
@@ -59,7 +68,10 @@ private:
 	std::shared_ptr<EntityComponent> renderComponent_;
 
 	Tga::Vector2f targetPosition_ = {};
+	Tga::Vector2f previousTargetPosition_ = {};
 	float targetPositionLerpSpeed_ = 5.f;
+
+	bool bShouldReplicatePosition_ = false;
 	
 	friend class EntityManager;
 };
@@ -128,12 +140,17 @@ inline void Entity::UpdateComponents(const float InDeltaTime)
 	}
 }
 
-inline void Entity::FixedUpdateComponents(float InDeltaTime)
+inline void Entity::FixedUpdateComponents()
 {
 	for (std::shared_ptr<EntityComponent> component : components_)
 	{
-		component->FixedUpdate(InDeltaTime);
+		component->FixedUpdate();
 	}
+}
+
+inline void Entity::NativeFixedUpdate()
+{
+	UpdateReplication();
 }
 
 inline void Entity::UpdateRender()
@@ -149,6 +166,20 @@ inline void Entity::SetPosition(const Tga::Vector2f& InPos, const bool InIsTelep
 	position_ = InPos;
 	if (InIsTeleport && Net::PacketManager::Get()->GetManagerType() != ENetworkHandleType::Server)
 	{
-		targetPosition_ = InPos;
+		SetTargetPosition(InPos);
+	}
+}
+
+inline void Entity::UpdateReplication()
+{
+	// Replicate position if enabled
+	if (bShouldReplicatePosition_)
+	{
+		UpdateEntityPositionComponent positionComponent;
+		positionComponent.bIsTeleport = false;
+		positionComponent.xPos = position_.x;
+		positionComponent.yPos = position_.y;
+		positionComponent.entityIdentifier = GetId();
+		Net::PacketManager::Get()->SendPacketComponentMulticastWithLod<UpdateEntityPositionComponent>(positionComponent, { position_.x, position_.y, 0.f });
 	}
 }

@@ -15,11 +15,11 @@ void ControllerComponent::Init()
 
 void ControllerComponent::Update(float InDeltaTime)
 {
+  currentDirection_.x = FMath::Lerp(currentDirection_.x, targetDirection_.x, directionLerpSpeed_ * InDeltaTime);
+  currentDirection_.y = FMath::Lerp(currentDirection_.y, targetDirection_.y, directionLerpSpeed_ * InDeltaTime);
+  
   if (Net::PacketManager::Get()->GetManagerType() == ENetworkHandleType::Client)
   {
-    currentDirection_.x = FMath::Lerp(currentDirection_.x, targetDirection_.x, directionLerpSpeed_ * InDeltaTime);
-    currentDirection_.y = FMath::Lerp(currentDirection_.y, targetDirection_.y, directionLerpSpeed_ * InDeltaTime);
-
     RenderComponent* renderComponent = owner_->GetComponent<RenderComponent>();
     if (renderComponent)
     {
@@ -28,7 +28,7 @@ void ControllerComponent::Update(float InDeltaTime)
   }
 }
 
-void ControllerComponent::FixedUpdate(float InDeltaTime)
+void ControllerComponent::FixedUpdate()
 {
   if (Net::PacketManager::Get()->GetManagerType() == ENetworkHandleType::Client)
   {
@@ -153,6 +153,11 @@ void ControllerComponent::UpdateServerPosition()
 
   // Update net position for culling
   Net::PacketManager::Get()->UpdateClientNetPosition(possessedBy_, lodPos);
+
+  if (velocity_.LengthSqr() > 0.f)
+  {
+    targetDirection_ = velocity_.GetNormalized();
+  }
 }
 
 void ControllerComponent::UpdateClientPositionFromServerPositionUpdate()

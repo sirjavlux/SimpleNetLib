@@ -28,11 +28,8 @@ public:
   void RequestDestroyEntity(uint16_t InIdentifier);
   
   // This is a server sided function deciding various data like the entity id
-  Entity* SpawnEntityServer(const NetTag& InEntityTypeTag, const NetUtility::NetVector3& InPosition = { 0.f, 0.f, 0.f });
-  Entity* SpawnEntityLocal(const NetTag& InEntityTypeTag, const NetUtility::NetVector3& InPosition = { 0.f, 0.f, 0.f });
-  
-  // This is a server sided function
-  void DestroyEntityServer(uint16_t InIdentifier);
+  Entity* SpawnEntityServer(const NetTag& InEntityTypeTag, const Tga::Vector2f& InPosition = { 0.f, 0.f });
+  Entity* SpawnEntityLocal(const NetTag& InEntityTypeTag, const Tga::Vector2f& InPosition = { 0.f, 0.f });
 
   static bool IsServer();
 
@@ -57,15 +54,29 @@ public:
   void SetPossessedEntityByNetTarget(const sockaddr_storage& InAddress, uint16_t InIdentifier);
   
   Entity* GetPossessedEntity() { return possessedEntity_; }
+
+  Entity* GetEntityById(const uint16_t InIdentifier)
+  {
+    return entities_.find(InIdentifier) != entities_.end() ? entities_.at(InIdentifier).get() : nullptr;
+  }
+
+  // Server sided
+  void MarkEntityForDestruction(const uint16_t InIdentifier)
+  {
+    entitiesToDestroy_.push_back(InIdentifier);
+  }
   
 private:
+  // This is a server sided function
+  void DestroyEntityServer(uint16_t InIdentifier);
+  
+  Entity* AddEntity(uint64_t InEntityTypeHash, uint16_t InIdentifier, bool InIsLocallySpawned = false);
+  bool RemoveEntity(uint16_t InIdentifier, bool InIsLocallySpawned = false);
+  
   void UpdateEntityPossession();
   
   template<typename EntityType>
   bool IsEntityTypeValid() const;
-  
-  Entity* AddEntity(uint64_t InEntityTypeHash, uint16_t InIdentifier, bool InIsLocallySpawned = false);
-  bool RemoveEntity(uint16_t InIdentifier, bool InIsLocallySpawned = false);
   
   std::shared_ptr<Entity> CreateNewEntityFromTemplate(const uint64_t& InTypeHash);
   
@@ -73,6 +84,8 @@ private:
 
   void RegisterPacketComponents();
   void SubscribeToPacketComponents();
+
+  std::vector<uint16_t> entitiesToDestroy_;
   
   std::map<uint16_t, std::shared_ptr<Entity>> entities_;
   std::map<uint16_t, std::shared_ptr<Entity>> entitiesLocal_;

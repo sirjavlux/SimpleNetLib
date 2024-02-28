@@ -8,6 +8,7 @@ enum class EPacketComponentType : uint16_t
   DeSpawnEntity = 32,
   RequestSpawnEntity = 33,
   RequestDeSpawnEntity = 34,
+  SpawnBullet = 35,
 
   Input = 51,
   UpdateEntityPosition = 52,

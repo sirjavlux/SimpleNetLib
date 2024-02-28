@@ -74,13 +74,15 @@ void EntityManager::UpdateEntities(const float InDeltaTime)
     // FixedUpdate entities
     for (auto& entityData : entities_)
     {
-      entityData.second->FixedUpdate(InDeltaTime);
-      entityData.second->FixedUpdateComponents(InDeltaTime);
+      entityData.second->FixedUpdate();
+      entityData.second->FixedUpdateComponents();
+      entityData.second->NativeFixedUpdate();
     }
     for (auto& entityData : entitiesLocal_)
     {
-      entityData.second->FixedUpdate(InDeltaTime);
-      entityData.second->FixedUpdateComponents(InDeltaTime);
+      entityData.second->FixedUpdate();
+      entityData.second->FixedUpdateComponents();
+      entityData.second->NativeFixedUpdate();
     }
     
     updateLag_ -= FIXED_UPDATE_DELTA_TIME;
@@ -98,6 +100,12 @@ void EntityManager::UpdateEntities(const float InDeltaTime)
     entityData.second->Update(InDeltaTime);
     entityData.second->UpdateComponents(InDeltaTime);
     entityData.second->UpdateSmoothMovement(InDeltaTime);
+  }
+
+  // Destroy entities marked for destruction
+  for (const uint16_t id : entitiesToDestroy_)
+  {
+    DestroyEntityServer(id);
   }
 }
 
@@ -137,7 +145,7 @@ void EntityManager::RequestDestroyEntity(const uint16_t InIdentifier)
   Net::PacketManager::Get()->SendPacketComponentToParent(deSpawnRequestEntityComponent);
 }
 
-Entity* EntityManager::SpawnEntityServer(const NetTag& InEntityTypeTag, const NetUtility::NetVector3& InPosition)
+Entity* EntityManager::SpawnEntityServer(const NetTag& InEntityTypeTag, const Tga::Vector2f& InPosition)
 {
   if (!IsServer() || entityFactoryMap_.find(InEntityTypeTag.GetHash()) == entityFactoryMap_.end())
   {
@@ -157,7 +165,7 @@ Entity* EntityManager::SpawnEntityServer(const NetTag& InEntityTypeTag, const Ne
   return newEntity;
 }
 
-Entity* EntityManager::SpawnEntityLocal(const NetTag& InEntityTypeTag, const NetUtility::NetVector3& InPosition)
+Entity* EntityManager::SpawnEntityLocal(const NetTag& InEntityTypeTag, const Tga::Vector2f& InPosition)
 {
   if (IsServer() || entityFactoryMap_.find(InEntityTypeTag.GetHash()) == entityFactoryMap_.end())
   {
@@ -301,7 +309,13 @@ void EntityManager::OnPositionUpdateReceived(const sockaddr_storage& InAddress, 
   if (entities_.find(component->entityIdentifier) != entities_.end())
   {
     Entity* entity = entities_.at(component->entityIdentifier).get();
-    entity->SetPosition({ component->xPos, component->yPos }, true);
+    if (component->bIsTeleport)
+    {
+      entity->SetPosition({ component->xPos, component->yPos }, component->bIsTeleport);
+    } else
+    {
+      entity->SetTargetPosition({ component->xPos, component->yPos });
+    }
   }
 }
 
@@ -409,7 +423,7 @@ void EntityManager::RegisterPacketComponents()
   const PacketComponentAssociatedData associatedDataSpawnDeSpawnComps = PacketComponentAssociatedData
   {
     false,
-    0.5f,
+    0.05f,
     EPacketHandlingType::Ack
   };
   
@@ -427,19 +441,21 @@ void EntityManager::RegisterPacketComponents()
     EPacketHandlingType::None,
   };
   Net::PacketManager::Get()->RegisterPacketComponent<InputComponent, EntityManager>(associatedDataEveryTick, &EntityManager::OnInputReceived, this);
-  Net::PacketManager::Get()->RegisterPacketComponent<UpdateEntityPositionComponent, EntityManager>(associatedDataEveryTick, &EntityManager::OnPositionUpdateReceived, this);
 
   std::vector<std::pair<float, float>> packetLodFrequencies;
-  packetLodFrequencies.push_back({ 1.f, 0.15f });
-  const PacketComponentAssociatedData associatedEntityControllerPositionComponent = PacketComponentAssociatedData
+  packetLodFrequencies.push_back({ 1.f, 0.05f });
+  packetLodFrequencies.push_back({ 2.f, 0.15f });
+  packetLodFrequencies.push_back({ 4.f, 0.4f });
+  const PacketComponentAssociatedData associatedEntityPositionData = PacketComponentAssociatedData
   {
     true,
     FIXED_UPDATE_DELTA_TIME,
     EPacketHandlingType::None,
-    2.f,
+    6.f,
     packetLodFrequencies
   };
-  Net::PacketManager::Get()->RegisterPacketComponent<UpdateEntityControllerPositionComponent, EntityManager>(associatedEntityControllerPositionComponent, &EntityManager::OnControllerPositionUpdateReceived, this);
+  Net::PacketManager::Get()->RegisterPacketComponent<UpdateEntityControllerPositionComponent, EntityManager>(associatedEntityPositionData, &EntityManager::OnControllerPositionUpdateReceived, this);
+  Net::PacketManager::Get()->RegisterPacketComponent<UpdateEntityPositionComponent, EntityManager>(associatedEntityPositionData, &EntityManager::OnPositionUpdateReceived, this);
   
   Net::EventSystem::Get()->onClientDisconnectEvent.AddDynamic<EntityManager>(this, &EntityManager::OnClientDisconnect);
 }

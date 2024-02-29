@@ -54,10 +54,13 @@ public:
 	uint64_t GetTypeTagHash() const { return typeTagHash_; }
 
 	template<typename ComponentType>
-	ComponentType* AddComponent();
+	std::weak_ptr<ComponentType> AddComponent();
 
 	template<typename ComponentType>
-	ComponentType* GetComponent();
+	std::vector<std::weak_ptr<ComponentType>> GetComponents();
+
+	template<typename ComponentType>
+	std::weak_ptr<ComponentType> GetFirstComponent();
 	
 protected:
 	void UpdateReplication();
@@ -80,47 +83,57 @@ protected:
 };
 
 template <typename ComponentType>
-ComponentType* Entity::AddComponent()
+std::weak_ptr<ComponentType> Entity::AddComponent()
 {
 	if (std::is_base_of_v<ComponentType, EntityComponent>)
 	{
-		return nullptr;
+		return std::weak_ptr<ComponentType>();
 	}
 
-	ComponentType* foundComponent = GetComponent<ComponentType>();
-	if (foundComponent != nullptr)
+	// Commented out to allow multiple of same component
+	/*
+	std::weak_ptr<ComponentType> foundComponent = GetComponent<ComponentType>();
+	if (foundComponent.lock().get() != nullptr)
 	{
 		return foundComponent;
 	}
+	*/
+
+	static uint16_t componentIdIter = 0;
+	const uint16_t newComponentId = ++componentIdIter;
 	
 	if (std::is_base_of_v<ComponentType, RenderComponent>)
 	{
 		std::shared_ptr<ComponentType> component = std::make_shared<ComponentType>();
 		renderComponent_ = component;
 		renderComponent_->SetOwner(*this);
-		return component.get();
+		component->localId_ = newComponentId;
+		return std::weak_ptr<ComponentType>(component);
 	}
 
 	std::shared_ptr<ComponentType> component = std::make_shared<ComponentType>();
 	component->SetOwner(*this);
+	component->localId_ = newComponentId;
 	components_.push_back(component);
 	
-	return component.get();
+	return std::weak_ptr<ComponentType>(component);
 }
 
 template <typename ComponentType>
-ComponentType* Entity::GetComponent()
+std::vector<std::weak_ptr<ComponentType>> Entity::GetComponents()
 {
+	std::vector<std::weak_ptr<ComponentType>> result;
 	if (std::is_base_of_v<ComponentType, EntityComponent>)
 	{
-		return nullptr;
+		return result;
 	}
 
 	if (std::is_base_of_v<ComponentType, RenderComponent>)
 	{
 		if (auto castedComponent = std::dynamic_pointer_cast<ComponentType>(renderComponent_))
 		{
-			return castedComponent.get();
+			result.push_back(castedComponent);
+			return result;
 		}
 	}
 	
@@ -128,11 +141,38 @@ ComponentType* Entity::GetComponent()
 	{
 		if (auto castedComponent = std::dynamic_pointer_cast<ComponentType>(component))
 		{
-			return castedComponent.get();
+			result.push_back(std::weak_ptr<ComponentType>(castedComponent));
 		}
 	}
 
-	return nullptr;
+	return result;
+}
+
+template <typename ComponentType>
+std::weak_ptr<ComponentType> Entity::GetFirstComponent()
+{
+	if (std::is_base_of_v<ComponentType, EntityComponent>)
+	{
+		return std::weak_ptr<ComponentType>();
+	}
+
+	if (std::is_base_of_v<ComponentType, RenderComponent>)
+	{
+		if (auto castedComponent = std::dynamic_pointer_cast<ComponentType>(renderComponent_))
+		{
+			return std::weak_ptr<ComponentType>(castedComponent);
+		}
+	}
+	
+	for (std::shared_ptr<EntityComponent> component : components_)
+	{
+		if (auto castedComponent = std::dynamic_pointer_cast<ComponentType>(component))
+		{
+			return std::weak_ptr<ComponentType>(castedComponent);
+		}
+	}
+
+	return std::weak_ptr<ComponentType>();
 }
 
 inline void Entity::UpdateComponents(const float InDeltaTime)

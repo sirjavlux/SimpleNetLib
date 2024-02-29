@@ -93,7 +93,7 @@ void GameWorld::GenerateStars() const
 		const float randomYValue = distributionY(generator);
 
 		Entity* entity = EntityManager::Get()->SpawnEntityLocal(NetTag("sprite"), { randomXValue, randomYValue });
-		RenderComponent* renderComponent = entity->GetComponent<RenderComponent>();
+		RenderComponent* renderComponent = entity->GetFirstComponent<RenderComponent>().lock().get();
 		renderComponent->SetSpriteSizeMultiplier(2.f);
 		
 		// Select Sprite

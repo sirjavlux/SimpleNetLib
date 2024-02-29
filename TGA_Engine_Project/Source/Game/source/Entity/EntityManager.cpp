@@ -238,7 +238,7 @@ void EntityManager::OnConnectionReceived(const sockaddr_storage& InAddress, cons
   // Spawn player controllable entity
   const NetTag playerTypeTag = NetTag("player.ship");
   PlayerShipEntity* entitySpawned = dynamic_cast<PlayerShipEntity*>(SpawnEntityServer(playerTypeTag));
-  entitySpawned->GetComponent<ControllerComponent>()->SetPossessedBy(InAddress);
+  entitySpawned->GetFirstComponent<ControllerComponent>().lock()->SetPossessedBy(InAddress);
 
   SetEntityPossessedComponent setEntityPossessed;
   setEntityPossessed.entityIdentifier = entitySpawned->GetId();
@@ -252,7 +252,7 @@ void EntityManager::OnInputReceived(const sockaddr_storage& InAddress, const Net
   if (entities_.find(component->entityIdentifier) != entities_.end())
   {
     Entity* entity = entities_.at(component->entityIdentifier).get();
-    ControllerComponent* controllerComponent = entity->GetComponent<ControllerComponent>();
+    ControllerComponent* controllerComponent = entity->GetFirstComponent<ControllerComponent>().lock().get();
 
     // Check if target entity is possessed by the client
     if (controllerComponent && controllerComponent->IsPossessedBy(InAddress))
@@ -296,7 +296,7 @@ void EntityManager::OnControllerPositionUpdateReceived(const sockaddr_storage& I
   if (entities_.find(component->entityIdentifier) != entities_.end())
   {
     Entity* entity = entities_.at(component->entityIdentifier).get();
-    if (ControllerComponent* controllerComponent = entity->GetComponent<ControllerComponent>())
+    if (ControllerComponent* controllerComponent = entity->GetFirstComponent<ControllerComponent>().lock().get())
     {
       controllerComponent->UpdatePositionBuffer(component->positionUpdateEntry);
     }
@@ -355,7 +355,7 @@ void EntityManager::UpdateEntityPossession()
   {
     if (entities_.find(entityToUpdatePossess_) != entities_.end())
     {
-      ControllerComponent* controllerComponent = entities_.at(entityToUpdatePossess_)->GetComponent<ControllerComponent>();
+      ControllerComponent* controllerComponent = entities_.at(entityToUpdatePossess_)->GetFirstComponent<ControllerComponent>().lock().get();
       if (controllerComponent)
       {
         controllerComponent->SetPossessed(bPossession_);

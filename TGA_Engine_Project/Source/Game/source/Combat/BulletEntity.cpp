@@ -7,12 +7,12 @@
 
 void BulletEntity::Init()
 {
-	RenderComponent* renderComponent = AddComponent<RenderComponent>();
+	RenderComponent* renderComponent = AddComponent<RenderComponent>().lock().get();
 	renderComponent->SetRenderSortingPriority(10);
 	
 	SetShouldReplicatePosition(true);
 
-	ColliderComponent* colliderComponent = AddComponent<ColliderComponent>();
+	ColliderComponent* colliderComponent = AddComponent<ColliderComponent>().lock().get();
 	std::shared_ptr<CircleCollider> circleCollider = std::make_shared<CircleCollider>();
 	circleCollider->radius = 0.02f;
 	colliderComponent->SetCollider(circleCollider);
@@ -27,7 +27,7 @@ void BulletEntity::FixedUpdate()
 {
 	if (Net::PacketManager::Get()->GetManagerType() == ENetworkHandleType::Client)
 	{
-		if (RenderComponent* renderComponent = GetComponent<RenderComponent>())
+		if (RenderComponent* renderComponent = GetFirstComponent<RenderComponent>().lock().get())
 		{
 			const Tga::Vector2f direction = GetTargetDirection();
 			renderComponent->SetDirection(direction.x, direction.y);

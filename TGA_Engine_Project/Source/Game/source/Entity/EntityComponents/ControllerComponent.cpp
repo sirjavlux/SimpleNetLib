@@ -20,7 +20,7 @@ void ControllerComponent::Update(float InDeltaTime)
   
   if (Net::PacketManager::Get()->GetManagerType() == ENetworkHandleType::Client)
   {
-    RenderComponent* renderComponent = owner_->GetComponent<RenderComponent>();
+    RenderComponent* renderComponent = owner_->GetFirstComponent<RenderComponent>().lock().get();
     if (renderComponent)
     {
       renderComponent->SetDirection(currentDirection_.x, currentDirection_.y);
@@ -260,6 +260,11 @@ void ControllerComponent::UpdateInput()
     if (GetAsyncKeyState(VK_SHIFT))
     {
       keyInput = keyInput | EKeyInput::Shift;
+    }
+    // Toggle Debug Lines TODO: Needs check if pressed to avoid spamming on and off
+    if (GetAsyncKeyState(VK_F5))
+    {
+      Locator::Get()->GetCollisionManager()->SetShouldRenderDebugLines(!Locator::Get()->GetCollisionManager()->GetShouldRenderDebugLines());
     }
   }
 

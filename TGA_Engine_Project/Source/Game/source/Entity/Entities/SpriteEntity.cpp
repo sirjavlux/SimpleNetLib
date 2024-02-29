@@ -3,8 +3,8 @@
 
 void SpriteEntity::Init()
 {
-  RenderComponent* renderComponent = AddComponent<RenderComponent>();
-  renderComponent->SetRenderSortingPriority(0);
+  std::weak_ptr<RenderComponent> renderComponent = AddComponent<RenderComponent>();
+  renderComponent.lock()->SetRenderSortingPriority(0);
 }
 
 void SpriteEntity::Update(float InDeltaTime)

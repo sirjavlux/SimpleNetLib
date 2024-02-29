@@ -13,18 +13,19 @@ public:
 
 	void UpdateComponents();
 	
-	void AddColliderComponent(const std::shared_ptr<ColliderComponent>& InComponent);
+	void AddColliderComponent(const std::weak_ptr<ColliderComponent>& InComponent);
 
 	void RenderColliderDebugLines();
 
 	void SetShouldRenderDebugLines(const bool InRenderDebugLines) { renderDebugLines_ = InRenderDebugLines; }
+	bool GetShouldRenderDebugLines() const { return renderDebugLines_; }
 	
 private:
 	void RemoveComponents(const std::vector<int>& InComponentIndexes);
 	
 	void DrawCircleColliderDebugLines(const CircleCollider& InCircleCollider, const Tga::Vector2f& InPosition);
 	
-	std::vector<std::shared_ptr<ColliderComponent>> colliderComponents_; // TODO: Create grid
+	std::vector<std::weak_ptr<ColliderComponent>> colliderComponents_; // TODO: Create grid
 
 	bool renderDebugLines_ = false;
 };

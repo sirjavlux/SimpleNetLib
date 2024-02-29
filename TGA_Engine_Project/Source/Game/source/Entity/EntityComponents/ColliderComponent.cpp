@@ -7,7 +7,14 @@
 
 void ColliderComponent::Init()
 {
-	
+	// TODO: This is ugly, fix this
+	for (std::weak_ptr<ColliderComponent> component : owner_->GetComponents<ColliderComponent>())
+	{
+		if (component.lock().get() && component.lock().get()->localId_ == localId_)
+		{
+			Locator::Get()->GetCollisionManager()->AddColliderComponent(component);
+		}
+	}
 }
 
 void ColliderComponent::Update(float InDeltaTime)

@@ -48,7 +48,7 @@ void BulletManager::ShootBullet(const uint16_t InEntityIdentifier)
 		return;
 	}
 	
-	const ControllerComponent* controllerComponent = entityShooter->GetComponent<ControllerComponent>();
+	const ControllerComponent* controllerComponent = entityShooter->GetFirstComponent<ControllerComponent>().lock().get();
 	const Tga::Vector2f dir = controllerComponent->GetCurrentDirection().GetNormalized();
 	
 	BulletEntity* entitySpawned = dynamic_cast<BulletEntity*>(EntityManager::Get()->SpawnEntityServer(bulletEntityTag, entityShooter->GetPosition()));

@@ -237,7 +237,7 @@ void EntityManager::OnConnectionReceived(const sockaddr_storage& InAddress, cons
 
   // Spawn player controllable entity
   const NetTag playerTypeTag = NetTag("player.ship");
-  PlayerShipEntity* entitySpawned = static_cast<PlayerShipEntity*>(SpawnEntityServer(playerTypeTag));
+  PlayerShipEntity* entitySpawned = dynamic_cast<PlayerShipEntity*>(SpawnEntityServer(playerTypeTag));
   entitySpawned->GetComponent<ControllerComponent>()->SetPossessedBy(InAddress);
 
   SetEntityPossessedComponent setEntityPossessed;

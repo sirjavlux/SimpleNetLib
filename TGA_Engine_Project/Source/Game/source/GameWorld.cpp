@@ -42,6 +42,7 @@ void GameWorld::Init()
 
 void GameWorld::Update(const float InTimeDelta)
 {
+	Locator::Get()->GetCollisionManager()->UpdateComponents();
 	Locator::Get()->GetBulletManager()->Update(InTimeDelta);
 	EntityManager::Get()->UpdateEntities(InTimeDelta);
 }
@@ -50,6 +51,7 @@ void GameWorld::Render()
 {
 	EntityManager::Get()->RenderEntities();
 	RenderManager::Get()->Render();
+	Locator::Get()->GetCollisionManager()->RenderColliderDebugLines();
 }
 
 

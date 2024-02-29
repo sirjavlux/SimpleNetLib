@@ -3,6 +3,7 @@
 #include "BulletEntity.h"
 #include "../Definitions.hpp"
 #include "../Entity/EntityManager.h"
+#include "../Entity/Collision/CircleCollider.hpp"
 
 void BulletEntity::Init()
 {
@@ -10,6 +11,11 @@ void BulletEntity::Init()
 	renderComponent->SetRenderSortingPriority(10);
 	
 	SetShouldReplicatePosition(true);
+
+	ColliderComponent* colliderComponent = AddComponent<ColliderComponent>();
+	std::shared_ptr<CircleCollider> circleCollider = std::make_shared<CircleCollider>();
+	circleCollider->radius = 0.02f;
+	colliderComponent->SetCollider(circleCollider);
 }
 
 void BulletEntity::Update(float InDeltaTime)

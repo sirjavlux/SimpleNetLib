@@ -2,10 +2,13 @@
 #include "stdafx.h"
 
 #include "../../../../SimpleNetLib/SimpleNetLib/Utility/NetTag.h"
+#include "../../Locator/Locator.h"
 #include "../EntityComponents/EntityComponent.hpp"
 #include "../EntityComponents/RenderComponent.h"
 #include "../EntityComponents/ControllerComponent.h"
 #include "../../PacketComponents/UpdateEntityPositionComponent.hpp"
+#include "../Collision/CollisionManager.h"
+#include "../EntityComponents/ColliderComponent.h"
 #include "Packet/PacketManager.h"
 
 class RenderComponent;

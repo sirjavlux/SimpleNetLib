@@ -12,6 +12,7 @@ void PlayerShipEntity::Init()
     RenderComponent* renderComponent = AddComponent<RenderComponent>().lock().get();
     renderComponent->SetRenderSortingPriority(50);
     renderComponent->SetSpriteTexture("Sprites/SpaceShip/SpaceShip.png");
+    renderComponent->SetSpriteSizeMultiplier({ 4.f, 4.f });
   }
 
   AddComponent<ControllerComponent>();

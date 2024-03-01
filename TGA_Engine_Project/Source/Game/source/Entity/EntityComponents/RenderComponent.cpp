@@ -29,8 +29,11 @@ void RenderComponent::Init()
   const Tga::Vector2f resolution = { static_cast<float>(intResolution.x), static_cast<float>(intResolution.y) };
   {
     // Default sprite
-    //SetSpriteTexture("Sprites/mygga.png");
-    spriteSize_ = { 64, 64 };
+    if (sharedData_.myTexture == nullptr)
+    {
+      SetSpriteTexture("Sprites/mygga.png");
+      spriteSize_ = { 64, 64 };
+    }
     
     // Pixel-art default settings
     sharedData_.mySamplerAddressMode = Tga::SamplerAddressMode::Clamp;

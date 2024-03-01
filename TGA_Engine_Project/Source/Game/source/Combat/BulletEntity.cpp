@@ -11,7 +11,7 @@ void BulletEntity::Init()
 	{
 		RenderComponent* renderComponent = AddComponent<RenderComponent>().lock().get();
 		renderComponent->SetSpriteTexture("Sprites/SpaceShip/Bullet.png");
-		renderComponent->SetSpriteSizeMultiplier({ 0.3f, 0.3f });
+		renderComponent->SetSpriteSizeMultiplier({ 3.f, 2.f });
 		renderComponent->SetRenderSortingPriority(10);
 	}
 	

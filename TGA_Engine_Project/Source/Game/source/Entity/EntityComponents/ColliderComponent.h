@@ -11,7 +11,7 @@ class ColliderComponent : public EntityComponent
 public:
 	void Init() override; // TODO: Add collider to collision manager somehow
   
-	void Update(float InDeltaTime) override;
+	void FixedUpdate() override;
 
 	void Remove() { bIsMarkedForRemoval_ = true; }
 	bool IsMarkedForRemoval() const { return bIsMarkedForRemoval_; }
@@ -20,12 +20,23 @@ public:
 
 	Collider* GetCollider() { return collider_.get(); }
 
+	void SetIsTrigger(const bool InShouldBeTrigger) { bIsTrigger_ = InShouldBeTrigger; }
+	
+	void OnTriggerEnter(const ColliderComponent& InColliderComponent);
+	void OnTriggerExit(const ColliderComponent& InColliderComponent);
 	void OnColliderCollision(const ColliderComponent& InColliderComponent);
 	
+	DynamicMulticastDelegate<const ColliderComponent&> triggerEnterDelegate;
+	DynamicMulticastDelegate<const ColliderComponent&> triggerExitDelegate;
 	DynamicMulticastDelegate<const ColliderComponent&> collisionDelegate;
 	
 private:
 	bool bIsMarkedForRemoval_ = false;
 
+	bool bIsTrigger_ = true;
+	
+	std::unordered_map<uint16_t, ColliderComponent> collidersEntered_;
+	std::unordered_map<uint16_t, ColliderComponent> collidersCollidedWithLastUpdate_;
+	
 	std::shared_ptr<Collider> collider_;
 };

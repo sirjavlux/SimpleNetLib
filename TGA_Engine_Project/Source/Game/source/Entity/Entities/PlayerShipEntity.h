@@ -11,5 +11,6 @@ public:
 	
 	void Update(float InDeltaTime) override;
 
-	void OnCollision(const ColliderComponent& InCollider);
+	void OnTriggerEntered(const ColliderComponent& InCollider);
+	void OnTriggerExit(const ColliderComponent& InCollider);
 };

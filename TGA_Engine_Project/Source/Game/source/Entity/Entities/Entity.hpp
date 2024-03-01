@@ -23,7 +23,7 @@ public:
 
 	virtual void UpdateSmoothMovement(const float InDeltaTime)
 	{
-		if (Net::PacketManager::Get()->GetManagerType() == ENetworkHandleType::Server)
+		if (Net::PacketManager::Get()->IsServer())
 		{
 			return;
 		}
@@ -207,7 +207,7 @@ inline void Entity::UpdateRender()
 inline void Entity::SetPosition(const Tga::Vector2f& InPos, const bool InIsTeleport)
 {
 	position_ = InPos;
-	if (InIsTeleport && Net::PacketManager::Get()->GetManagerType() != ENetworkHandleType::Server)
+	if (InIsTeleport && !Net::PacketManager::Get()->IsServer())
 	{
 		SetTargetPosition(InPos);
 	}

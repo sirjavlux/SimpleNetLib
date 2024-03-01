@@ -18,7 +18,7 @@ void ControllerComponent::Update(float InDeltaTime)
   currentDirection_.x = FMath::Lerp(currentDirection_.x, targetDirection_.x, directionLerpSpeed_ * InDeltaTime);
   currentDirection_.y = FMath::Lerp(currentDirection_.y, targetDirection_.y, directionLerpSpeed_ * InDeltaTime);
   
-  if (Net::PacketManager::Get()->GetManagerType() == ENetworkHandleType::Client)
+  if (!Net::PacketManager::Get()->IsServer())
   {
     RenderComponent* renderComponent = owner_->GetFirstComponent<RenderComponent>().lock().get();
     if (renderComponent)
@@ -30,7 +30,7 @@ void ControllerComponent::Update(float InDeltaTime)
 
 void ControllerComponent::FixedUpdate()
 {
-  if (Net::PacketManager::Get()->GetManagerType() == ENetworkHandleType::Client)
+  if (!Net::PacketManager::Get()->IsServer())
   {
     UpdateClientPositionFromServerPositionUpdate();
     if (bIsPossessed_)
@@ -46,7 +46,7 @@ void ControllerComponent::SetPossessedBy(const sockaddr_storage& InAddress)
 {
   possessedBy_ = InAddress;
 
-  if (Net::PacketManager::Get()->GetManagerType() == ENetworkHandleType::Server)
+  if (Net::PacketManager::Get()->IsServer())
   {
     EntityManager::Get()->SetPossessedEntityByNetTarget(InAddress, owner_->GetId());
   }
@@ -91,7 +91,7 @@ bool ControllerComponent::UpdateInputBuffer(const InputUpdateEntry& InUpdateEntr
 
 void ControllerComponent::UpdateServerPosition()
 {
-  if (Net::PacketManager::Get()->GetManagerType() != ENetworkHandleType::Server)
+  if (!Net::PacketManager::Get()->IsServer())
   {
     return;
   }
@@ -261,10 +261,16 @@ void ControllerComponent::UpdateInput()
     {
       keyInput = keyInput | EKeyInput::Shift;
     }
-    // Toggle Debug Lines TODO: Needs check if pressed to avoid spamming on and off
-    if (GetAsyncKeyState(VK_F5))
+    // Toggle Debug Lines
+    static bool bIsDebugKeyPressed = false;
+    if (GetAsyncKeyState(VK_F5) & 0x8000 && !bIsDebugKeyPressed)
     {
       Locator::Get()->GetCollisionManager()->SetShouldRenderDebugLines(!Locator::Get()->GetCollisionManager()->GetShouldRenderDebugLines());
+      bIsDebugKeyPressed = true;
+    }
+    if (!GetAsyncKeyState(VK_F5) && bIsDebugKeyPressed)
+    {
+      bIsDebugKeyPressed = false;
     }
   }
 

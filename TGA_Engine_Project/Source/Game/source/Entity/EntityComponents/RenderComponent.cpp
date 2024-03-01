@@ -18,7 +18,7 @@
 
 void RenderComponent::Init()
 {
-  if (Net::PacketManager::Get()->GetManagerType() == ENetworkHandleType::Server)
+  if (Net::PacketManager::Get()->IsServer())
   {
     return;
   }
@@ -29,7 +29,7 @@ void RenderComponent::Init()
   const Tga::Vector2f resolution = { static_cast<float>(intResolution.x), static_cast<float>(intResolution.y) };
   {
     // Default sprite
-    SetSpriteTexture("Sprites/mygga.png");
+    //SetSpriteTexture("Sprites/mygga.png");
     spriteSize_ = { 64, 64 };
     
     // Pixel-art default settings
@@ -44,7 +44,7 @@ void RenderComponent::Init()
 
 void RenderComponent::Update(float InDeltaTime)
 {
-  if (Net::PacketManager::Get()->GetManagerType() == ENetworkHandleType::Server)
+  if (Net::PacketManager::Get()->IsServer())
   {
     return;
   }

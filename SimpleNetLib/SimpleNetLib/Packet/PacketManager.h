@@ -64,6 +64,8 @@ public:
     PacketComponentDelegator& GetPacketComponentDelegator() { return packetComponentHandleDelegator_; }
 
     float GetDeltaTime() const { return lastDeltaTime_; }
+
+    bool IsServer() const { return managerType_ == ENetworkHandleType::Server; }
     
 private: 
     void HandleComponent(const sockaddr_storage& InComponentSender, const PacketComponent& InPacketComponent);

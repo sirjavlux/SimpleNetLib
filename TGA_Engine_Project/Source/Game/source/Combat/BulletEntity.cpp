@@ -7,8 +7,13 @@
 
 void BulletEntity::Init()
 {
-	RenderComponent* renderComponent = AddComponent<RenderComponent>().lock().get();
-	renderComponent->SetRenderSortingPriority(10);
+	if (!Net::PacketManager::Get()->IsServer())
+	{
+		RenderComponent* renderComponent = AddComponent<RenderComponent>().lock().get();
+		renderComponent->SetSpriteTexture("Sprites/SpaceShip/Bullet.png");
+		renderComponent->SetSpriteSizeMultiplier({ 0.3f, 0.3f });
+		renderComponent->SetRenderSortingPriority(10);
+	}
 	
 	SetShouldReplicatePosition(true);
 
@@ -25,7 +30,7 @@ void BulletEntity::Update(float InDeltaTime)
 
 void BulletEntity::FixedUpdate()
 {
-	if (Net::PacketManager::Get()->GetManagerType() == ENetworkHandleType::Client)
+	if (!Net::PacketManager::Get()->IsServer())
 	{
 		if (RenderComponent* renderComponent = GetFirstComponent<RenderComponent>().lock().get())
 		{
@@ -33,7 +38,7 @@ void BulletEntity::FixedUpdate()
 			renderComponent->SetDirection(direction.x, direction.y);
 		}
 	}
-	else if (Net::PacketManager::Get()->GetManagerType() == ENetworkHandleType::Server)
+	else if (Net::PacketManager::Get()->IsServer())
 	{
 		position_ += travelDirection_ * speed_ * FIXED_UPDATE_DELTA_TIME;
 

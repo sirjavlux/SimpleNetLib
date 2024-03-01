@@ -36,7 +36,7 @@ void CollisionManager::UpdateComponents()
 		for (const std::weak_ptr<ColliderComponent> colliderComponentSecond : colliderComponents_)
 		{
 			ColliderComponent* colliderComponentSecondPtr = colliderComponentSecond.lock().get();
-			if (!colliderComponentSecondPtr || colliderComponentSecondPtr->IsMarkedForRemoval() || colliderComponentSecondPtr == colliderComponentFirstPtr)
+			if (!colliderComponentSecondPtr || colliderComponentSecondPtr->IsMarkedForRemoval() || colliderComponentSecondPtr->GetLocalId() == colliderComponentFirstPtr->GetLocalId())
 			{
 				continue;
 			}
@@ -66,7 +66,7 @@ void CollisionManager::AddColliderComponent(const std::weak_ptr<ColliderComponen
 
 void CollisionManager::RenderColliderDebugLines()
 {
-	if (!renderDebugLines_ || Net::PacketManager::Get()->GetManagerType() == ENetworkHandleType::Server)
+	if (!renderDebugLines_ || Net::PacketManager::Get()->IsServer())
 	{
 		return;
 	}
@@ -94,10 +94,17 @@ void CollisionManager::RenderColliderDebugLines()
 void CollisionManager::RemoveComponents(const std::vector<int>& InComponentIndexes)
 {
 	int removedCount = 0;
-	for (const int componentIndex : InComponentIndexes)
+	for (auto it = colliderComponents_.begin(); it != colliderComponents_.end(); )
 	{
-		colliderComponents_.erase(colliderComponents_.begin() + componentIndex - removedCount);
-		++removedCount;
+		if (std::find(InComponentIndexes.begin(), InComponentIndexes.end(), std::distance(colliderComponents_.begin(), it)) != InComponentIndexes.end())
+		{
+			it = colliderComponents_.erase(it);
+			++removedCount;
+		}
+		else
+		{
+			++it;
+		}
 	}
 }
 
@@ -108,13 +115,16 @@ void CollisionManager::DrawCircleColliderDebugLines(const CircleCollider& InCirc
 
 	const Tga::Vector2ui intResolution = engine.GetRenderSize();
 	const Tga::Vector2f resolution = { static_cast<float>(intResolution.x), static_cast<float>(intResolution.y) };
-
+	const float ratio = engine.GetWindowRatioInversed();
+	
 	Tga::Vector2f possessedEntityPos;
 	if (const Entity* possessedEntity = EntityManager::Get()->GetPossessedEntity(); possessedEntity != nullptr)
 	{
 		possessedEntityPos = possessedEntity->GetPosition();
 	}
+
+	const float hypo = std::sqrt(std::pow(resolution.x, 2.f) + std::pow(resolution.y, 2.f));
 	
 	debugDrawer.DrawCircle((InPosition - possessedEntityPos) * resolution + resolution / 2.f,
-		InCircleCollider.radius * resolution.y, Tga::Color(1,0,0,1)); // TODO: This doesn't work correctly, radius inaccurate
+		InCircleCollider.radius * hypo * ratio, Tga::Color(1,0,0,1)); // TODO: This doesn't work correctly, radius inaccurate
 }

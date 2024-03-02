@@ -47,7 +47,8 @@ void BulletManager::ShootBullet(const uint16_t InEntityIdentifier)
 	{
 		return;
 	}
-	
-	BulletEntity* entitySpawned = dynamic_cast<BulletEntity*>(EntityManager::Get()->SpawnEntityServer(bulletEntityTag, entityShooter->GetPosition(), entityShooter->GetDirection()));
+
+	const Tga::Vector2f offset = entityShooter->GetDirection() * 0.03f;
+	BulletEntity* entitySpawned = dynamic_cast<BulletEntity*>(EntityManager::Get()->SpawnEntityServer(bulletEntityTag, entityShooter->GetPosition() + offset, entityShooter->GetDirection()));
 	entitySpawned->SetShooter(InEntityIdentifier);
 }

@@ -13,6 +13,8 @@ public:
 	  
 	float xPos = 0;
 	float yPos = 0;
+
+	float rotation = 0;
 };
 
 inline UpdateEntityPositionComponent::UpdateEntityPositionComponent()

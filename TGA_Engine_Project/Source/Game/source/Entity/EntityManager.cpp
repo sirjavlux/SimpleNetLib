@@ -290,7 +290,15 @@ void EntityManager::OnInputReceived(const sockaddr_storage& InAddress, const Net
       {
         entry.xInputDir += 1.f;
       }
-      
+      if ((input & EKeyInput::Q) != EKeyInput::None)
+      {
+        entry.rotation += 1.f;
+      }
+      if ((input & EKeyInput::E) != EKeyInput::None)
+      {
+        entry.rotation += -1.f;
+      }
+
       // Update input buffer
       controllerComponent->UpdateInputBuffer(entry);
       
@@ -328,6 +336,7 @@ void EntityManager::OnPositionUpdateReceived(const sockaddr_storage& InAddress, 
     {
       entity->SetTargetPosition({ component->xPos, component->yPos });
     }
+    entity->SetDirection({ std::cos(component->rotation), std::sin(component->rotation) });
   }
 }
 

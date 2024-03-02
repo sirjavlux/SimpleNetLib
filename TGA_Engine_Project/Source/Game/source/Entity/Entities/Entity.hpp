@@ -23,11 +23,6 @@ public:
 
 	virtual void UpdateSmoothMovement(const float InDeltaTime)
 	{
-		if (Net::PacketManager::Get()->IsServer())
-		{
-			return;
-		}
-		
 		// Lerp position
 		const Tga::Vector2f newPosition = Tga::Vector2f::Lerp(position_, targetPosition_, targetPositionLerpSpeed_ * InDeltaTime);
 		SetPosition(newPosition, false);
@@ -44,11 +39,10 @@ public:
 
 	void SetShouldReplicatePosition(const bool InShouldReplicatePosition) { bShouldReplicatePosition_ = InShouldReplicatePosition; }
 	
-	void SetTargetPosition(const Tga::Vector2f& InPos) { previousTargetPosition_ = targetPosition_; targetPosition_ = InPos; }
+	void SetTargetPosition(const Tga::Vector2f& InPos) { targetPosition_ = InPos; }
 	void SetPosition(const Tga::Vector2f& InPos, bool InIsTeleport = true);
 	Tga::Vector2f GetPosition() const { return position_; }
-
-	Tga::Vector2f GetTargetDirection() const { return (targetPosition_ - previousTargetPosition_).GetNormalized(); }
+	Tga::Vector2f GetTargetPosition() const { return targetPosition_; }
 	
 	uint16_t GetId() const { return id_; }
 	uint64_t GetTypeTagHash() const { return typeTagHash_; }
@@ -78,8 +72,7 @@ protected:
 	std::shared_ptr<EntityComponent> renderComponent_;
 
 	Tga::Vector2f targetPosition_ = {};
-	Tga::Vector2f previousTargetPosition_ = {};
-	float targetPositionLerpSpeed_ = 5.f;
+	float targetPositionLerpSpeed_ = 8.f;
 
 	bool bShouldReplicatePosition_ = false;
 	
@@ -211,7 +204,7 @@ inline void Entity::UpdateRender()
 inline void Entity::SetPosition(const Tga::Vector2f& InPos, const bool InIsTeleport)
 {
 	position_ = InPos;
-	if (InIsTeleport && !Net::PacketManager::Get()->IsServer())
+	if (InIsTeleport)
 	{
 		SetTargetPosition(InPos);
 	}
@@ -224,9 +217,10 @@ inline void Entity::UpdateReplication()
 	{
 		UpdateEntityPositionComponent positionComponent;
 		positionComponent.bIsTeleport = false;
-		positionComponent.xPos = position_.x;
-		positionComponent.yPos = position_.y;
+		positionComponent.xPos = targetPosition_.x;
+		positionComponent.yPos = targetPosition_.y;
+		positionComponent.rotation = std::atan2(direction_.y, direction_.x);
 		positionComponent.entityIdentifier = GetId();
-		Net::PacketManager::Get()->SendPacketComponentMulticastWithLod<UpdateEntityPositionComponent>(positionComponent, { position_.x, position_.y, 0.f });
+		Net::PacketManager::Get()->SendPacketComponentMulticastWithLod<UpdateEntityPositionComponent>(positionComponent, { targetPosition_.x, targetPosition_.y, 0.f });
 	}
 }

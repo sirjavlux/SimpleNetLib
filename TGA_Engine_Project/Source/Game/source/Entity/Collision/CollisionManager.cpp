@@ -125,6 +125,6 @@ void CollisionManager::DrawCircleColliderDebugLines(const CircleCollider& InCirc
 
 	const float hypo = std::sqrt(std::pow(resolution.x, 2.f) + std::pow(resolution.y, 2.f));
 	
-	debugDrawer.DrawCircle((InPosition - possessedEntityPos) * resolution + resolution / 2.f,
-		InCircleCollider.radius * hypo * ratio, Tga::Color(1,0,0,1)); // TODO: This doesn't work correctly, radius inaccurate
+	debugDrawer.DrawCircle((InPosition - possessedEntityPos) * resolution.y + resolution / 2.f,
+		InCircleCollider.radius * hypo * ratio, Tga::Color(1,0,0,1)); // TODO: This doesn't work correctly, radius inaccurate but close enough for some form of representation
 }

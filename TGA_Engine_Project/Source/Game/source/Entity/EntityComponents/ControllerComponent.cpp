@@ -90,7 +90,7 @@ void ControllerComponent::UpdateServerPosition()
     return;
   }
   
-  Tga::Vector2f newPos = owner_->GetPosition();
+  Tga::Vector2f newPos = owner_->GetTargetPosition();
 
   constexpr int indexesBehind = 2;
   for (int i = indexesBehind; i < INPUT_BUFFER_SIZE - 1; ++i)
@@ -115,8 +115,8 @@ void ControllerComponent::UpdateServerPosition()
       ++sequenceNrBehind;
     }
     
-    UpdateVelocity(input.xInputDir, input.yInputDir);
-    newPos += targetDirection_ * velocity_;
+    UpdateVelocity(input.xInputDir, input.yInputDir, input.rotation);
+    newPos += velocity_;
   }
   lastInputSequenceNr_ = inputHistoryBuffer_[indexesBehind].sequenceNr;
 
@@ -131,10 +131,11 @@ void ControllerComponent::UpdateServerPosition()
   entryData.xPosition = newPos.x;
   entryData.yPosition = newPos.y;
   entryData.rotation = atan2(targetDirection_.y, targetDirection_.x);
-  entryData.velocity = velocity_;
+  entryData.xVelocity = velocity_.x;
+  entryData.yVelocity = velocity_.y;
   
-  owner_->SetPosition({newPos.x, newPos.y}, true);
-
+  owner_->SetTargetPosition({newPos.x, newPos.y});
+  
   // Send new packet
   UpdateEntityControllerPositionComponent updateEntityPositionComponent;
   updateEntityPositionComponent.entityIdentifier = owner_->GetId();
@@ -155,7 +156,7 @@ void ControllerComponent::UpdateClientPositionFromServerPositionUpdate()
   const PositionUpdateEntry& updateEntry = positionUpdatesBuffer_[indexToFetchPositionFrom];
   Tga::Vector2f newTargetPos = {updateEntry.xPosition, updateEntry.yPosition};
   targetDirection_ = { std::cos(updateEntry.rotation), std::sin(updateEntry.rotation) };
-  velocity_ = updateEntry.velocity;
+  velocity_ = { updateEntry.xVelocity, updateEntry.yVelocity };
   
   positionUpdateSequenceNr_ = updateEntry.sequenceNr;
   
@@ -170,8 +171,8 @@ void ControllerComponent::UpdateClientPositionFromServerPositionUpdate()
       {
         break;
       }
-      UpdateVelocity(entry.xInputDir, entry.yInputDir);
-      newTargetPos += targetDirection_ * velocity_;
+      UpdateVelocity(entry.xInputDir, entry.yInputDir, entry.rotation);
+      newTargetPos += velocity_;
     }
   }
 
@@ -179,31 +180,35 @@ void ControllerComponent::UpdateClientPositionFromServerPositionUpdate()
   owner_->SetTargetPosition(newTargetPos);
 }
 
-void ControllerComponent::UpdateVelocity(const float InInputX, const float InInputY)
+void ControllerComponent::UpdateVelocity(const float InInputX, const float InInputY, const float InInputRotation)
 {
   Tga::Vector2f inputDirection = { InInputX, InInputY };
   inputDirection.Normalize();
   
-  targetDirection_ += inputDirection * directionChangeSpeed_ * FIXED_UPDATE_DELTA_TIME;
-  targetDirection_.Normalize();
+  const float initialX = targetDirection_.x;
+  const float initialY = targetDirection_.y;
 
-  float dot = inputDirection.Dot(targetDirection_);
-  if (dot < 0.3f)
-  {
-    dot = 0.f;
-  }
-  
+  // Calculate the new rotation and set target dir
+  const float rotation = std::atan2(initialY, initialX) + InInputRotation * 3.1415 / 180.f * directionChangeSpeed_;
+  const float cosAngle = std::cos(rotation);
+  const float sinAngle = std::sin(rotation);
+  targetDirection_ = { cosAngle, sinAngle };
+
+  const Tga::Vector2f forward = targetDirection_;
+  const Tga::Vector2f right = targetDirection_.Normal();
   if (inputDirection.LengthSqr() > 0.5)
   {
-    velocity_ += dot * speed_ * acceleration_ * FIXED_UPDATE_DELTA_TIME;
+    const float speedModifier = speed_ * acceleration_ * FIXED_UPDATE_DELTA_TIME;
+    velocity_ += forward * inputDirection.y * speedModifier;
+    velocity_ += right * inputDirection.x * speedModifier;
   }
 
   velocity_ *= resistanceMultiplier_;
   
   // Clamp maximum velocity
-  if (velocity_ > maxVelocity_ * FIXED_UPDATE_DELTA_TIME)
+  if (velocity_.LengthSqr() > maxVelocity_ * maxVelocity_ * FIXED_UPDATE_DELTA_TIME)
   {
-    velocity_ = maxVelocity_ * FIXED_UPDATE_DELTA_TIME;
+    velocity_ = velocity_.GetNormalized() * maxVelocity_ * FIXED_UPDATE_DELTA_TIME;
   }
 }
 
@@ -235,6 +240,16 @@ void ControllerComponent::UpdateInput()
       inputDirection_.x += 1.f;
       keyInput = keyInput | EKeyInput::D;
     }
+    if (GetAsyncKeyState('Q'))
+    {
+      inputRotation_ += 1.f;
+      keyInput = keyInput | EKeyInput::Q;
+    }
+    if (GetAsyncKeyState('E'))
+    {
+      inputRotation_ -= 1.f;
+      keyInput = keyInput | EKeyInput::E;
+    }
     if (GetAsyncKeyState(VK_SPACE))
     {
       keyInput = keyInput | EKeyInput::Space;
@@ -260,6 +275,7 @@ void ControllerComponent::UpdateInput()
   entry.sequenceNr = ++sequenceNumberIter_;
   entry.xInputDir = inputDirection_.x;
   entry.yInputDir = inputDirection_.y;
+  entry.rotation = inputRotation_;
   
   // Send Input packet
   InputComponent inputComponent;
@@ -272,5 +288,6 @@ void ControllerComponent::UpdateInput()
   UpdateInputBuffer(entry);
   
   // Reset Input
-  inputDirection_ = { 0.f, 0.f, 0.f };
+  inputDirection_ = { 0.f, 0.f };
+  inputRotation_ = 0.f;
 }

@@ -32,13 +32,13 @@ void BulletEntity::FixedUpdate()
 {
 	if (Net::PacketManager::Get()->IsServer())
 	{
-		position_ += direction_ * speed_ * FIXED_UPDATE_DELTA_TIME;
+		targetPosition_ += direction_ * speed_ * FIXED_UPDATE_DELTA_TIME;
 
 		// Check world bounds, destroy entity if outside world bounds
-		if (position_.x > WORLD_SIZE_X / 2.f
-			|| position_.x < -WORLD_SIZE_X / 2.f
-			|| position_.y > WORLD_SIZE_Y / 2.f
-			|| position_.y < -WORLD_SIZE_Y / 2.f)
+		if (targetPosition_.x > WORLD_SIZE_X / 2.f
+			|| targetPosition_.x < -WORLD_SIZE_X / 2.f
+			|| targetPosition_.y > WORLD_SIZE_Y / 2.f
+			|| targetPosition_.y < -WORLD_SIZE_Y / 2.f)
 		{
 			EntityManager::Get()->MarkEntityForDestruction(GetId());
 		}

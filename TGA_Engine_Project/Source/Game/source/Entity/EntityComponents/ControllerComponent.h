@@ -15,8 +15,9 @@ struct PositionUpdateEntry
   uint32_t sequenceNr = 0;
   float xPosition;
   float yPosition;
+  float xVelocity;
+  float yVelocity;
   float rotation;
-  float velocity;
 };
 
 struct InputUpdateEntry
@@ -24,6 +25,7 @@ struct InputUpdateEntry
   uint32_t sequenceNr = 0;
   float xInputDir;
   float yInputDir;
+  float rotation;
 };
 
 namespace Net
@@ -48,7 +50,7 @@ public:
   void UpdatePositionBuffer(const PositionUpdateEntry& InUpdateEntry);
   bool UpdateInputBuffer(const InputUpdateEntry& InUpdateEntry);
   
-  void UpdateVelocity(float InInputX, float InInputY);
+  void UpdateVelocity(float InInputX, float InInputY, float InInputRotation);
 
   const Tga::Vector2f& GetVelocity() const { return velocity_; }
   
@@ -62,15 +64,16 @@ private:
   Tga::Vector2f targetDirection_ = { 0, 1 };
   Tga::Vector2f currentDirection_ = { 0, 1 };
   
-  float velocity_ = 0.f;
+  Tga::Vector2f velocity_ = 0.f;
 
   // Character movement settings
   const float maxVelocity_ = 0.8f;
   const float acceleration_ = 0.02f;
   const float resistanceMultiplier_ = 0.98f;
   const float directionChangeSpeed_ = 2.8f;
-  
-  NetUtility::NetVector3 inputDirection_ = {};
+
+  float inputRotation_;
+  Tga::Vector2f inputDirection_;
   
   sockaddr_storage possessedBy_ = {};
   

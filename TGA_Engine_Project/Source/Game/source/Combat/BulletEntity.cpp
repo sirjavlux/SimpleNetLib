@@ -30,17 +30,9 @@ void BulletEntity::Update(float InDeltaTime)
 
 void BulletEntity::FixedUpdate()
 {
-	if (!Net::PacketManager::Get()->IsServer())
+	if (Net::PacketManager::Get()->IsServer())
 	{
-		if (RenderComponent* renderComponent = GetFirstComponent<RenderComponent>().lock().get())
-		{
-			const Tga::Vector2f direction = GetTargetDirection();
-			renderComponent->SetDirection(direction.x, direction.y);
-		}
-	}
-	else if (Net::PacketManager::Get()->IsServer())
-	{
-		position_ += travelDirection_ * speed_ * FIXED_UPDATE_DELTA_TIME;
+		position_ += direction_ * speed_ * FIXED_UPDATE_DELTA_TIME;
 
 		// Check world bounds, destroy entity if outside world bounds
 		if (position_.x > WORLD_SIZE_X / 2.f
@@ -51,9 +43,4 @@ void BulletEntity::FixedUpdate()
 			EntityManager::Get()->MarkEntityForDestruction(GetId());
 		}
 	}
-}
-
-void BulletEntity::SetTravelDirection(const Tga::Vector2f& InTravelDirection)
-{
-	travelDirection_ = InTravelDirection;
 }

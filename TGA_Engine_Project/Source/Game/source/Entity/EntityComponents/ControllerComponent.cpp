@@ -17,15 +17,7 @@ void ControllerComponent::Update(float InDeltaTime)
 {
   currentDirection_.x = FMath::Lerp(currentDirection_.x, targetDirection_.x, directionLerpSpeed_ * InDeltaTime);
   currentDirection_.y = FMath::Lerp(currentDirection_.y, targetDirection_.y, directionLerpSpeed_ * InDeltaTime);
-  
-  if (!Net::PacketManager::Get()->IsServer())
-  {
-    RenderComponent* renderComponent = owner_->GetFirstComponent<RenderComponent>().lock().get();
-    if (renderComponent)
-    {
-      renderComponent->SetDirection(currentDirection_.x, currentDirection_.y);
-    }
-  }
+  owner_->SetDirection({currentDirection_.x, currentDirection_.y});
 }
 
 void ControllerComponent::FixedUpdate()
@@ -98,7 +90,7 @@ void ControllerComponent::UpdateServerPosition()
   
   Tga::Vector2f newPos = owner_->GetPosition();
 
-  constexpr int indexesBehind = 4;
+  constexpr int indexesBehind = 2;
   for (int i = indexesBehind; i < INPUT_BUFFER_SIZE - 1; ++i)
   {
     const InputUpdateEntry& input = inputHistoryBuffer_[i];
@@ -153,11 +145,9 @@ void ControllerComponent::UpdateServerPosition()
 
   // Update net position for culling
   Net::PacketManager::Get()->UpdateClientNetPosition(possessedBy_, lodPos);
-
-  if (velocity_.LengthSqr() > 0.f)
-  {
-    targetDirection_ = velocity_.GetNormalized();
-  }
+  
+  // Update target direction
+  targetDirection_ = velocity_.GetNormalized();
 }
 
 void ControllerComponent::UpdateClientPositionFromServerPositionUpdate()
@@ -172,7 +162,7 @@ void ControllerComponent::UpdateClientPositionFromServerPositionUpdate()
   // Forward position
   if (bIsPossessed_)
   {
-    constexpr int indexesBehind = 8;
+    constexpr int indexesBehind = 4;
     for (int i = indexesBehind; i < INPUT_BUFFER_SIZE; ++i)
     {
       const InputUpdateEntry& entry = inputHistoryBuffer_[i];
@@ -208,11 +198,11 @@ void ControllerComponent::UpdateVelocity(const float InInputX, const float InInp
     : resistance_;
 
   // Clamp minimum velocity
-  if (netVector.x == 0 && std::abs(velocity_.x) < 0.0005f)
+  if (netVector.x == 0 && std::abs(velocity_.x) < 0.0001f)
   {
     velocity_.x = 0.f;
   }
-  if (netVector.y == 0 && std::abs(velocity_.y) < 0.0005f)
+  if (netVector.y == 0 && std::abs(velocity_.y) < 0.0001f)
   {
     velocity_.y = 0.f;
   }

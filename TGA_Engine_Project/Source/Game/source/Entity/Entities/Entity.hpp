@@ -61,12 +61,16 @@ public:
 
 	template<typename ComponentType>
 	std::weak_ptr<ComponentType> GetFirstComponent();
+
+	Tga::Vector2f GetDirection() const { return direction_; }
+	void SetDirection(const Tga::Vector2f InDirection) { direction_ = InDirection.GetNormalized(); }
 	
 protected:
 	void UpdateReplication();
 	
 	uint16_t id_ = 0;
 	Tga::Vector2f position_;
+	Tga::Vector2f direction_;
 
 	uint64_t typeTagHash_;
 	

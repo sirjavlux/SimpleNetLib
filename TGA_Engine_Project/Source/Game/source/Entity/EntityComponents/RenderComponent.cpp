@@ -66,7 +66,8 @@ void RenderComponent::Update(float InDeltaTime)
   
   spriteInstance_.myPosition = (owner_->GetPosition() - possessedEntityPos) * resolution + resolution / 2.f;
   spriteInstance_.mySize = spriteSize_ * spriteSizeMultiplier_;
-
+  spriteInstance_.myRotation = std::atan2(owner_->GetDirection().y, owner_->GetDirection().x);
+    
   // Cull sprite if outside window bounds
   if (((spriteInstance_.myPosition.x < 0 && spriteInstance_.myPosition.x < spriteInstance_.mySize.x)
     || (spriteInstance_.myPosition.y < 0 && spriteInstance_.myPosition.y < spriteInstance_.mySize.y))
@@ -95,8 +96,14 @@ RenderData RenderComponent::GetRenderData() const
   return { sortingPriority_, textureIdentifier_.GetHash(), sharedData_ };
 }
 
-void RenderComponent::SetDirection(const float InX, const float InY)
+/*void RenderComponent::SetDirection(const float InX, const float InY)
 {
   const float rotation = atan2f(InY, InX);
   spriteInstance_.myRotation = rotation;
 }
+
+void RenderComponent::SetRotation(const float InRotation)
+{
+  spriteInstance_.myRotation = InRotation;
+}
+*/

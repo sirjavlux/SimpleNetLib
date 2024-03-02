@@ -28,8 +28,8 @@ public:
   void RequestDestroyEntity(uint16_t InIdentifier);
   
   // This is a server sided function deciding various data like the entity id
-  Entity* SpawnEntityServer(const NetTag& InEntityTypeTag, const Tga::Vector2f& InPosition = { 0.f, 0.f });
-  Entity* SpawnEntityLocal(const NetTag& InEntityTypeTag, const Tga::Vector2f& InPosition = { 0.f, 0.f });
+  Entity* SpawnEntityServer(const NetTag& InEntityTypeTag, const Tga::Vector2f& InPosition = { 0.f, 0.f }, const Tga::Vector2f& InDir = { 0.f, 0.f });
+  Entity* SpawnEntityLocal(const NetTag& InEntityTypeTag, const Tga::Vector2f& InPosition = { 0.f, 0.f }, const Tga::Vector2f& InDir = { 0.f, 0.f });
 
   static bool IsServer();
 

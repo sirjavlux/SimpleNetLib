@@ -51,7 +51,6 @@ public:
   void UpdateVelocity(float InInputX, float InInputY);
 
   const Tga::Vector2f& GetVelocity() const { return velocity_; }
-  const Tga::Vector2f& GetCurrentDirection() const { return currentDirection_; }
   
 private:
   void UpdateServerPosition();

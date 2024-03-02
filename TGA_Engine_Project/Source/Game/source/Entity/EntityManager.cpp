@@ -1,6 +1,8 @@
 ﻿#include "stdafx.h"
 #include "EntityManager.h"
 
+#include <ffmpeg-2.0/libavutil/mathematics.h>
+
 #include "../Combat/BulletManager.h"
 #include "../PacketComponents/DeSpawnEntityComponent.hpp"
 #include "../PacketComponents/InputComponent.hpp"
@@ -145,27 +147,31 @@ void EntityManager::RequestDestroyEntity(const uint16_t InIdentifier)
   Net::PacketManager::Get()->SendPacketComponentToParent(deSpawnRequestEntityComponent);
 }
 
-Entity* EntityManager::SpawnEntityServer(const NetTag& InEntityTypeTag, const Tga::Vector2f& InPosition)
+Entity* EntityManager::SpawnEntityServer(const NetTag& InEntityTypeTag, const Tga::Vector2f& InPosition, const Tga::Vector2f& InDir)
 {
   if (!IsServer() || entityFactoryMap_.find(InEntityTypeTag.GetHash()) == entityFactoryMap_.end())
   {
     return nullptr;
   }
-
+  
   Entity* newEntity = AddEntity(InEntityTypeTag.GetHash(), GenerateEntityIdentifier());
   newEntity->SetPosition({InPosition.x, InPosition.y}, true);
+
+  const float rotation = std::atan2(InDir.y, InDir.x);
+  newEntity->SetDirection({InDir.x, InDir.y});
   
   SpawnEntityComponent spawnEntityComponent;
   spawnEntityComponent.entityId = newEntity->GetId();
   spawnEntityComponent.entityTypeHash = newEntity->GetTypeTagHash();
   spawnEntityComponent.xPos = InPosition.x;
   spawnEntityComponent.yPos = InPosition.y;
+  spawnEntityComponent.rotation = rotation;
   Net::PacketManager::Get()->SendPacketComponentMulticast<SpawnEntityComponent>(spawnEntityComponent);
   
   return newEntity;
 }
 
-Entity* EntityManager::SpawnEntityLocal(const NetTag& InEntityTypeTag, const Tga::Vector2f& InPosition)
+Entity* EntityManager::SpawnEntityLocal(const NetTag& InEntityTypeTag, const Tga::Vector2f& InPosition, const Tga::Vector2f& InDir)
 {
   if (IsServer() || entityFactoryMap_.find(InEntityTypeTag.GetHash()) == entityFactoryMap_.end())
   {
@@ -174,6 +180,8 @@ Entity* EntityManager::SpawnEntityLocal(const NetTag& InEntityTypeTag, const Tga
 
   Entity* newEntity = AddEntity(InEntityTypeTag.GetHash(), GenerateEntityIdentifier(), true);
   newEntity->SetPosition({InPosition.x, InPosition.y}, true);
+
+  newEntity->SetDirection(InDir);
   
   return newEntity;
 }
@@ -200,6 +208,10 @@ void EntityManager::OnEntitySpawnReceived(const sockaddr_storage& InAddress, con
   const SpawnEntityComponent* component = reinterpret_cast<const SpawnEntityComponent*>(&InComponent);
   Entity* entitySpawned = AddEntity(component->entityTypeHash, component->entityId);
   entitySpawned->SetPosition({ component->xPos, component->yPos }, true);
+
+  const float xDir = std::cos(component->rotation);
+  const float yDir = std::sin(component->rotation);
+  entitySpawned->SetDirection({ xDir, yDir });
   
   std::cout << "Spawn entity received! " << entitySpawned->GetTypeTagHash() << " : " <<  component->entityId << "\n";
 }
@@ -423,7 +435,7 @@ void EntityManager::RegisterPacketComponents()
   const PacketComponentAssociatedData associatedDataSpawnDeSpawnComps = PacketComponentAssociatedData
   {
     false,
-    0.05f,
+    FIXED_UPDATE_DELTA_TIME,
     EPacketHandlingType::Ack
   };
   

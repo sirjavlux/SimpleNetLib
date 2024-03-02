@@ -42,16 +42,12 @@ void BulletManager::TryShootBulletServer(const uint16_t InEntityIdentifier)
 void BulletManager::ShootBullet(const uint16_t InEntityIdentifier)
 {
 	const NetTag bulletEntityTag = NetTag("bullet");
-	Entity* entityShooter = EntityManager::Get()->GetEntityById(InEntityIdentifier);
+	const Entity* entityShooter = EntityManager::Get()->GetEntityById(InEntityIdentifier);
 	if (entityShooter == nullptr)
 	{
 		return;
 	}
 	
-	const ControllerComponent* controllerComponent = entityShooter->GetFirstComponent<ControllerComponent>().lock().get();
-	const Tga::Vector2f dir = controllerComponent->GetCurrentDirection().GetNormalized();
-	
-	BulletEntity* entitySpawned = dynamic_cast<BulletEntity*>(EntityManager::Get()->SpawnEntityServer(bulletEntityTag, entityShooter->GetPosition()));
-	entitySpawned->SetTravelDirection(dir);
+	BulletEntity* entitySpawned = dynamic_cast<BulletEntity*>(EntityManager::Get()->SpawnEntityServer(bulletEntityTag, entityShooter->GetPosition(), entityShooter->GetDirection()));
 	entitySpawned->SetShooter(InEntityIdentifier);
 }

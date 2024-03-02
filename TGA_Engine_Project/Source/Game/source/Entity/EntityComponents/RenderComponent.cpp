@@ -64,7 +64,7 @@ void RenderComponent::Update(float InDeltaTime)
     possessedEntityPos = possessedEntity->GetPosition();
   }
   
-  spriteInstance_.myPosition = (owner_->GetPosition() - possessedEntityPos) * resolution + resolution / 2.f;
+  spriteInstance_.myPosition = (owner_->GetPosition() - possessedEntityPos) * resolution.y + resolution / 2.f;
   spriteInstance_.mySize = spriteSize_ * spriteSizeMultiplier_;
   spriteInstance_.myRotation = std::atan2(owner_->GetDirection().y, owner_->GetDirection().x);
     

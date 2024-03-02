@@ -18,6 +18,8 @@ void ControllerComponent::Update(float InDeltaTime)
   currentDirection_.x = FMath::Lerp(currentDirection_.x, targetDirection_.x, directionLerpSpeed_ * InDeltaTime);
   currentDirection_.y = FMath::Lerp(currentDirection_.y, targetDirection_.y, directionLerpSpeed_ * InDeltaTime);
   owner_->SetDirection({currentDirection_.x, currentDirection_.y});
+
+  // std::cout << "Rotation " << std::atan2(currentDirection_.y, currentDirection_.x) << " Target Rotation " << std::atan2(targetDirection_.y, targetDirection_.x) << "\n";
 }
 
 void ControllerComponent::FixedUpdate()
@@ -114,7 +116,7 @@ void ControllerComponent::UpdateServerPosition()
     }
     
     UpdateVelocity(input.xInputDir, input.yInputDir);
-    newPos += velocity_;
+    newPos += targetDirection_ * velocity_;
   }
   lastInputSequenceNr_ = inputHistoryBuffer_[indexesBehind].sequenceNr;
 
@@ -128,8 +130,8 @@ void ControllerComponent::UpdateServerPosition()
   entryData.sequenceNr = lastInputSequenceNr_;
   entryData.xPosition = newPos.x;
   entryData.yPosition = newPos.y;
-  entryData.xVelocity = velocity_.x;
-  entryData.yVelocity = velocity_.y;
+  entryData.rotation = atan2(targetDirection_.y, targetDirection_.x);
+  entryData.velocity = velocity_;
   
   owner_->SetPosition({newPos.x, newPos.y}, true);
 
@@ -145,9 +147,6 @@ void ControllerComponent::UpdateServerPosition()
 
   // Update net position for culling
   Net::PacketManager::Get()->UpdateClientNetPosition(possessedBy_, lodPos);
-  
-  // Update target direction
-  targetDirection_ = velocity_.GetNormalized();
 }
 
 void ControllerComponent::UpdateClientPositionFromServerPositionUpdate()
@@ -155,7 +154,8 @@ void ControllerComponent::UpdateClientPositionFromServerPositionUpdate()
   constexpr int indexToFetchPositionFrom = 0;
   const PositionUpdateEntry& updateEntry = positionUpdatesBuffer_[indexToFetchPositionFrom];
   Tga::Vector2f newTargetPos = {updateEntry.xPosition, updateEntry.yPosition};
-  velocity_ = { updateEntry.xVelocity, updateEntry.yVelocity };
+  targetDirection_ = { std::cos(updateEntry.rotation), std::sin(updateEntry.rotation) };
+  velocity_ = updateEntry.velocity;
   
   positionUpdateSequenceNr_ = updateEntry.sequenceNr;
   
@@ -171,47 +171,39 @@ void ControllerComponent::UpdateClientPositionFromServerPositionUpdate()
         break;
       }
       UpdateVelocity(entry.xInputDir, entry.yInputDir);
-      newTargetPos += velocity_;
+      newTargetPos += targetDirection_ * velocity_;
     }
   }
 
   // Update Target Position
   owner_->SetTargetPosition(newTargetPos);
-
-  // Update target direction
-  targetDirection_ = velocity_.GetNormalized();
 }
 
 void ControllerComponent::UpdateVelocity(const float InInputX, const float InInputY)
 {
-  const float xVelocity = InInputX;
-  const float yVelocity = InInputY;
-  Tga::Vector2f netVector = { xVelocity, yVelocity };
-  netVector.Normalize();
+  Tga::Vector2f inputDirection = { InInputX, InInputY };
+  inputDirection.Normalize();
   
-  netVector *= GetSpeed();
-  netVector *= acceleration_;
-  velocity_ += netVector;
-  velocity_.x -= velocity_.x < 0.f ? resistance_ * -1.f
-    : resistance_;
-  velocity_.y -= velocity_.y < 0.f ? resistance_ * -1.f
-    : resistance_;
+  targetDirection_ += inputDirection * directionChangeSpeed_ * FIXED_UPDATE_DELTA_TIME;
+  targetDirection_.Normalize();
 
-  // Clamp minimum velocity
-  if (netVector.x == 0 && std::abs(velocity_.x) < 0.0001f)
+  float dot = inputDirection.Dot(targetDirection_);
+  if (dot < 0.3f)
   {
-    velocity_.x = 0.f;
+    dot = 0.f;
   }
-  if (netVector.y == 0 && std::abs(velocity_.y) < 0.0001f)
+  
+  if (inputDirection.LengthSqr() > 0.5)
   {
-    velocity_.y = 0.f;
+    velocity_ += dot * speed_ * acceleration_ * FIXED_UPDATE_DELTA_TIME;
   }
 
+  velocity_ *= resistanceMultiplier_;
+  
   // Clamp maximum velocity
-  if (velocity_.LengthSqr() >= maxVelocity_ * maxVelocity_)
+  if (velocity_ > maxVelocity_ * FIXED_UPDATE_DELTA_TIME)
   {
-    velocity_.Normalize();
-    velocity_ *= maxVelocity_;
+    velocity_ = maxVelocity_ * FIXED_UPDATE_DELTA_TIME;
   }
 }
 

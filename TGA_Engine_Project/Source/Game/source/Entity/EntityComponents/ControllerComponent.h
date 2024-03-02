@@ -15,8 +15,8 @@ struct PositionUpdateEntry
   uint32_t sequenceNr = 0;
   float xPosition;
   float yPosition;
-  float xVelocity;
-  float yVelocity;
+  float rotation;
+  float velocity;
 };
 
 struct InputUpdateEntry
@@ -62,18 +62,19 @@ private:
   Tga::Vector2f targetDirection_ = { 0, 1 };
   Tga::Vector2f currentDirection_ = { 0, 1 };
   
-  Tga::Vector2f velocity_ = {};
+  float velocity_ = 0.f;
 
   // Character movement settings
-  const float maxVelocity_ = 0.5f * FIXED_UPDATE_DELTA_TIME;
-  const float acceleration_ = 0.04f * FIXED_UPDATE_DELTA_TIME;
-  const float resistance_ = 0.004f * FIXED_UPDATE_DELTA_TIME;
+  const float maxVelocity_ = 0.8f;
+  const float acceleration_ = 0.02f;
+  const float resistanceMultiplier_ = 0.98f;
+  const float directionChangeSpeed_ = 2.8f;
   
   NetUtility::NetVector3 inputDirection_ = {};
   
   sockaddr_storage possessedBy_ = {};
   
-  float speed_ = 0.5f;
+  float speed_ = 0.8f;
   bool bIsPossessed_ = false;
 
   uint32_t sequenceNumberIter_ = 1.f;

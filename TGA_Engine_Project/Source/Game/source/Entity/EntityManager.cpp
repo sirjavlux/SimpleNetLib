@@ -445,6 +445,7 @@ void EntityManager::RegisterPacketComponents()
   {
     false,
     FIXED_UPDATE_DELTA_TIME,
+    6.f,
     EPacketHandlingType::Ack
   };
   
@@ -459,6 +460,7 @@ void EntityManager::RegisterPacketComponents()
   {
     false,
     FIXED_UPDATE_DELTA_TIME,
+    1.f,
     EPacketHandlingType::None,
   };
   Net::PacketManager::Get()->RegisterPacketComponent<InputComponent, EntityManager>(associatedDataEveryTick, &EntityManager::OnInputReceived, this);
@@ -471,6 +473,7 @@ void EntityManager::RegisterPacketComponents()
   {
     true,
     FIXED_UPDATE_DELTA_TIME,
+    1.f,
     EPacketHandlingType::None,
     6.f,
     packetLodFrequencies

@@ -125,10 +125,10 @@ void PacketManager::FixedUpdate()
 void PacketManager::UpdatePacketsWaitingForReturnAck(const sockaddr_storage& InTarget, const PacketTargetData& InTargetData) const
 {
     const std::map<uint32_t, std::pair<PacketFrequencyData, Packet>>& packetsNotReturned = InTargetData.GetPacketsNotReturned();
-    for (const std::pair<uint32_t, std::pair<PacketFrequencyData, Packet>>& packetDataPair : packetsNotReturned)
+    for (const auto& packetDataPair : packetsNotReturned)
     {
         const PacketFrequencyData& frequencyData = packetDataPair.second.first;
-        if (DoesUpdateIterMatchPacketFrequency(frequencyData))
+        if (DoesUpdateIterMatchPacketFrequency(frequencyData, true))
         {
             const Packet& packet = packetDataPair.second.second;
             netHandler_->SendPacketToTarget(InTarget, packet);
@@ -143,7 +143,7 @@ void PacketManager::UpdatePacketsToSend(const sockaddr_storage& InTarget, Packet
     for (auto packetIter = packetComponents.begin(); packetIter != packetComponents.end(); ++packetIter)
     {
         const PacketFrequencyData& frequencyData = packetIter->first;
-        if (DoesUpdateIterMatchPacketFrequency(frequencyData))
+        if (DoesUpdateIterMatchPacketFrequency(frequencyData, false))
         {
             const EPacketHandlingType handlingType = frequencyData.handlingType;
             Packet packet = Packet(handlingType);
@@ -198,15 +198,21 @@ void PacketManager::UpdatePacketsToSend(const sockaddr_storage& InTarget, Packet
     }
 }
 
-bool PacketManager::DoesUpdateIterMatchPacketFrequency(const PacketFrequencyData& InPacketFrequencyData) const
+bool PacketManager::DoesUpdateIterMatchPacketFrequency(const PacketFrequencyData& InPacketFrequencyData, const bool InIsPacketResend) const
 {
     if (InPacketFrequencyData.frequency == 0)
     {
         return false;
     }
 
+    int modifiedFrequency = InPacketFrequencyData.frequency;
+    if (InIsPacketResend)
+    {
+       modifiedFrequency = static_cast<int>(static_cast<float>(modifiedFrequency) * InPacketFrequencyData.ackFrequencyMultiplier);
+    }
+    
     const int updateIterator = std::abs(updateIterator_);
-    return updateIterator % InPacketFrequencyData.frequency == 0;
+    return updateIterator % modifiedFrequency == 0;
 }
 
 void PacketManager::OnNetTargetConnected(const sockaddr_storage& InTarget)
@@ -241,7 +247,8 @@ void PacketManager::RegisterDefaultPacketComponents()
         const PacketComponentAssociatedData associatedData = PacketComponentAssociatedData
         {
             false,
-            1.4f,
+            0.3f,
+            4.f,
             EPacketHandlingType::Ack
         };
         RegisterPacketComponent<ServerConnectPacketComponent, NetHandler>(associatedData, &NetHandler::OnChildConnectionReceived, netHandler_);
@@ -250,7 +257,8 @@ void PacketManager::RegisterDefaultPacketComponents()
         const PacketComponentAssociatedData associatedData = PacketComponentAssociatedData
         {
             false,
-            1.4f,
+            0.3f,
+            4.f,
             EPacketHandlingType::Ack
         };
         RegisterPacketComponent<ServerDisconnectPacketComponent, NetHandler>(associatedData, &NetHandler::OnChildDisconnectReceived, netHandler_);
@@ -259,7 +267,8 @@ void PacketManager::RegisterDefaultPacketComponents()
         const PacketComponentAssociatedData associatedData = PacketComponentAssociatedData
         {
             false,
-            0.3f,
+            0.05f,
+            1.f,
             EPacketHandlingType::None
         };
         RegisterPacketComponent<ReturnAckComponent, PacketManager>(associatedData, &PacketManager::OnAckReturnReceived, this);
@@ -269,6 +278,7 @@ void PacketManager::RegisterDefaultPacketComponents()
         {
             false,
             1.f,
+            1.f,
             EPacketHandlingType::None
         };
         RegisterPacketComponent<ServerPingPacketComponent>(associatedData);
@@ -277,7 +287,8 @@ void PacketManager::RegisterDefaultPacketComponents()
         const PacketComponentAssociatedData associatedData = PacketComponentAssociatedData
         {
             false,
-            1.f,
+            0.3f,
+            4.f,
             EPacketHandlingType::Ack
         };
         RegisterPacketComponent<SuccessfullyConnectedToServer, NetHandler>(associatedData, &NetHandler::OnConnectionToServerSuccessful, netHandler_);

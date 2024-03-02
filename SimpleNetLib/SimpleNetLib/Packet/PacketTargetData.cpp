@@ -15,7 +15,8 @@ void Net::PacketTargetData::AddPacketComponentToSend(const std::shared_ptr<Packe
     return;
   }
   
-  const PacketFrequencyData frequencyData = { FromPacketComponentSendFrequencySecondsToTicks(packetComponentSettings->packetFrequencySeconds), packetComponentSettings->handlingType }; 
+  const PacketFrequencyData frequencyData = { FromPacketComponentSendFrequencySecondsToTicks(packetComponentSettings->packetFrequencySeconds),
+    packetComponentSettings->packetFrequencyAckResendMultiplier, packetComponentSettings->handlingType }; 
 
   AddPacketComponentToSend(InComponent, frequencyData, packetComponentSettings);
 }
@@ -38,7 +39,8 @@ void Net::PacketTargetData::AddPacketComponentToSendWithLod(const std::shared_pt
     }
   }
 
-  const PacketFrequencyData frequencyData = { FromPacketComponentSendFrequencySecondsToTicks(frequencyToSendAt), packetComponentSettings->handlingType }; 
+  const PacketFrequencyData frequencyData = { FromPacketComponentSendFrequencySecondsToTicks(frequencyToSendAt),
+    packetComponentSettings->packetFrequencyAckResendMultiplier, packetComponentSettings->handlingType }; 
 
   AddPacketComponentToSend(InComponent, frequencyData, packetComponentSettings);
 }

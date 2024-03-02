@@ -5,6 +5,7 @@
 struct PacketFrequencyData
 {
 	uint8_t frequency = 30;
+	float ackFrequencyMultiplier = 1.f;
 	EPacketHandlingType handlingType;
   
 	bool operator==(const PacketFrequencyData& InOther) const
@@ -26,6 +27,7 @@ struct PacketComponentAssociatedData
 
 	// Send delay in seconds/60 fps fixed
 	float packetFrequencySeconds = 0.5f;
+	float packetFrequencyAckResendMultiplier = 2.f;
 	
 	EPacketHandlingType handlingType;
 

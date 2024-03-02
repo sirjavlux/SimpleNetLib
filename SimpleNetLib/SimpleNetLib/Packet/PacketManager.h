@@ -78,7 +78,7 @@ private:
 
     std::chrono::steady_clock::time_point lastUpdateFinishedTime_;
     
-    bool DoesUpdateIterMatchPacketFrequency(const PacketFrequencyData& InPacketFrequencyData) const;
+    bool DoesUpdateIterMatchPacketFrequency(const PacketFrequencyData& InPacketFrequencyData, bool InIsPacketResend) const;
     
     static void OnNetTargetConnected(const sockaddr_storage& InTarget);
     static void OnNetTargetDisconnection(const sockaddr_storage& InTarget, ENetDisconnectType InDisconnectType);

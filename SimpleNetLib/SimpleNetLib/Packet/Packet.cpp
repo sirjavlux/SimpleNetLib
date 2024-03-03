@@ -99,6 +99,7 @@ void Packet::ExtractComponent(std::vector<const PacketComponent*>& OutComponents
     OutComponents.push_back(componentExtracted);
     
     Iterator += componentSize;
+    
     ExtractComponent(OutComponents, Iterator);
 }
 }

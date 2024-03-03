@@ -10,6 +10,7 @@
 #include "../Collision/CollisionManager.h"
 #include "../EntityComponents/ColliderComponent.h"
 #include "Packet/PacketManager.h"
+#include "Packet/CorePacketComponents/DataReplicationPacketComponent.hpp"
 
 class RenderComponent;
 class EntityComponent;
@@ -17,7 +18,8 @@ class EntityComponent;
 class Entity
 {
 public:
-	virtual ~Entity() = default;
+	Entity();
+	~Entity();
 
 	virtual void Init() = 0;
 
@@ -58,9 +60,18 @@ public:
 
 	Tga::Vector2f GetDirection() const { return direction_; }
 	void SetDirection(const Tga::Vector2f InDirection) { direction_ = InDirection.GetNormalized(); }
+
+	// Server Sided
+	virtual void OnSendReplication(DataReplicationPacketComponent& OutComponent) {}
+	// Client Sided
+	virtual void OnReadReplication(DataReplicationPacketComponent& InComponent) {} 
+
+	void OnReadReplicationBase(const sockaddr_storage& InAddress, const Net::PacketComponent& InComponent);
 	
 protected:
 	void UpdateReplication();
+
+	DataReplicationPacketComponent replicationPacketComponent_;
 	
 	uint16_t id_ = 0;
 	Tga::Vector2f position_;
@@ -86,15 +97,6 @@ std::weak_ptr<ComponentType> Entity::AddComponent()
 	{
 		return std::weak_ptr<ComponentType>();
 	}
-
-	// Commented out to allow multiple of same component
-	/*
-	std::weak_ptr<ComponentType> foundComponent = GetComponent<ComponentType>();
-	if (foundComponent.lock().get() != nullptr)
-	{
-		return foundComponent;
-	}
-	*/
 
 	static uint16_t componentIdIter = 0;
 	const uint16_t newComponentId = ++componentIdIter;
@@ -172,6 +174,16 @@ std::weak_ptr<ComponentType> Entity::GetFirstComponent()
 	return std::weak_ptr<ComponentType>();
 }
 
+inline Entity::Entity()
+{
+	Net::PacketManager::Get()->GetPacketComponentDelegator().SubscribeToPacketComponentDelegate<DataReplicationPacketComponent, Entity>(&Entity::OnReadReplicationBase, this);
+}
+
+inline Entity::~Entity()
+{
+	Net::PacketManager::Get()->GetPacketComponentDelegator().UnSubscribeFromPacketComponentDelegate<DataReplicationPacketComponent, Entity>(&Entity::OnReadReplicationBase, this);
+}
+
 inline void Entity::UpdateComponents(const float InDeltaTime)
 {
 	for (std::shared_ptr<EntityComponent> component : components_)
@@ -190,7 +202,10 @@ inline void Entity::FixedUpdateComponents()
 
 inline void Entity::NativeFixedUpdate()
 {
-	UpdateReplication();
+	if (Net::PacketManager::Get()->IsServer())
+	{
+		UpdateReplication();
+	}
 }
 
 inline void Entity::UpdateRender()
@@ -210,8 +225,28 @@ inline void Entity::SetPosition(const Tga::Vector2f& InPos, const bool InIsTelep
 	}
 }
 
+inline void Entity::OnReadReplicationBase(const sockaddr_storage& InAddress, const Net::PacketComponent& InComponent)
+{
+	const DataReplicationPacketComponent& castedComponent = reinterpret_cast<const DataReplicationPacketComponent&>(InComponent);
+	if (castedComponent.identifierData == id_)
+	{
+		DataReplicationPacketComponent componentCpy = castedComponent;
+		componentCpy.dataIter = 0;
+		OnReadReplication(componentCpy);
+	}
+}
+
 inline void Entity::UpdateReplication()
 {
+	// Custom replication
+	SecureZeroMemory(&replicationPacketComponent_, sizeof(replicationPacketComponent_));
+	replicationPacketComponent_.identifierData = id_;
+	OnSendReplication(replicationPacketComponent_);
+	if (replicationPacketComponent_.GetSize() > REPLICATION_COMPONENT_SIZE_EMPTY)
+	{
+		Net::PacketManager::Get()->SendPacketComponentMulticast<DataReplicationPacketComponent>(replicationPacketComponent_);
+	}
+	
 	// Replicate position if enabled
 	if (bShouldReplicatePosition_)
 	{

@@ -44,3 +44,13 @@ void BulletEntity::FixedUpdate()
 		}
 	}
 }
+
+void BulletEntity::OnReadReplication(DataReplicationPacketComponent& InComponent)
+{
+	shooterId_ << InComponent;
+}
+
+void BulletEntity::OnSendReplication(DataReplicationPacketComponent& OutComponent)
+{
+	OutComponent << shooterId_;
+}

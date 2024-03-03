@@ -63,7 +63,10 @@ public:
   // Server sided
   void MarkEntityForDestruction(const uint16_t InIdentifier)
   {
-    entitiesToDestroy_.push_back(InIdentifier);
+    if (Net::PacketManager::Get()->IsServer())
+    {
+      entitiesToDestroy_.push_back(InIdentifier);
+    }
   }
   
 private:

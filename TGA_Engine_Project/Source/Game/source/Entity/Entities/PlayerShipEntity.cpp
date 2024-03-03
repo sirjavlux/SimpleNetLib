@@ -33,18 +33,43 @@ void PlayerShipEntity::Update(float InDeltaTime)
 
 void PlayerShipEntity::OnTriggerEntered(const ColliderComponent& InCollider)
 {
-  if (Net::PacketManager::Get()->IsServer() && InCollider.GetOwner()->GetTypeTagHash() == NetTag("bullet").GetHash())
+  const BulletEntity* bulletEntity = static_cast<const BulletEntity*>(InCollider.GetOwner());
+  // Collision with projectile
+  if (bulletEntity->GetTypeTagHash() == NetTag("bullet").GetHash() && bulletEntity->GetShooterId() != GetId()) // TODO: Solve problem with delayed replication not picking this up straight away
   {
-    const BulletEntity* bulletEntity = static_cast<const BulletEntity*>(InCollider.GetOwner());
-    // Collision with projectile
-    if (bulletEntity->GetShooterId() != GetId()) // Need to create variable packet component to handle replication of wanted entity data
+    std::cout << "Enemy Hit!\n";
+    
+    if (Net::PacketManager::Get()->IsServer())
     {
-      std::cout << "Enemy Hit!\n";
+      health_ -= bulletEntity->GetDamage();
+    } else
+    {
+      RenderComponent* renderComponent = GetFirstComponent<RenderComponent>().lock().get();
+      renderComponent->SetColor({ 5.f, 0.0f, 0.7f, 1.f });
     }
   }
 }
 
 void PlayerShipEntity::OnTriggerExit(const ColliderComponent& InCollider)
 {
-  
+  const BulletEntity* bulletEntity = static_cast<const BulletEntity*>(InCollider.GetOwner());
+  // Collision with projectile
+  if (bulletEntity->GetTypeTagHash() == NetTag("bullet").GetHash() && bulletEntity->GetShooterId() != GetId()) // Need to create variable packet component to handle replication of wanted entity data
+  {
+    if (!Net::PacketManager::Get()->IsServer())
+    {
+      RenderComponent* renderComponent = GetFirstComponent<RenderComponent>().lock().get();
+      renderComponent->SetColor({ 1.f, 1.f, 1.f, 1.f });
+    }
+  }
+}
+
+void PlayerShipEntity::OnReadReplication(DataReplicationPacketComponent& InComponent)
+{
+  health_ << InComponent;
+}
+
+void PlayerShipEntity::OnSendReplication(DataReplicationPacketComponent& OutComponent)
+{
+  OutComponent << health_;
 }

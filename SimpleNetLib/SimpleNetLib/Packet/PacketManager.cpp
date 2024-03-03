@@ -2,6 +2,7 @@
 
 #include "../Events/EventSystem.h"
 #include "../Network/NetHandler.h"
+#include "CorePacketComponents/DataReplicationPacketComponent.hpp"
 #include "CorePacketComponents/ReturnAckComponent.hpp"
 #include "CorePacketComponents\ServerConnectPacketComponent.hpp"
 #include "CorePacketComponents\ServerDisconnectPacketComponent.hpp"
@@ -243,6 +244,15 @@ void PacketManager::OnAckReturnReceived(const sockaddr_storage& InTarget, const 
 
 void PacketManager::RegisterDefaultPacketComponents()
 {
+    {
+        const PacketComponentAssociatedData associatedData = PacketComponentAssociatedData
+        {
+            true,
+            FIXED_UPDATE_DELTA_TIME,
+            1.f,
+        };
+        RegisterPacketComponent<DataReplicationPacketComponent>(associatedData);
+    }
     {
         const PacketComponentAssociatedData associatedData = PacketComponentAssociatedData
         {

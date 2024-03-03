@@ -133,9 +133,9 @@ bool PacketManager::SendPacketComponent(const ComponentType& InPacketComponent, 
     lastTimePacketSent_ = std::chrono::steady_clock::now(); // Reset server ping timer
     
     // Check Component Validity
-    if (!IsPacketComponentValid<ComponentType>())
+    if (!IsPacketComponentValid<ComponentType>() && InPacketComponent.GetSize() <= NET_PACKET_COMPONENT_DATA_SIZE_TOTAL)
     {
-        throw std::runtime_error("ComponentType isn't a valid PacketComponent. Make sure identifier and size is set");
+        throw std::runtime_error("ComponentType isn't a valid PacketComponent. Make sure size is set and inside bounds.");
     }
     
     PacketTargetData& packetTargetData = packetTargetDataMap_.at(InTarget);
@@ -154,7 +154,7 @@ bool PacketManager::SendPacketComponentMulticast(const ComponentType& InPacketCo
         const std::unordered_map<sockaddr_in, NetTarget>& connections = netHandler_->connectionHandler_.GetConnections();
         for (const auto& connection : connections)
         {
-            SendPacketComponent(InPacketComponent, NetUtility::RetrieveStorageFromIPv4Address(connection.first));
+            SendPacketComponent<ComponentType>(InPacketComponent, NetUtility::RetrieveStorageFromIPv4Address(connection.first));
         }
         return true;
     }

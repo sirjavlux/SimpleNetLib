@@ -13,7 +13,14 @@ public:
 	void SetShooter(const uint16_t InIdentifier) { shooterId_ = InIdentifier; }
 	uint16_t GetShooterId() const { return shooterId_; }
 
+	void OnReadReplication(DataReplicationPacketComponent& InComponent) override;
+	void OnSendReplication(DataReplicationPacketComponent& OutComponent) override;
+
+	uint16_t GetDamage() const { return damage_; }
+	
 private:
 	uint16_t shooterId_ = 0;
-	float speed_ = 5.f;;
+	float speed_ = 5.f;
+
+	uint16_t damage_ = 12;
 };

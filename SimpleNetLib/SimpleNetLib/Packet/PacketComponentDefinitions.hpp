@@ -17,7 +17,8 @@ enum class EPacketComponent : uint16_t
 
     // Other
     ReturnAck                       = 21,
-    ServerPing                      = 22
+    ServerPing                      = 22,
+    DataReplication                 = 23,
 };
 }
 

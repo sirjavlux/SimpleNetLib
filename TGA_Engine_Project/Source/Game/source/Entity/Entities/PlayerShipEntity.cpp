@@ -37,7 +37,7 @@ void PlayerShipEntity::OnTriggerEntered(const ColliderComponent& InCollider)
   {
     const BulletEntity* bulletEntity = static_cast<const BulletEntity*>(InCollider.GetOwner());
     // Collision with projectile
-    if (bulletEntity->GetShooterId() != GetId())
+    if (bulletEntity->GetShooterId() != GetId()) // Need to create variable packet component to handle replication of wanted entity data
     {
       std::cout << "Enemy Hit!\n";
     }

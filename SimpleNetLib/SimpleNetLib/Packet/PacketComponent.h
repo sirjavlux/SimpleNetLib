@@ -75,10 +75,10 @@ public:
 	
 	PacketComponent& operator=(const PacketComponent& InPacketComponent);
 	
-private:
+protected:
 	uint16_t sizeData_ = 0;
+private:
 	int16_t identifier_ = -1; // Valid identifier can't be negative
-
 public:
 	uint16_t overrideDefiningData = 0;
 };

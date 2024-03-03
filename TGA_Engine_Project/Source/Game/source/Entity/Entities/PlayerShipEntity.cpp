@@ -36,14 +36,15 @@ void PlayerShipEntity::OnTriggerEntered(const ColliderComponent& InCollider)
   const BulletEntity* bulletEntity = static_cast<const BulletEntity*>(InCollider.GetOwner());
   // Collision with projectile
   if (bulletEntity->GetTypeTagHash() == NetTag("bullet").GetHash()
-    && bulletEntity->GetShooterId() != 0 && bulletEntity->GetShooterId() != GetId()) // TODO: Solve problem with delayed replication not picking this up straight away
+    && bulletEntity->GetShooterId() != 0 && bulletEntity->GetShooterId() != GetId())
   {
     std::cout << "Enemy Hit!\n";
     
     if (Net::PacketManager::Get()->IsServer())
     {
       health_ -= bulletEntity->GetDamage();
-    } else
+    }
+    else
     {
       RenderComponent* renderComponent = GetFirstComponent<RenderComponent>().lock().get();
       renderComponent->SetColor({ 5.f, 0.0f, 0.7f, 1.f });
@@ -56,7 +57,7 @@ void PlayerShipEntity::OnTriggerExit(const ColliderComponent& InCollider)
   const BulletEntity* bulletEntity = static_cast<const BulletEntity*>(InCollider.GetOwner());
   // Collision with projectile
   if (bulletEntity->GetTypeTagHash() == NetTag("bullet").GetHash()
-    && bulletEntity->GetShooterId() != 0 && bulletEntity->GetShooterId() != GetId()) // Need to create variable packet component to handle replication of wanted entity data
+    && bulletEntity->GetShooterId() != 0 && bulletEntity->GetShooterId() != GetId())
   {
     if (!Net::PacketManager::Get()->IsServer())
     {

@@ -239,7 +239,7 @@ inline void Entity::OnReadReplicationBase(const sockaddr_storage& InAddress, con
 inline void Entity::UpdateReplication()
 {
 	// Custom replication
-	SecureZeroMemory(&replicationPacketComponent_, sizeof(replicationPacketComponent_));
+	replicationPacketComponent_.Reset();
 	replicationPacketComponent_.identifierData = id_;
 	OnSendReplication(replicationPacketComponent_);
 	if (replicationPacketComponent_.GetSize() > REPLICATION_COMPONENT_SIZE_EMPTY)

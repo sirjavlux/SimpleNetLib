@@ -10,6 +10,8 @@ class NET_LIB_EXPORT DataReplicationPacketComponent : public Net::PacketComponen
 public:
 	explicit DataReplicationPacketComponent();
 
+	void Reset();
+	
 	uint16_t identifierData;
 	uint8_t data[REPLICATION_DATA_SIZE];
 
@@ -52,5 +54,12 @@ T operator<<(T& OutResult, DataReplicationPacketComponent& InComponent)
 }
 
 inline DataReplicationPacketComponent::DataReplicationPacketComponent()
-	: PacketComponent(static_cast<int16_t>(Net::EPacketComponent::DataReplication), DEFAULT_PACKET_COMPONENT_SIZE) // Exclude size of data in the child component as it can vary
+	: PacketComponent(static_cast<int16_t>(Net::EPacketComponent::DataReplication), REPLICATION_COMPONENT_SIZE_EMPTY) // Exclude size of data in the child component as it can vary
 { }
+
+inline void DataReplicationPacketComponent::Reset()
+{
+	SecureZeroMemory(&data, sizeof(data));
+	sizeData_ = REPLICATION_COMPONENT_SIZE_EMPTY;
+	dataIter = 0;
+}

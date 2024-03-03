@@ -332,5 +332,4 @@ void ControllerComponent::UpdateInput()
   
   // Reset Input
   input_ = { 0.f, 0.f };
-  inputTargetDirection_ = 0.f;
 }

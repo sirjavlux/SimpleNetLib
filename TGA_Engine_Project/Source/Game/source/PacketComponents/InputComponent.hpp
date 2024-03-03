@@ -15,10 +15,6 @@ enum class EKeyInput : uint16_t
 	S = 1 << 3,
 	A = 1 << 4,
 	D = 1 << 5,
-	/*
-	Q = 1 << 6,
-	E = 1 << 7,
-	*/
 };
 
 inline EKeyInput operator|(EKeyInput InLhs, EKeyInput InRhs)

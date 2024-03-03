@@ -15,8 +15,10 @@ enum class EKeyInput : uint16_t
 	S = 1 << 3,
 	A = 1 << 4,
 	D = 1 << 5,
+	/*
 	Q = 1 << 6,
 	E = 1 << 7,
+	*/
 };
 
 inline EKeyInput operator|(EKeyInput InLhs, EKeyInput InRhs)
@@ -47,6 +49,7 @@ public:
 	uint16_t entityIdentifier = 0;
 	uint16_t keysPressBuffer = 0; 
 	uint32_t sequenceNr = 0;
+	float inputTargetDirection = 0.f;
 };
 
 inline InputComponent::InputComponent()

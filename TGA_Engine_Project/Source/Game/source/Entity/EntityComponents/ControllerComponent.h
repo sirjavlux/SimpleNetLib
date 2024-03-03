@@ -23,9 +23,9 @@ struct PositionUpdateEntry
 struct InputUpdateEntry
 {
   uint32_t sequenceNr = 0;
-  float xInputDir;
-  float yInputDir;
-  float rotation;
+  float xInputForce;
+  float yInputForce;
+  float inputTargetDirection;
 };
 
 namespace Net
@@ -50,9 +50,11 @@ public:
   void UpdatePositionBuffer(const PositionUpdateEntry& InUpdateEntry);
   bool UpdateInputBuffer(const InputUpdateEntry& InUpdateEntry);
   
-  void UpdateVelocity(float InInputX, float InInputY, float InInputRotation);
+  void UpdateVelocity(float InInputX, float InInputY, float InInputTargetDirection);
 
   const Tga::Vector2f& GetVelocity() const { return velocity_; }
+
+  static void GetCursorPosInScreenSpace(const HWND& InHwd, POINT& OutCursorPoint);
   
 private:
   void UpdateServerPosition();
@@ -60,20 +62,21 @@ private:
   
   void UpdateInput();
 
-  const float directionLerpSpeed_ = 2.f;
+  const float directionLerpSpeed_ = 4.f;
   Tga::Vector2f targetDirection_ = { 0, 1 };
   Tga::Vector2f currentDirection_ = { 0, 1 };
   
   Tga::Vector2f velocity_ = 0.f;
 
   // Character movement settings
-  const float maxVelocity_ = 0.8f;
-  const float acceleration_ = 0.02f;
+  const float maxVelocity_ = 0.5f;
+  const float acceleration_ = 0.012f;
   const float resistanceMultiplier_ = 0.98f;
-  const float directionChangeSpeed_ = 2.8f;
+  const float directionChangeSpeed_ = 4.;
 
-  float inputRotation_;
-  Tga::Vector2f inputDirection_;
+  POINT lastCursorPos_;
+  float inputTargetDirection_;
+  Tga::Vector2f input_;
   
   sockaddr_storage possessedBy_ = {};
   

@@ -237,7 +237,7 @@ void EntityManager::OnEntityDespawnRequestReceived(const sockaddr_storage& InAdd
 void EntityManager::OnConnectionReceived(const sockaddr_storage& InAddress, const Net::PacketComponent& InComponent)
 {
   // Spawn existing entities // TODO: Might need to update this to not be as intense, sending data pieces culled by range
-  for (const std::pair<uint16_t, std::shared_ptr<Entity>>& entity : entities_)
+  for (const auto& entity : entities_)
   {
     SpawnEntityComponent spawnEntityComponent;
     spawnEntityComponent.entityId = entity.second->GetId();
@@ -276,29 +276,23 @@ void EntityManager::OnInputReceived(const sockaddr_storage& InAddress, const Net
       const EKeyInput input = static_cast<EKeyInput>(component->keysPressBuffer);
       if ((input & EKeyInput::W) != EKeyInput::None)
       {
-        entry.yInputDir += 1.f;
+        entry.yInputForce += 1.f;
       }
       if ((input & EKeyInput::S) != EKeyInput::None)
       {
-        entry.yInputDir += -1.f;
+        entry.yInputForce += -1.f;
       }
       if ((input & EKeyInput::A) != EKeyInput::None)
       {
-        entry.xInputDir += -1.f;
+        entry.xInputForce += -1.f;
       }
       if ((input & EKeyInput::D) != EKeyInput::None)
       {
-        entry.xInputDir += 1.f;
-      }
-      if ((input & EKeyInput::Q) != EKeyInput::None)
-      {
-        entry.rotation += 1.f;
-      }
-      if ((input & EKeyInput::E) != EKeyInput::None)
-      {
-        entry.rotation += -1.f;
+        entry.xInputForce += 1.f;
       }
 
+      entry.inputTargetDirection = component->inputTargetDirection;
+      
       // Update input buffer
       controllerComponent->UpdateInputBuffer(entry);
       
@@ -441,7 +435,7 @@ uint16_t EntityManager::GenerateEntityIdentifier()
 
 void EntityManager::RegisterPacketComponents()
 {
-  const PacketComponentAssociatedData associatedDataSpawnDeSpawnComps = PacketComponentAssociatedData
+  const PacketComponentAssociatedData associatedDataAckComps = PacketComponentAssociatedData
   {
     false,
     FIXED_UPDATE_DELTA_TIME,
@@ -449,12 +443,12 @@ void EntityManager::RegisterPacketComponents()
     EPacketHandlingType::Ack
   };
   
-  Net::PacketManager::Get()->RegisterPacketComponent<DeSpawnEntityComponent, EntityManager>(associatedDataSpawnDeSpawnComps, &EntityManager::OnEntityDespawnReceived, this);
-  Net::PacketManager::Get()->RegisterPacketComponent<SpawnEntityComponent, EntityManager>(associatedDataSpawnDeSpawnComps, &EntityManager::OnEntitySpawnReceived, this);
-  Net::PacketManager::Get()->RegisterPacketComponent<RequestDeSpawnEntityComponent, EntityManager>(associatedDataSpawnDeSpawnComps, &EntityManager::OnEntityDespawnRequestReceived, this);
-  Net::PacketManager::Get()->RegisterPacketComponent<RequestSpawnEntityComponent, EntityManager>(associatedDataSpawnDeSpawnComps, &EntityManager::OnEntitySpawnRequestReceived, this);
+  Net::PacketManager::Get()->RegisterPacketComponent<DeSpawnEntityComponent, EntityManager>(associatedDataAckComps, &EntityManager::OnEntityDespawnReceived, this);
+  Net::PacketManager::Get()->RegisterPacketComponent<SpawnEntityComponent, EntityManager>(associatedDataAckComps, &EntityManager::OnEntitySpawnReceived, this);
+  Net::PacketManager::Get()->RegisterPacketComponent<RequestDeSpawnEntityComponent, EntityManager>(associatedDataAckComps, &EntityManager::OnEntityDespawnRequestReceived, this);
+  Net::PacketManager::Get()->RegisterPacketComponent<RequestSpawnEntityComponent, EntityManager>(associatedDataAckComps, &EntityManager::OnEntitySpawnRequestReceived, this);
 
-  Net::PacketManager::Get()->RegisterPacketComponent<SetEntityPossessedComponent, EntityManager>(associatedDataSpawnDeSpawnComps, &EntityManager::OnSetEntityPossessedReceived, this);
+  Net::PacketManager::Get()->RegisterPacketComponent<SetEntityPossessedComponent, EntityManager>(associatedDataAckComps, &EntityManager::OnSetEntityPossessedReceived, this);
   
   const PacketComponentAssociatedData associatedDataEveryTick = PacketComponentAssociatedData
   {

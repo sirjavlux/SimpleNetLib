@@ -15,6 +15,8 @@ void ControllerComponent::Init()
 
 void ControllerComponent::Update(float InDeltaTime)
 {
+  //currentDirection_.x = targetDirection_.x; //FMath::Lerp(currentDirection_.x, targetDirection_.x, directionLerpSpeed_ * InDeltaTime);
+  //currentDirection_.y = targetDirection_.y; //FMath::Lerp(currentDirection_.y, targetDirection_.y, directionLerpSpeed_ * InDeltaTime);
   currentDirection_.x = FMath::Lerp(currentDirection_.x, targetDirection_.x, directionLerpSpeed_ * InDeltaTime);
   currentDirection_.y = FMath::Lerp(currentDirection_.y, targetDirection_.y, directionLerpSpeed_ * InDeltaTime);
   owner_->SetDirection({currentDirection_.x, currentDirection_.y});
@@ -83,6 +85,35 @@ bool ControllerComponent::UpdateInputBuffer(const InputUpdateEntry& InUpdateEntr
   return false;
 }
 
+void ControllerComponent::GetCursorPosInScreenSpace(const HWND& InHwd, POINT& OutCursorPoint)
+{
+  RECT rect;
+  RECT clientRect;
+  POINT cursorPos;
+  if (GetCursorPos(&cursorPos) && GetClientRect(InHwd, &clientRect), GetWindowRect(InHwd, &rect))
+  {
+    const LONG screenBorderSizeXAxis = ((rect.right - rect.left) - clientRect.right) / 2;
+    rect.right -= screenBorderSizeXAxis;
+    rect.left += screenBorderSizeXAxis;
+
+    const LONG screenBorderSizeYAxis = ((rect.bottom - rect.top) - clientRect.bottom) / 2;
+    rect.bottom -= screenBorderSizeYAxis;
+    rect.top += screenBorderSizeYAxis;
+      
+    cursorPos.x -= rect.left;
+    cursorPos.y -= rect.top;
+      
+    cursorPos.x = std::clamp(cursorPos.x, 0l, rect.right - rect.left);
+    cursorPos.y = std::clamp(cursorPos.y, 0l, rect.bottom - rect.top);
+
+    cursorPos.y = clientRect.bottom - cursorPos.y; // Flip y axis
+    if (cursorPos.y < 0)
+      cursorPos.y = 0;
+      
+    OutCursorPoint = cursorPos;
+  }
+}
+
 void ControllerComponent::UpdateServerPosition()
 {
   if (!Net::PacketManager::Get()->IsServer())
@@ -108,14 +139,14 @@ void ControllerComponent::UpdateServerPosition()
     // Predict lost inputs
     while (sequenceNr > sequenceNrBehind + 1 && sequenceNr != sequenceNrBehind)
     {
-      if (!UpdateInputBuffer({sequenceNrBehind + 1, inputBehind.xInputDir, inputBehind.yInputDir }))
+      if (!UpdateInputBuffer({sequenceNrBehind + 1, inputBehind.xInputForce, inputBehind.yInputForce }))
       {
         break; 
       }
       ++sequenceNrBehind;
     }
     
-    UpdateVelocity(input.xInputDir, input.yInputDir, input.rotation);
+    UpdateVelocity(input.xInputForce, input.yInputForce, input.inputTargetDirection);
     newPos += velocity_;
   }
   lastInputSequenceNr_ = inputHistoryBuffer_[indexesBehind].sequenceNr;
@@ -171,7 +202,7 @@ void ControllerComponent::UpdateClientPositionFromServerPositionUpdate()
       {
         break;
       }
-      UpdateVelocity(entry.xInputDir, entry.yInputDir, entry.rotation);
+      UpdateVelocity(entry.xInputForce, entry.yInputForce, entry.inputTargetDirection);
       newTargetPos += velocity_;
     }
   }
@@ -180,20 +211,33 @@ void ControllerComponent::UpdateClientPositionFromServerPositionUpdate()
   owner_->SetTargetPosition(newTargetPos);
 }
 
-void ControllerComponent::UpdateVelocity(const float InInputX, const float InInputY, const float InInputRotation)
+void ControllerComponent::UpdateVelocity(const float InInputX, const float InInputY, const float InInputTargetDirection)
 {
   Tga::Vector2f inputDirection = { InInputX, InInputY };
   inputDirection.Normalize();
-  
-  const float initialX = targetDirection_.x;
-  const float initialY = targetDirection_.y;
 
-  // Calculate the new rotation and set target dir
-  const float rotation = std::atan2(initialY, initialX) + InInputRotation * 3.1415 / 180.f * directionChangeSpeed_;
-  const float cosAngle = std::cos(rotation);
-  const float sinAngle = std::sin(rotation);
+  // Calculate new target direction based on input direction
+  const Tga::Vector2f inputTargetDirVector = Tga::Vector2f(std::cos(InInputTargetDirection), std::sin(InInputTargetDirection));
+  const float rotationOld = std::atan2(targetDirection_.y, targetDirection_.x);
+
+  const float cross = targetDirection_.Cross(inputTargetDirVector);
+  const float rotDirNormalized = cross >= 0 ? 1.0f : -1.0f;
+
+  const float newTargetRotation = rotationOld + rotDirNormalized * directionChangeSpeed_ * FIXED_UPDATE_DELTA_TIME;
+
+  const float cosAngle = std::cos(newTargetRotation);
+  const float sinAngle = std::sin(newTargetRotation);
   targetDirection_ = { cosAngle, sinAngle };
 
+  // Check if exceeding inputTargetDirVector
+  const float crossNew = targetDirection_.Cross(inputTargetDirVector);
+  const float rotDirNormalizedNew = crossNew >= 0 ? 1.0f : -1.0f;
+  if (rotDirNormalized != rotDirNormalizedNew)
+  {
+    targetDirection_ = inputTargetDirVector;
+  }
+
+  // Calculate velocity
   const Tga::Vector2f forward = targetDirection_;
   const Tga::Vector2f right = targetDirection_.Normal();
   if (inputDirection.LengthSqr() > 0.5)
@@ -222,33 +266,23 @@ void ControllerComponent::UpdateInput()
   {
     if (GetAsyncKeyState('W'))
     {
-      inputDirection_.y += 1.f;
+      input_.y += 1.f;
       keyInput = keyInput | EKeyInput::W;
     }
     if (GetAsyncKeyState('S'))
     {
-      inputDirection_.y += -1.f;
+      input_.y += -1.f;
       keyInput = keyInput | EKeyInput::S;
     }
     if (GetAsyncKeyState('A'))
     {
-      inputDirection_.x += -1.f;
+      input_.x += -1.f;
       keyInput = keyInput | EKeyInput::A;
     }
     if (GetAsyncKeyState('D'))
     {
-      inputDirection_.x += 1.f;
+      input_.x += 1.f;
       keyInput = keyInput | EKeyInput::D;
-    }
-    if (GetAsyncKeyState('Q'))
-    {
-      inputRotation_ += 1.f;
-      keyInput = keyInput | EKeyInput::Q;
-    }
-    if (GetAsyncKeyState('E'))
-    {
-      inputRotation_ -= 1.f;
-      keyInput = keyInput | EKeyInput::E;
     }
     if (GetAsyncKeyState(VK_SPACE))
     {
@@ -269,25 +303,34 @@ void ControllerComponent::UpdateInput()
     {
       bIsDebugKeyPressed = false;
     }
+
+    GetCursorPosInScreenSpace(*engine.GetHWND(), lastCursorPos_);
+    const Tga::Vector2f shipScreenPos = static_cast<Tga::Vector2f>(engine.GetRenderSize()) / 2.f;
+    const Tga::Vector2f cursorPosVector = { static_cast<float>(lastCursorPos_.x), static_cast<float>(lastCursorPos_.y) };
+    const Tga::Vector2f direction = (cursorPosVector - shipScreenPos).GetNormalized();
+    inputTargetDirection_ = std::atan2(direction.y, direction.x);
+    
+    //std::cout << "Mouse X: " << lastCursorPos_.x << ", Mouse Y: " << lastCursorPos_.y << std::endl;
   }
 
   InputUpdateEntry entry;
   entry.sequenceNr = ++sequenceNumberIter_;
-  entry.xInputDir = inputDirection_.x;
-  entry.yInputDir = inputDirection_.y;
-  entry.rotation = inputRotation_;
+  entry.xInputForce = input_.x;
+  entry.yInputForce = input_.y;
+  entry.inputTargetDirection = inputTargetDirection_;
   
   // Send Input packet
   InputComponent inputComponent;
   inputComponent.entityIdentifier = owner_->GetId();
   inputComponent.sequenceNr = entry.sequenceNr;
   inputComponent.keysPressBuffer = static_cast<uint16_t>(keyInput);
+  inputComponent.inputTargetDirection = inputTargetDirection_;
   Net::PacketManager::Get()->SendPacketComponentToParent(inputComponent);
 
   // Update client input buffer
   UpdateInputBuffer(entry);
   
   // Reset Input
-  inputDirection_ = { 0.f, 0.f };
-  inputRotation_ = 0.f;
+  input_ = { 0.f, 0.f };
+  inputTargetDirection_ = 0.f;
 }

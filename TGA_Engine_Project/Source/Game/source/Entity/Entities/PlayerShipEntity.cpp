@@ -33,9 +33,7 @@ void PlayerShipEntity::Update(float InDeltaTime)
 
 void PlayerShipEntity::OnTriggerEntered(const ColliderComponent& InCollider)
 {
-  std::cout << "Trigger Entered : " << InCollider.GetOwner()->GetId() << "\n";
-  
-  if (InCollider.GetOwner()->GetTypeTagHash() == NetTag("bullet").GetHash())
+  if (Net::PacketManager::Get()->IsServer() && InCollider.GetOwner()->GetTypeTagHash() == NetTag("bullet").GetHash())
   {
     const BulletEntity* bulletEntity = static_cast<const BulletEntity*>(InCollider.GetOwner());
     // Collision with projectile
@@ -48,5 +46,5 @@ void PlayerShipEntity::OnTriggerEntered(const ColliderComponent& InCollider)
 
 void PlayerShipEntity::OnTriggerExit(const ColliderComponent& InCollider)
 {
-  std::cout << "Trigger Exited : " << InCollider.GetOwner()->GetId() << "\n";
+  
 }

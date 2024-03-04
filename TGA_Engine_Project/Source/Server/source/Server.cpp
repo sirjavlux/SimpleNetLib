@@ -26,5 +26,5 @@ void Server::End()
 
 void Server::Update()
 {
-    Net::PacketManager::Get()->Update();
+    Net::SimpleNetLibCore::Get()->Update();
 }

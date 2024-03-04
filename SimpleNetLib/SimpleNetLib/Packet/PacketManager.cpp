@@ -55,6 +55,9 @@ void PacketManager::End()
 
 void PacketManager::Update()
 {
+    if (!SimpleNetLibCore::Get()->GetNetHandler()->IsRunning())
+        return;
+    
     using namespace std::chrono;
 
     const steady_clock::time_point currentTime = steady_clock::now();
@@ -98,8 +101,6 @@ void PacketManager::FixedUpdate()
 {
     if (managerType_ == ENetworkHandleType::None)
         return;
-    
-    SimpleNetLibCore::Get()->GetNetHandler()->Update();
     
     if (!SimpleNetLibCore::Get()->GetNetHandler()->IsServer())
     {
@@ -288,7 +289,7 @@ void PacketManager::RegisterDefaultPacketComponents()
             false,
             1.f,
             1.f,
-            EPacketHandlingType::None
+            EPacketHandlingType::Ack
         };
         RegisterPacketComponent<ServerPingPacketComponent>(associatedData);
     }
@@ -317,7 +318,7 @@ void PacketManager::UpdateServerPinging()
     if (deltaTime.count() > NET_TIME_UNTIL_NEXT_SERVER_PING)
     {
         const ServerPingPacketComponent serverPingPacketComponent;
-        SendPacketComponent(serverPingPacketComponent, SimpleNetLibCore::Get()->GetNetHandler()->parentConnection_);
+        SendPacketComponent(serverPingPacketComponent, SimpleNetLibCore::Get()->GetNetHandler()->GetParentConnection());
     }
 }
 }

@@ -29,8 +29,6 @@ public:
     static PacketManager* Initialize();
     static PacketManager* Get();
     static void End();
-    
-    void Update();
 
     template<typename ComponentType>
     bool SendPacketComponentToParent(const ComponentType& InPacketComponent);
@@ -69,7 +67,9 @@ public:
 
     bool IsServer() const { return managerType_ == ENetworkHandleType::Server; }
     
-private: 
+private:
+    void Update();
+    
     void HandleComponent(const sockaddr_storage& InComponentSender, const PacketComponent& InPacketComponent);
     
     void FixedUpdate();
@@ -112,6 +112,7 @@ private:
     float lastDeltaTime_ = 0.f;
     
     friend class NetHandler;
+    friend class SimpleNetLibCore;
 };
 
 template <typename ComponentType>
@@ -122,7 +123,7 @@ bool PacketManager::SendPacketComponentToParent(const ComponentType& InPacketCom
         return false;
     }
 
-    return SendPacketComponent<ComponentType>(InPacketComponent, SimpleNetLibCore::Get()->GetNetHandler()->parentConnection_);
+    return SendPacketComponent<ComponentType>(InPacketComponent, SimpleNetLibCore::Get()->GetNetHandler()->GetParentConnection());
 }
 
 template <typename ComponentType>
@@ -149,7 +150,7 @@ bool PacketManager::SendPacketComponentMulticast(const ComponentType& InPacketCo
     // Can't multicast upstream from client to server
     if (SimpleNetLibCore::Get()->GetNetHandler()->IsServer())
     {
-        const std::unordered_map<sockaddr_in, NetTarget>& connections = SimpleNetLibCore::Get()->GetNetHandler()->connectionHandler_.GetConnections();
+        const std::unordered_map<sockaddr_in, NetTarget>& connections = SimpleNetLibCore::Get()->GetNetHandler()->GetNetConnectionHandler().GetConnections();
         for (const auto& connection : connections)
         {
             SendPacketComponent<ComponentType>(InPacketComponent, NetUtility::RetrieveStorageFromIPv4Address(connection.first));
@@ -165,7 +166,7 @@ bool PacketManager::SendPacketComponentMulticastWithLod(const ComponentType& InP
     // Can't multicast upstream from client to server
     if (SimpleNetLibCore::Get()->GetNetHandler()->IsServer())
     {
-        const std::unordered_map<sockaddr_in, NetTarget>& connections = SimpleNetLibCore::Get()->GetNetHandler()->connectionHandler_.GetConnections();
+        const std::unordered_map<sockaddr_in, NetTarget>& connections = SimpleNetLibCore::Get()->GetNetHandler()->GetNetConnectionHandler().GetConnections();
         for (const auto& connection : connections)
         {
             // Check associated data validity

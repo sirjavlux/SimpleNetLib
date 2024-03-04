@@ -14,7 +14,7 @@ namespace Net
 {
 struct NetSettings
 {
-    explicit NetSettings(const PCWSTR InParentServerAddress = TEXT(""), const PCWSTR InServerAddress = DEFAULT_SERVER_ADDRESS):
+    explicit NetSettings(const PCWSTR InParentServerAddress = TEXT(""), const PCWSTR InServerAddress = DEFAULT_SERVER_ADDRESS_WIDE):
         parentServerAddress(InParentServerAddress),
         serverAddress(InServerAddress)
     {

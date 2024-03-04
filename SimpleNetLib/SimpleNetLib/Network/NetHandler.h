@@ -32,8 +32,6 @@ class NetHandler
 public:
     explicit NetHandler();
     ~NetHandler();
-
-    void Update();
     
     bool IsServer() const { return bIsServer_; }
 
@@ -50,8 +48,15 @@ public:
     bool IsRunning() const { return bIsRunning_; }
     
     NetConnectionHandler& GetNetConnectionHandler() { return connectionHandler_; }
+
+    const sockaddr_storage& GetParentConnection() const { return parentConnection_; }
+
+    void OnChildDisconnectReceived(const sockaddr_storage& InSender, const PacketComponent& InComponent);
+    void OnChildConnectionReceived(const sockaddr_storage& InNetTarget, const PacketComponent& InComponent);
+    void OnConnectionToServerSuccessful(const sockaddr_storage& InNetTarget, const PacketComponent& InComponent);
     
 private:
+    void Update();
     
     bool InitializeWin32(const NetSettings& InSettings);
 
@@ -66,10 +71,6 @@ private:
     void PreProcessPackets(const char* Buffer, int BytesReceived, const sockaddr_storage& SenderAddress);
 
     void UpdateNetTarget(const sockaddr_storage& InAddress);
-
-    void OnChildDisconnectReceived(const sockaddr_storage& InSender, const PacketComponent& InComponent);
-    void OnChildConnectionReceived(const sockaddr_storage& InNetTarget, const PacketComponent& InComponent);
-    void OnConnectionToServerSuccessful(const sockaddr_storage& InNetTarget, const PacketComponent& InComponent);
     
     void KickInactiveNetTargets();
 
@@ -91,12 +92,14 @@ private:
 
     std::mutex packetProcessingMutexLock_;
     std::vector<PacketProcessData> packetDataToProcess_;
+
+    std::chrono::steady_clock::time_point serverConnectionTimePoint_;
     
     bool bHasParentServer_ = false;
     bool bIsServer_ = false;
 
     bool bIsRunning_ = false;
     
-    friend class PacketManager;
+    friend class SimpleNetLibCore;
 };
 }

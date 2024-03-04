@@ -37,6 +37,15 @@ void SimpleNetLibCore::End()
     }
 }
 
+void SimpleNetLibCore::Update()
+{
+    netHandler_->Update();
+    if (netHandler_->IsRunning())
+    {
+        PacketManager::Get()->Update();
+    }
+}
+
 SimpleNetLibCore::SimpleNetLibCore()
 {
     
@@ -46,6 +55,7 @@ SimpleNetLibCore::~SimpleNetLibCore()
 {
     PacketManager::End();
     EventSystem::End();
+    delete netHandler_;
 }
 
 void SimpleNetLibCore::SetUpServer(const PCWSTR InServerAddress, const u_short InServerPort)

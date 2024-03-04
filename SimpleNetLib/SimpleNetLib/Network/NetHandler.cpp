@@ -26,6 +26,21 @@ void NetHandler::Update()
 {
     if (!bIsRunning_)
         return;
+
+    // Check Time Out
+    using namespace std::chrono;
+
+    if (!IsServer())
+    {
+        const steady_clock::time_point currentTime = steady_clock::now();
+        const duration<float> timeDifference = duration_cast<duration<float>>(currentTime - serverConnectionTimePoint_);
+        if (timeDifference.count() > NET_TIME_UNTIL_TIME_OUT_SEC)
+        {
+            DisconnectFromServer();
+            std::cout << "Timed out, no connection.\n";
+            return;
+        }
+    }
     
     ProcessPackets();
 
@@ -98,6 +113,7 @@ void NetHandler::ConnectToServer(const PCWSTR InServerAddress, const u_short InS
         {
             packetListenerThread_ = new std::thread(&NetHandler::PacketListener, this);
             PacketManager::Get()->managerType_ = ENetworkHandleType::Client;
+            serverConnectionTimePoint_ = std::chrono::steady_clock::now();
             bIsRunning_ = true;
         }
         #endif
@@ -290,6 +306,11 @@ void NetHandler::ProcessPackets()
     packetDataToProcess_.clear();
     packetProcessingMutexLock_.unlock();
 
+    if (!IsServer() && !packetProcessDataCopy.empty())
+    {
+        serverConnectionTimePoint_ = std::chrono::steady_clock::now();
+    }
+    
     // Process packets
     for (const PacketProcessData& data : packetProcessDataCopy)
     {

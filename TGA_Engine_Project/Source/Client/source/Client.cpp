@@ -21,7 +21,9 @@ void Client::Init()
     
     Net::SimpleNetLibCore::Initialize();
 
-    Net::SimpleNetLibCore::Get()->ConnectToServer(); // TODO: Connect with specified ip, port and join data
+    const std::string portString = std::to_string(DEFAULT_SERVER_PORT);
+    std::memcpy(&portBuffer_[0], portString.c_str(), portString.size() > 5 ? 5 : portString.size());
+    portBuffer_[5] = '\0';
 }
 
 void Client::End()
@@ -34,11 +36,22 @@ void Client::End()
 
 void Client::Update(const float InDeltaTime)
 {
-    Net::PacketManager::Get()->Update();
+    Net::SimpleNetLibCore::Get()->Update();
 
-    bool bIsOpen = true;
-    if (ImGui::Begin("test", &bIsOpen))
+    if (!Net::SimpleNetLibCore::Get()->GetNetHandler()->IsRunning())
     {
-        
+        if (ImGui::Begin("Connection Window", &bIsOpen_))
+        {
+            ImGui::InputText("Server Address", &addressBuffer_[0], 24);
+            ImGui::InputText("Server Port", &portBuffer_[0], 6);
+
+            if (ImGui::Button("Connect"))
+            {
+                std::cout << "Connect To Server\n";
+                Net::SimpleNetLibCore::Get()->ConnectToServer(); // TODO: Doesn't use address and port at the moment
+            }
+            
+            ImGui::End();
+        }
     }
 }

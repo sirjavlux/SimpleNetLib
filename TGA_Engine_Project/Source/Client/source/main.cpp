@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "Client.h"
+#include "Packet/PacketManager.h"
 #include "source/GameWorld.h"
+#include "source/Entity/RenderManager.h"
 
 void Go(void);
 
@@ -54,23 +56,28 @@ void Go()
 	{
 		Client client;
 		client.Init();
-
+		
 		GameWorld gameWorld;
 		gameWorld.Init();
+		gameWorld.InitClient();
 		
 		Tga::Engine* engine = Tga::Engine::GetInstance();
 		
 		while (engine->BeginFrame())
 		{
 			client.Update(engine->GetDeltaTime());
+
+			if (Net::SimpleNetLibCore::Get()->GetNetHandler()->IsRunning())
+			{
+				gameWorld.Update(engine->GetDeltaTime());
 			
-			gameWorld.Update(engine->GetDeltaTime());
-			gameWorld.Render();
+				gameWorld.Render();
+			}
 			
 			engine->EndFrame();
 		}
 	}
-
+	
 	Tga::Engine::GetInstance()->Shutdown();
 }
 

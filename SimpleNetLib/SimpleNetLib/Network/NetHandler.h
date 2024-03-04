@@ -1,7 +1,8 @@
 ﻿#pragma once
 
+#include <mutex>
+
 #include "NetConnectionHandler.h"
-#include "../NetIncludes.h"
 #include "../Packet/Packet.h"
 
 class ServerConnectPacketComponent;
@@ -29,26 +30,30 @@ namespace Net
 class NetHandler
 {
 public:
-    explicit NetHandler(const NetSettings& InNetSettings);
+    explicit NetHandler();
     ~NetHandler();
 
     void Update();
     
-    void Initialize();
-    
     bool IsServer() const { return bIsServer_; }
 
+    void SetUpServer(PCWSTR InServerAddress, u_short InServerPort);
+    void ConnectToServer(PCWSTR InServerAddress, u_short InServerPort);
+    void DisconnectFromServer();
+    
     void SendPacketToTargetAndResetPacket(const sockaddr_storage& InTarget, Packet& InPacket) const;
     void SendPacketToTarget(const sockaddr_storage& InTarget, const Packet& InPacket) const;
     
     const NetTarget* RetrieveChildConnectionNetTargetInstance(const sockaddr_storage& InAddress) const;
     bool IsConnected(const sockaddr_storage& InAddress);
 
+    bool IsRunning() const { return bIsRunning_; }
+    
     NetConnectionHandler& GetNetConnectionHandler() { return connectionHandler_; }
     
 private:
     
-    bool InitializeWin32();
+    bool InitializeWin32(const NetSettings& InSettings);
 
     static void SendReturnAckBackToNetTarget(const sockaddr_storage& Target, const Packet& InPacket);
 
@@ -69,6 +74,8 @@ private:
     void KickInactiveNetTargets();
 
     void KickNetTarget(const sockaddr_storage& InAddress, ENetDisconnectType InKickReason);
+
+    void StopAndCleanUpConnection();
     
     WSADATA wsaData_;
     SOCKET udpSocket_;
@@ -79,8 +86,6 @@ private:
 
     sockaddr_storage parentConnection_;
     NetConnectionHandler connectionHandler_;
-    
-    NetSettings netSettings_;
 
     std::thread* packetListenerThread_ = nullptr;
 
@@ -88,9 +93,9 @@ private:
     std::vector<PacketProcessData> packetDataToProcess_;
     
     bool bHasParentServer_ = false;
-    const bool bIsServer_ = false;
+    bool bIsServer_ = false;
 
-    bool bIsRunning_ = true;
+    bool bIsRunning_ = false;
     
     friend class PacketManager;
 };

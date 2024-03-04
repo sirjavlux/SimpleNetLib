@@ -167,6 +167,8 @@ Entity* EntityManager::SpawnEntityServer(const NetTag& InEntityTypeTag, const Tg
   spawnEntityComponent.yPos = InPosition.y;
   spawnEntityComponent.rotation = rotation;
   Net::PacketManager::Get()->SendPacketComponentMulticast<SpawnEntityComponent>(spawnEntityComponent);
+
+  newEntity->UpdateReplication();
   
   return newEntity;
 }

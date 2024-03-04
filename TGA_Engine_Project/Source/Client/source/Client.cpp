@@ -3,6 +3,7 @@
 #include "tge/Engine.h"
 
 #include "SimpleNetLib.h"
+#include "source/Entity/RenderManager.h"
 
 Client::Client()
 {
@@ -16,11 +17,11 @@ Client::~Client()
 
 void Client::Init()
 {
-    Net::NetSettings netSettings; // Keep everything at default and local for testing
-    netSettings.parentServerAddress = DEFAULT_SERVER_ADDRESS;
-    netSettings.parentServerPort = DEFAULT_SERVER_PORT;
+    RenderManager::Initialize();
     
-    Net::SimpleNetLibCore::Initialize(ENetworkHandleType::Client, netSettings);
+    Net::SimpleNetLibCore::Initialize();
+
+    Net::SimpleNetLibCore::Get()->ConnectToServer(); // TODO: Connect with specified ip, port and join data
 }
 
 void Client::End()
@@ -34,4 +35,10 @@ void Client::End()
 void Client::Update(const float InDeltaTime)
 {
     Net::PacketManager::Get()->Update();
+
+    bool bIsOpen = true;
+    if (ImGui::Begin("test", &bIsOpen))
+    {
+        
+    }
 }

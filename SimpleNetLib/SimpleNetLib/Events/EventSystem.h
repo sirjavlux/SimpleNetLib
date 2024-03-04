@@ -14,6 +14,9 @@ namespace Net
         EventSystem();
         ~EventSystem();
 
+        // On disconnect locally/closing server locally
+        DynamicMulticastDelegate<> onCloseConnectionEvent;
+        
         // Connection events
         DynamicMulticastDelegate<const sockaddr_storage&> onClientConnectEvent;
         DynamicMulticastDelegate<const sockaddr_storage&> onConnectedToServerEvent;

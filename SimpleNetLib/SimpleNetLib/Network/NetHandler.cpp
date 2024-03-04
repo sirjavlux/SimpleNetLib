@@ -12,30 +12,21 @@
 
 namespace Net
 {
-NetHandler::NetHandler(const NetSettings& InNetSettings) : netSettings_(InNetSettings),
-    bIsServer_(PacketManager::Get()->GetManagerType() == ENetworkHandleType::Server)
+NetHandler::NetHandler()
 {
 
 }
 
 NetHandler::~NetHandler()
 {
-    bIsRunning_ = false;
-    if (packetListenerThread_ && packetListenerThread_->joinable())
-    {
-        packetListenerThread_->join();
-    }
-    delete packetListenerThread_;
-    
-    // Cleanup Winsock on Windows
-    #ifdef _WIN32
-    closesocket(udpSocket_);
-    WSACleanup();
-    #endif
+    StopAndCleanUpConnection();
 }
 
 void NetHandler::Update()
 {
+    if (!bIsRunning_)
+        return;
+    
     ProcessPackets();
 
     // Can only kick connections downstream
@@ -71,17 +62,57 @@ bool NetHandler::IsConnected(const sockaddr_storage& InAddress)
     return connectionHandler_.ContainsConnection(InAddress);
 }
 
-void NetHandler::Initialize()
+void NetHandler::SetUpServer(const PCWSTR InServerAddress, const u_short InServerPort)
 {
-    #ifdef _WIN32
-    if (InitializeWin32())
+    if (!bIsRunning_)
     {
-        packetListenerThread_ = new std::thread(&NetHandler::PacketListener, this);
+        NetSettings netSettings;
+        netSettings.serverAddress = InServerAddress;
+        netSettings.serverPort = InServerPort;
+
+        bIsServer_ = true;
+        
+        #ifdef _WIN32
+        if (InitializeWin32(netSettings))
+        {
+            packetListenerThread_ = new std::thread(&NetHandler::PacketListener, this);
+            PacketManager::Get()->managerType_ = ENetworkHandleType::Server;
+            bIsRunning_ = true;
+        }
+        #endif
     }
-    #endif
 }
 
-bool NetHandler::InitializeWin32()
+void NetHandler::ConnectToServer(const PCWSTR InServerAddress, const u_short InServerPort)
+{
+    if (!bIsRunning_)
+    {
+        NetSettings netSettings;
+        netSettings.parentServerAddress = InServerAddress;
+        netSettings.parentServerPort = InServerPort;
+
+        bIsServer_ = false;
+        
+        #ifdef _WIN32
+        if (InitializeWin32(netSettings))
+        {
+            packetListenerThread_ = new std::thread(&NetHandler::PacketListener, this);
+            PacketManager::Get()->managerType_ = ENetworkHandleType::Client;
+            bIsRunning_ = true;
+        }
+        #endif
+    }
+}
+
+void NetHandler::DisconnectFromServer()
+{
+    if (bIsRunning_)
+    {
+        StopAndCleanUpConnection();
+    }
+}
+
+bool NetHandler::InitializeWin32(const NetSettings& InSettings)
 {
     // Initialize Winsock on Windows
     std::cout << "\nStarting Winsock...\n";
@@ -104,15 +135,15 @@ bool NetHandler::InitializeWin32()
         WSACleanup();
         return false;
     }
-
+    
     // Setup parent server address
-    bHasParentServer_ = netSettings_.parentServerPort != 0;
+    bHasParentServer_ = InSettings.parentServerPort != 0;
     if (bHasParentServer_)
     {
-        connectedParentServerAddress_.sin_port = htons(netSettings_.parentServerPort);
+        connectedParentServerAddress_.sin_port = htons(InSettings.parentServerPort);
         connectedParentServerAddress_.sin_family = AF_INET;
         
-        if (InetPton(AF_INET, netSettings_.parentServerAddress, &connectedParentServerAddress_.sin_addr.s_addr) != 1)
+        if (InetPton(AF_INET, InSettings.parentServerAddress, &connectedParentServerAddress_.sin_addr.s_addr) != 1)
         {
             std::cerr << "Parent server address and port was invalid!" << '\n';
             bHasParentServer_ = false;
@@ -122,10 +153,10 @@ bool NetHandler::InitializeWin32()
     // Set own address
     if (bIsServer_)
     {
-        address_.sin_port = htons(netSettings_.serverPort);
+        address_.sin_port = htons(InSettings.serverPort);
         address_.sin_family = AF_INET;
         
-        if (InetPton(AF_INET, netSettings_.serverAddress, &address_.sin_addr.s_addr) != 1)
+        if (InetPton(AF_INET, InSettings.serverAddress, &address_.sin_addr.s_addr) != 1)
         {
             std::cerr << "Address and port was invalid!" << '\n';
             std::cerr << "Error: " << WSAGetLastError() << '\n';
@@ -431,5 +462,28 @@ void NetHandler::KickNetTarget(const sockaddr_storage& InAddress, const ENetDisc
             }
         }
     }
+}
+
+void NetHandler::StopAndCleanUpConnection()
+{
+    bIsRunning_ = false;
+    if (packetListenerThread_ && packetListenerThread_->joinable())
+    {
+        packetListenerThread_->join();
+    }
+    delete packetListenerThread_;
+    
+    // Cleanup Winsock on Windows
+    #ifdef _WIN32
+    closesocket(udpSocket_);
+    WSACleanup();
+    #endif
+
+    packetDataToProcess_.clear();
+    
+    PacketManager::End();
+    PacketManager::Initialize();
+
+    EventSystem::Get()->onCloseConnectionEvent.Execute();
 }
 }

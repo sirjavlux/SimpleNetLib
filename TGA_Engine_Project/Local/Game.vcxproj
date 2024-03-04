@@ -181,7 +181,7 @@
     <ClInclude Include="..\Source\Game\source\PacketComponents\SpawnEntityComponent.hpp" />
     <ClInclude Include="..\Source\Game\source\PacketComponents\UpdateEntityControllerPositionComponent.hpp" />
     <ClInclude Include="..\Source\Game\source\PacketComponents\UpdateEntityPositionComponent.hpp" />
-    <ClInclude Include="..\Source\Game\source\Player.h" />
+    <ClInclude Include="..\Source\Game\source\UI\HUD.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Source\Game\source\Combat\BulletEntity.cpp" />
@@ -347,8 +347,8 @@
     <ClCompile Include="..\Source\Game\source\Entity\RenderManager.cpp" />
     <ClCompile Include="..\Source\Game\source\GameWorld.cpp" />
     <ClCompile Include="..\Source\Game\source\Locator\Locator.cpp" />
-    <ClCompile Include="..\Source\Game\source\Player.cpp" />
     <ClCompile Include="..\Source\Game\source\main.cpp" />
+    <ClCompile Include="..\Source\Game\source\UI\HUD.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="External.vcxproj">

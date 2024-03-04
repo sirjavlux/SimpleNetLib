@@ -21,37 +21,44 @@ GameWorld::~GameWorld()
 	EntityManager::End();
 }
 
+void GameWorld::InitClient()
+{
+	Tga::Engine::GetInstance()->SetClearColor({0, 0, 0});
+	GenerateStars();
+
+	hud_.Init();
+}
+
 void GameWorld::Init()  
 {
 	EntityManager::Initialize();
-	RenderManager::Initialize();
 	Locator::Initialize();
 	
 	// Register entities
 	EntityManager::Get()->RegisterEntityTemplate<PlayerShipEntity>(NetTag("player.ship"));
 	EntityManager::Get()->RegisterEntityTemplate<SpriteEntity>(NetTag("sprite"));
 	EntityManager::Get()->RegisterEntityTemplate<BulletEntity>(NetTag("bullet"));
-
-	// Generate background stars
-	if (Net::PacketManager::Get()->GetManagerType() == ENetworkHandleType::Client)
-	{
-		Tga::Engine::GetInstance()->SetClearColor({0, 0, 0});
-		GenerateStars();
-	}
 }
 
 void GameWorld::Update(const float InTimeDelta)
 {
 	Locator::Get()->GetCollisionManager()->UpdateComponents();
 	Locator::Get()->GetBulletManager()->Update(InTimeDelta);
+	
 	EntityManager::Get()->UpdateEntities(InTimeDelta);
+	
+	hud_.Update();
 }
 
 void GameWorld::Render()
 {
 	EntityManager::Get()->RenderEntities();
+	
 	RenderManager::Get()->Render();
+	
 	Locator::Get()->GetCollisionManager()->RenderColliderDebugLines();
+
+	hud_.Render();
 }
 
 

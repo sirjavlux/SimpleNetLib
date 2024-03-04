@@ -2,6 +2,7 @@
 
 #include "PacketComponent.h"
 #include "PacketTargetData.h"
+#include "../SimpleNetLibCore.h"
 #include "../Delegates/PacketComponentDelegator.h"
 #include "../Network/NetHandler.h"
 
@@ -12,8 +13,9 @@ enum class EPacketHandlingType : uint8_t;
 
 enum class ENetworkHandleType
 {
-    Server  = 0,
-    Client  = 1,
+    None    = 0,
+    Server  = 1,
+    Client  = 2,
 };
 
 namespace Net
@@ -21,10 +23,10 @@ namespace Net
 class PacketManager
 {
 public:
-    PacketManager(ENetworkHandleType InPacketManagerType, const NetSettings& InNetSettings);
+    PacketManager();
     ~PacketManager();
     
-    static PacketManager* Initialize(ENetworkHandleType InPacketManagerType, const NetSettings& InNetSettings);
+    static PacketManager* Initialize();
     static PacketManager* Get();
     static void End();
     
@@ -96,18 +98,14 @@ private:
     void UpdateServerPinging();
     std::chrono::steady_clock::time_point lastTimePacketSent_;
     
-    const ENetworkHandleType managerType_;
+    ENetworkHandleType managerType_;
     
     static PacketManager* instance_;
-
-    NetHandler* netHandler_ = nullptr;
     
     PacketComponentDelegator packetComponentHandleDelegator_;
     std::map<uint16_t, PacketComponentAssociatedData> packetAssociatedData_;
 
     std::map<sockaddr_storage, PacketTargetData> packetTargetDataMap_;
-    
-    const NetSettings netSettings_;
 
     int updateIterator_ = 0;
 
@@ -119,12 +117,12 @@ private:
 template <typename ComponentType>
 bool PacketManager::SendPacketComponentToParent(const ComponentType& InPacketComponent)
 {
-    if (netHandler_->IsServer())
+    if (SimpleNetLibCore::Get()->GetNetHandler()->IsServer())
     {
         return false;
     }
 
-    return SendPacketComponent<ComponentType>(InPacketComponent, netHandler_->parentConnection_);
+    return SendPacketComponent<ComponentType>(InPacketComponent, SimpleNetLibCore::Get()->GetNetHandler()->parentConnection_);
 }
 
 template <typename ComponentType>
@@ -149,9 +147,9 @@ template <typename ComponentType>
 bool PacketManager::SendPacketComponentMulticast(const ComponentType& InPacketComponent)
 {
     // Can't multicast upstream from client to server
-    if (netHandler_->IsServer())
+    if (SimpleNetLibCore::Get()->GetNetHandler()->IsServer())
     {
-        const std::unordered_map<sockaddr_in, NetTarget>& connections = netHandler_->connectionHandler_.GetConnections();
+        const std::unordered_map<sockaddr_in, NetTarget>& connections = SimpleNetLibCore::Get()->GetNetHandler()->connectionHandler_.GetConnections();
         for (const auto& connection : connections)
         {
             SendPacketComponent<ComponentType>(InPacketComponent, NetUtility::RetrieveStorageFromIPv4Address(connection.first));
@@ -165,9 +163,9 @@ template <typename ComponentType>
 bool PacketManager::SendPacketComponentMulticastWithLod(const ComponentType& InPacketComponent, const NetUtility::NetVector3& InPosition)
 {
     // Can't multicast upstream from client to server
-    if (netHandler_->IsServer())
+    if (SimpleNetLibCore::Get()->GetNetHandler()->IsServer())
     {
-        const std::unordered_map<sockaddr_in, NetTarget>& connections = netHandler_->connectionHandler_.GetConnections();
+        const std::unordered_map<sockaddr_in, NetTarget>& connections = SimpleNetLibCore::Get()->GetNetHandler()->connectionHandler_.GetConnections();
         for (const auto& connection : connections)
         {
             // Check associated data validity

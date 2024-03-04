@@ -1,4 +1,6 @@
 ﻿#pragma once
+#include "stdafx.h"
+
 #include "RenderCamera.h"
 #include "EntityComponents/RenderComponent.h"
 

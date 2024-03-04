@@ -1,43 +1,39 @@
 ﻿#include "PacketManager.h"
 
 #include "../Events/EventSystem.h"
-#include "../Network/NetHandler.h"
 #include "CorePacketComponents/DataReplicationPacketComponent.hpp"
 #include "CorePacketComponents/ReturnAckComponent.hpp"
-#include "CorePacketComponents\ServerConnectPacketComponent.hpp"
-#include "CorePacketComponents\ServerDisconnectPacketComponent.hpp"
-#include "CorePacketComponents\ServerPingPacketComponent.hpp"
+#include "CorePacketComponents/ServerDisconnectPacketComponent.hpp"
+#include "CorePacketComponents/ServerPingPacketComponent.hpp"
 #include "CorePacketComponents/SuccessfullyConnectedToServer.hpp"
+#include "CorePacketComponents/ServerConnectPacketComponent.hpp"
 
 namespace Net
 {
 PacketManager* PacketManager::instance_ = nullptr;
 
-PacketManager::PacketManager(const ENetworkHandleType InPacketManagerType, const NetSettings& InNetSettings)
-    : managerType_(InPacketManagerType), netHandler_(nullptr), netSettings_(InNetSettings)
+PacketManager::PacketManager()
 {
     lastTimePacketSent_ = std::chrono::steady_clock::now();
 }
 
 PacketManager::~PacketManager()
 {
-    delete netHandler_;
+    
 }
 
-PacketManager* PacketManager::Initialize(const ENetworkHandleType InPacketManagerType, const NetSettings& InNetSettings)
+PacketManager* PacketManager::Initialize()
 {
     if (instance_ == nullptr)
     {
         using namespace std::chrono;
         
-        instance_ = new PacketManager(InPacketManagerType, InNetSettings);
-        instance_->netHandler_ = new NetHandler(InNetSettings);
+        instance_ = new PacketManager();
 
         instance_->lastUpdateTime_ = steady_clock::now();
         instance_->lastUpdateFinishedTime_ = steady_clock::now();
         
         instance_->RegisterDefaultPacketComponents();
-        instance_->netHandler_->Initialize();
     }
     
     return instance_;
@@ -90,7 +86,7 @@ const PacketComponentAssociatedData* PacketManager::FetchPacketComponentAssociat
 
 void PacketManager::UpdateClientNetPosition(const sockaddr_storage& InAddress, const NetUtility::NetVector3& InPosition)
 {
-    netHandler_->GetNetConnectionHandler().UpdateNetCullingPosition(InAddress, InPosition);
+    SimpleNetLibCore::Get()->GetNetHandler()->GetNetConnectionHandler().UpdateNetCullingPosition(InAddress, InPosition);
 }
 
 void PacketManager::HandleComponent(const sockaddr_storage& InComponentSender, const PacketComponent& InPacketComponent)
@@ -100,9 +96,12 @@ void PacketManager::HandleComponent(const sockaddr_storage& InComponentSender, c
 
 void PacketManager::FixedUpdate()
 {
-    netHandler_->Update();
+    if (managerType_ == ENetworkHandleType::None)
+        return;
     
-    if (!netHandler_->IsServer())
+    SimpleNetLibCore::Get()->GetNetHandler()->Update();
+    
+    if (!SimpleNetLibCore::Get()->GetNetHandler()->IsServer())
     {
         UpdateServerPinging();
     }
@@ -132,7 +131,7 @@ void PacketManager::UpdatePacketsWaitingForReturnAck(const sockaddr_storage& InT
         if (DoesUpdateIterMatchPacketFrequency(frequencyData, true))
         {
             const Packet& packet = packetDataPair.second.second;
-            netHandler_->SendPacketToTarget(InTarget, packet);
+            SimpleNetLibCore::Get()->GetNetHandler()->SendPacketToTarget(InTarget, packet);
         }
     }
 }
@@ -188,7 +187,7 @@ void PacketManager::UpdatePacketsToSend(const sockaddr_storage& InTarget, Packet
                 toRemove.push_back(frequencyData);
             }
                 
-            netHandler_->SendPacketToTarget(InTarget, packet);
+            SimpleNetLibCore::Get()->GetNetHandler()->SendPacketToTarget(InTarget, packet);
         }
     }
 
@@ -261,7 +260,7 @@ void PacketManager::RegisterDefaultPacketComponents()
             4.f,
             EPacketHandlingType::Ack
         };
-        RegisterPacketComponent<ServerConnectPacketComponent, NetHandler>(associatedData, &NetHandler::OnChildConnectionReceived, netHandler_);
+        RegisterPacketComponent<ServerConnectPacketComponent, NetHandler>(associatedData, &NetHandler::OnChildConnectionReceived, SimpleNetLibCore::Get()->GetNetHandler());
     }
     {
         const PacketComponentAssociatedData associatedData = PacketComponentAssociatedData
@@ -271,7 +270,7 @@ void PacketManager::RegisterDefaultPacketComponents()
             4.f,
             EPacketHandlingType::Ack
         };
-        RegisterPacketComponent<ServerDisconnectPacketComponent, NetHandler>(associatedData, &NetHandler::OnChildDisconnectReceived, netHandler_);
+        RegisterPacketComponent<ServerDisconnectPacketComponent, NetHandler>(associatedData, &NetHandler::OnChildDisconnectReceived, SimpleNetLibCore::Get()->GetNetHandler());
     }
     {
         const PacketComponentAssociatedData associatedData = PacketComponentAssociatedData
@@ -301,11 +300,11 @@ void PacketManager::RegisterDefaultPacketComponents()
             4.f,
             EPacketHandlingType::Ack
         };
-        RegisterPacketComponent<SuccessfullyConnectedToServer, NetHandler>(associatedData, &NetHandler::OnConnectionToServerSuccessful, netHandler_);
+        RegisterPacketComponent<SuccessfullyConnectedToServer, NetHandler>(associatedData, &NetHandler::OnConnectionToServerSuccessful, SimpleNetLibCore::Get()->GetNetHandler());
     }
 
     packetComponentHandleDelegator_.SubscribeToPacketComponentDelegate
-    <ServerDisconnectPacketComponent, NetHandler>(&NetHandler::OnChildDisconnectReceived, netHandler_);
+    <ServerDisconnectPacketComponent, NetHandler>(&NetHandler::OnChildDisconnectReceived, SimpleNetLibCore::Get()->GetNetHandler());
 
 }
 
@@ -318,7 +317,7 @@ void PacketManager::UpdateServerPinging()
     if (deltaTime.count() > NET_TIME_UNTIL_NEXT_SERVER_PING)
     {
         const ServerPingPacketComponent serverPingPacketComponent;
-        SendPacketComponent(serverPingPacketComponent, netHandler_->parentConnection_);
+        SendPacketComponent(serverPingPacketComponent, SimpleNetLibCore::Get()->GetNetHandler()->parentConnection_);
     }
 }
 }

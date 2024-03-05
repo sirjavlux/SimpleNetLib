@@ -176,12 +176,12 @@ std::weak_ptr<ComponentType> Entity::GetFirstComponent()
 
 inline Entity::Entity()
 {
-	Net::PacketManager::Get()->GetPacketComponentDelegator().SubscribeToPacketComponentDelegate<DataReplicationPacketComponent, Entity>(&Entity::OnReadReplicationBase, this);
+	Net::SimpleNetLibCore::Get()->GetPacketComponentDelegator()->SubscribeToPacketComponentDelegate<DataReplicationPacketComponent, Entity>(&Entity::OnReadReplicationBase, this);
 }
 
 inline Entity::~Entity()
 {
-	Net::PacketManager::Get()->GetPacketComponentDelegator().UnSubscribeFromPacketComponentDelegate<DataReplicationPacketComponent, Entity>(&Entity::OnReadReplicationBase, this);
+	Net::SimpleNetLibCore::Get()->GetPacketComponentDelegator()->UnSubscribeFromPacketComponentDelegate<DataReplicationPacketComponent, Entity>(&Entity::OnReadReplicationBase, this);
 }
 
 inline void Entity::UpdateComponents(const float InDeltaTime)

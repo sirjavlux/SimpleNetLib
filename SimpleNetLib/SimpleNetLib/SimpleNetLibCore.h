@@ -1,9 +1,16 @@
 ﻿#pragma once
 
 #include "NetIncludes.h"
+#include "Packet/PacketComponent.h"
 
 namespace Net
 {
+class PacketManager;
+}
+namespace Net
+{
+class PacketComponentRegistry;
+class PacketComponentDelegator;
 class NetHandler;
 
 class SimpleNetLibCore
@@ -24,9 +31,15 @@ public:
     void DisconnectFromServer();
 
     NetHandler* GetNetHandler() { return netHandler_; }
+    PacketComponentDelegator* GetPacketComponentDelegator() { return packetComponentHandleDelegator_; }
+    PacketComponentRegistry* GetPacketComponentRegistry() { return packetComponentRegistry_; }
+
+    static PacketManager* GetPacketManager();
     
 private:
     static SimpleNetLibCore* instance_;
     NetHandler* netHandler_ = nullptr;
+    PacketComponentDelegator* packetComponentHandleDelegator_ = nullptr;
+    PacketComponentRegistry* packetComponentRegistry_ = nullptr;
 };
 }

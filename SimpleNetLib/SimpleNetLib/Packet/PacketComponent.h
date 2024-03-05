@@ -10,7 +10,7 @@ struct PacketFrequencyData
   
 	bool operator==(const PacketFrequencyData& InOther) const
 	{
-		return frequency == InOther.frequency && handlingType == InOther.handlingType;
+		return frequency == InOther.frequency && handlingType == InOther.handlingType && ackFrequencyMultiplier == InOther.ackFrequencyMultiplier;
 	}
     
 	bool operator<(const PacketFrequencyData& InOther) const
@@ -20,6 +20,29 @@ struct PacketFrequencyData
 		return handlingType < InOther.handlingType;
 	}
 };
+
+namespace std
+{
+template<> struct equal_to<PacketFrequencyData>
+{
+	bool operator()(const PacketFrequencyData& InLhs, const PacketFrequencyData& InRhs) const
+	{
+		return InLhs == InRhs;
+	}
+};
+
+template<> struct hash<PacketFrequencyData>
+{
+	std::size_t operator()(const PacketFrequencyData& InData) const
+	{
+		std::size_t hashResult = 0;
+		hash_combine(hashResult, InData.frequency);
+		hash_combine(hashResult, InData.handlingType);
+		hash_combine(hashResult, InData.ackFrequencyMultiplier);
+		return hashResult;
+	}
+};
+}
 
 struct PacketComponentAssociatedData
 {

@@ -9,7 +9,7 @@
 void Net::PacketTargetData::AddPacketComponentToSend(const std::shared_ptr<PacketComponent>& InComponent)
 {
   const uint16_t componentIdentifier = InComponent->GetIdentifier();
-  const PacketComponentAssociatedData* packetComponentSettings = PacketManager::Get()->FetchPacketComponentAssociatedData(componentIdentifier);
+  const PacketComponentAssociatedData* packetComponentSettings = SimpleNetLibCore::Get()->GetPacketComponentRegistry()->FetchPacketComponentAssociatedData(componentIdentifier);
   if (packetComponentSettings == nullptr)
   {
     return;
@@ -24,7 +24,7 @@ void Net::PacketTargetData::AddPacketComponentToSend(const std::shared_ptr<Packe
 void Net::PacketTargetData::AddPacketComponentToSendWithLod(const std::shared_ptr<PacketComponent>& InComponent, const float InDistanceSqr)
 {
   const uint16_t componentIdentifier = InComponent->GetIdentifier();
-  const PacketComponentAssociatedData* packetComponentSettings = PacketManager::Get()->FetchPacketComponentAssociatedData(componentIdentifier);
+  const PacketComponentAssociatedData* packetComponentSettings = SimpleNetLibCore::Get()->GetPacketComponentRegistry()->FetchPacketComponentAssociatedData(componentIdentifier);
 
   float frequencyToSendAt = packetComponentSettings->packetFrequencySeconds;
   size_t iter = 0;

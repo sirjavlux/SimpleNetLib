@@ -445,12 +445,12 @@ void EntityManager::RegisterPacketComponents()
     EPacketHandlingType::Ack
   };
   
-  Net::PacketManager::Get()->RegisterPacketComponent<DeSpawnEntityComponent, EntityManager>(associatedDataAckComps, &EntityManager::OnEntityDespawnReceived, this);
-  Net::PacketManager::Get()->RegisterPacketComponent<SpawnEntityComponent, EntityManager>(associatedDataAckComps, &EntityManager::OnEntitySpawnReceived, this);
-  Net::PacketManager::Get()->RegisterPacketComponent<RequestDeSpawnEntityComponent, EntityManager>(associatedDataAckComps, &EntityManager::OnEntityDespawnRequestReceived, this);
-  Net::PacketManager::Get()->RegisterPacketComponent<RequestSpawnEntityComponent, EntityManager>(associatedDataAckComps, &EntityManager::OnEntitySpawnRequestReceived, this);
+  Net::SimpleNetLibCore::Get()->GetPacketComponentRegistry()->RegisterPacketComponent<DeSpawnEntityComponent, EntityManager>(associatedDataAckComps, &EntityManager::OnEntityDespawnReceived, this);
+  Net::SimpleNetLibCore::Get()->GetPacketComponentRegistry()->RegisterPacketComponent<SpawnEntityComponent, EntityManager>(associatedDataAckComps, &EntityManager::OnEntitySpawnReceived, this);
+  Net::SimpleNetLibCore::Get()->GetPacketComponentRegistry()->RegisterPacketComponent<RequestDeSpawnEntityComponent, EntityManager>(associatedDataAckComps, &EntityManager::OnEntityDespawnRequestReceived, this);
+  Net::SimpleNetLibCore::Get()->GetPacketComponentRegistry()->RegisterPacketComponent<RequestSpawnEntityComponent, EntityManager>(associatedDataAckComps, &EntityManager::OnEntitySpawnRequestReceived, this);
 
-  Net::PacketManager::Get()->RegisterPacketComponent<SetEntityPossessedComponent, EntityManager>(associatedDataAckComps, &EntityManager::OnSetEntityPossessedReceived, this);
+  Net::SimpleNetLibCore::Get()->GetPacketComponentRegistry()->RegisterPacketComponent<SetEntityPossessedComponent, EntityManager>(associatedDataAckComps, &EntityManager::OnSetEntityPossessedReceived, this);
   
   const PacketComponentAssociatedData associatedDataEveryTick = PacketComponentAssociatedData
   {
@@ -459,7 +459,7 @@ void EntityManager::RegisterPacketComponents()
     1.f,
     EPacketHandlingType::None,
   };
-  Net::PacketManager::Get()->RegisterPacketComponent<InputComponent, EntityManager>(associatedDataEveryTick, &EntityManager::OnInputReceived, this);
+  Net::SimpleNetLibCore::Get()->GetPacketComponentRegistry()->RegisterPacketComponent<InputComponent, EntityManager>(associatedDataEveryTick, &EntityManager::OnInputReceived, this);
 
   std::vector<std::pair<float, float>> packetLodFrequencies;
   packetLodFrequencies.push_back({ 1.f, 0.05f });
@@ -474,16 +474,16 @@ void EntityManager::RegisterPacketComponents()
     6.f,
     packetLodFrequencies
   };
-  Net::PacketManager::Get()->RegisterPacketComponent<UpdateEntityControllerPositionComponent, EntityManager>(associatedEntityPositionData, &EntityManager::OnControllerPositionUpdateReceived, this);
-  Net::PacketManager::Get()->RegisterPacketComponent<UpdateEntityPositionComponent, EntityManager>(associatedEntityPositionData, &EntityManager::OnPositionUpdateReceived, this);
+  Net::SimpleNetLibCore::Get()->GetPacketComponentRegistry()->RegisterPacketComponent<UpdateEntityControllerPositionComponent, EntityManager>(associatedEntityPositionData, &EntityManager::OnControllerPositionUpdateReceived, this);
+  Net::SimpleNetLibCore::Get()->GetPacketComponentRegistry()->RegisterPacketComponent<UpdateEntityPositionComponent, EntityManager>(associatedEntityPositionData, &EntityManager::OnPositionUpdateReceived, this);
   
   Net::EventSystem::Get()->onClientDisconnectEvent.AddDynamic<EntityManager>(this, &EntityManager::OnClientDisconnect);
 }
 
 void EntityManager::SubscribeToPacketComponents()
 {
-  Net::PacketComponentDelegator& componentDelegator = Net::PacketManager::Get()->GetPacketComponentDelegator();
+  Net::PacketComponentDelegator* componentDelegator = Net::SimpleNetLibCore::Get()->GetPacketComponentDelegator();
 
-  componentDelegator.SubscribeToPacketComponentDelegate<ServerConnectPacketComponent, EntityManager>(&EntityManager::OnConnectionReceived, this);
-  componentDelegator.SubscribeToPacketComponentDelegate<ReturnAckComponent, EntityManager>(&EntityManager::OnReturnAckReceived, this);
+  componentDelegator->SubscribeToPacketComponentDelegate<ServerConnectPacketComponent, EntityManager>(&EntityManager::OnConnectionReceived, this);
+  componentDelegator->SubscribeToPacketComponentDelegate<ReturnAckComponent, EntityManager>(&EntityManager::OnReturnAckReceived, this);
 }

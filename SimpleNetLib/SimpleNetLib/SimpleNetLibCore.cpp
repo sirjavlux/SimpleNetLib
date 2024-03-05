@@ -14,6 +14,8 @@ SimpleNetLibCore* SimpleNetLibCore::Initialize()
     if (instance_ == nullptr)
     {
         instance_ = new SimpleNetLibCore();
+        instance_->packetComponentRegistry_ = new PacketComponentRegistry();
+        instance_->packetComponentHandleDelegator_ = new PacketComponentDelegator();
         instance_->netHandler_ = new NetHandler();
         
         EventSystem::Initialize();
@@ -56,6 +58,8 @@ SimpleNetLibCore::~SimpleNetLibCore()
     PacketManager::End();
     EventSystem::End();
     delete netHandler_;
+    delete packetComponentRegistry_;
+    delete packetComponentHandleDelegator_;
 }
 
 void SimpleNetLibCore::SetUpServer(const PCWSTR InServerAddress, const u_short InServerPort)
@@ -71,5 +75,10 @@ void SimpleNetLibCore::ConnectToServer(const PCWSTR InServerAddress, const u_sho
 void SimpleNetLibCore::DisconnectFromServer()
 {
     netHandler_->DisconnectFromServer();
+}
+
+PacketManager* SimpleNetLibCore::GetPacketManager()
+{
+    return PacketManager::Get();
 }
 }

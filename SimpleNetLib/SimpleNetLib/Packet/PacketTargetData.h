@@ -30,12 +30,12 @@ public:
   void AddPacketComponentToSend(const std::shared_ptr<PacketComponent>& InComponent);
   void AddPacketComponentToSendWithLod(const std::shared_ptr<PacketComponent>& InComponent, float InDistanceSqr);
   
-  std::map<PacketFrequencyData, PacketToSendData>& GetPacketComponentsToSend()
+  std::unordered_map<PacketFrequencyData, PacketToSendData>& GetPacketComponentsToSend()
   { return packetComponentsToSendAtCertainFrequency_; }
   
   void AddAckPacketIfContainingData(const PacketFrequencyData& PacketFrequencyData, const Packet& Packet);
     
-  const std::map<uint32_t, std::pair<PacketFrequencyData, Packet>>& GetPacketsNotReturned() const
+  const std::unordered_map<uint32_t, std::pair<PacketFrequencyData, Packet>>& GetPacketsNotReturned() const
   { return ackPacketsNotReturned_; }
   
   void RemoveReturnedPacket(uint32_t InIdentifier);
@@ -46,7 +46,7 @@ private:
   void AddPacketComponentToSend(const std::shared_ptr<PacketComponent>& InComponent,
       const PacketFrequencyData& InFrequencyData, const PacketComponentAssociatedData* InPacketComponentSettings);
   
-  std::map<uint32_t, std::pair<PacketFrequencyData, Packet>> ackPacketsNotReturned_;
-  std::map<PacketFrequencyData, PacketToSendData> packetComponentsToSendAtCertainFrequency_;
+  std::unordered_map<uint32_t, std::pair<PacketFrequencyData, Packet>> ackPacketsNotReturned_;
+  std::unordered_map<PacketFrequencyData, PacketToSendData> packetComponentsToSendAtCertainFrequency_;
 };
 }

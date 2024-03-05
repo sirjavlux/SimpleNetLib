@@ -22,12 +22,12 @@ public:
     template<typename OwningObjectType>
     void RemoveDynamic(const OwningObjectType* InOwnerObject, const std::function<void(OwningObjectType*, Args...)>& InFunction)
     {
-        auto compFunc = [InFunction](const DelegateEntry& Entry) -> bool {
+        auto compFunc = [&InFunction](const DelegateEntry& Entry) -> bool {
             auto storedFunc = Entry.function.template target<void(OwningObjectType*, Args...)>();
             auto inputFuncTarget = InFunction.template target<void(OwningObjectType*, Args...)>();
-            return storedFunc && inputFuncTarget && *storedFunc == *inputFuncTarget;
-        };
-
+            return storedFunc == inputFuncTarget;
+        }; 
+        
         auto it = std::remove_if(delegates_.begin(), delegates_.end(),
             [=](const DelegateEntry& Entry) {
                 auto owner = Entry.ownerObject;

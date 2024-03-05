@@ -28,8 +28,8 @@ public:
         const std::function<void(const sockaddr_storage&, const PacketComponent&)>& InFunction);
     
 private:
-    std::map<uint16_t, DynamicMulticastDelegate<const sockaddr_storage&, const PacketComponent&>> delegatesDynamic_;
-    std::map<uint16_t, StaticMulticastDelegate<const sockaddr_storage&, const PacketComponent&>> delegatesStatic_;
+    std::unordered_map<uint16_t, DynamicMulticastDelegate<const sockaddr_storage&, const PacketComponent&>> delegatesDynamic_;
+    std::unordered_map<uint16_t, StaticMulticastDelegate<const sockaddr_storage&, const PacketComponent&>> delegatesStatic_;
 
     template <typename ComponentType>
     void CheckValidityOfPacketComponentType();

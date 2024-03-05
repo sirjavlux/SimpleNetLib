@@ -2,9 +2,9 @@
 
 #include "PacketComponent.h"
 #include "PacketTargetData.h"
-#include "../SimpleNetLibCore.h"
-#include "../Delegates/PacketComponentDelegator.h"
+#include "PacketComponentRegistry.h"
 #include "../Network/NetHandler.h"
+#include "../Utility/HashUtility.hpp"
 
 class ReturnAckComponent;
 
@@ -42,26 +42,10 @@ public:
     
     template<typename ComponentType>
     bool SendPacketComponentMulticastWithLod(const ComponentType& InPacketComponent, const NetUtility::NetVector3& InPosition);
-    
-    template <typename ComponentType>
-    void RegisterPacketComponent(const PacketComponentAssociatedData& InAssociatedData);
-
-    template<typename ComponentType>
-    void RegisterPacketComponent(const PacketComponentAssociatedData& InAssociatedData, const std::function<void(const sockaddr_storage&, const PacketComponent&)>& InFunction);
-    
-    template<typename ComponentType, typename OwningObject>
-    void RegisterPacketComponent(const PacketComponentAssociatedData& InAssociatedData,
-        const std::function<void(OwningObject*, const sockaddr_storage&, const PacketComponent&)>& InFunction, OwningObject* InOwnerObject);
 
     ENetworkHandleType GetManagerType() const { return managerType_; }
-
-    template<typename ComponentType>
-    const PacketComponentAssociatedData* FetchPacketComponentAssociatedData();
-    const PacketComponentAssociatedData* FetchPacketComponentAssociatedData(uint16_t InIdentifier);
     
     void UpdateClientNetPosition(const sockaddr_storage& InAddress, const NetUtility::NetVector3& InPosition);
-    
-    PacketComponentDelegator& GetPacketComponentDelegator() { return packetComponentHandleDelegator_; }
 
     float GetDeltaTime() const { return lastDeltaTime_; }
 
@@ -86,26 +70,18 @@ private:
     static void OnNetTargetDisconnection(const sockaddr_storage& InTarget, ENetDisconnectType InDisconnectType);
 
     void OnAckReturnReceived(const sockaddr_storage& InTarget, const PacketComponent& InComponent);
-    
-    template<typename ComponentType>
-    bool IsPacketComponentValid();
-
-    template <typename ComponentType>
-    void RegisterAssociatedData(PacketComponentAssociatedData InComponentSettings);
 
     void RegisterDefaultPacketComponents();
-
+    void UnSubscribeFromDelegates();
+    
     void UpdateServerPinging();
     std::chrono::steady_clock::time_point lastTimePacketSent_;
     
     ENetworkHandleType managerType_;
     
     static PacketManager* instance_;
-    
-    PacketComponentDelegator packetComponentHandleDelegator_;
-    std::map<uint16_t, PacketComponentAssociatedData> packetAssociatedData_;
 
-    std::map<sockaddr_storage, PacketTargetData> packetTargetDataMap_;
+    std::unordered_map<sockaddr_storage, PacketTargetData> packetTargetDataMap_;
 
     int updateIterator_ = 0;
 
@@ -132,7 +108,7 @@ bool PacketManager::SendPacketComponent(const ComponentType& InPacketComponent, 
     lastTimePacketSent_ = std::chrono::steady_clock::now(); // Reset server ping timer
     
     // Check Component Validity
-    if (!IsPacketComponentValid<ComponentType>() && InPacketComponent.GetSize() <= NET_PACKET_COMPONENT_DATA_SIZE_TOTAL)
+    if (!SimpleNetLibCore::Get()->GetPacketComponentRegistry()->IsPacketComponentValid<ComponentType>() && InPacketComponent.GetSize() <= NET_PACKET_COMPONENT_DATA_SIZE_TOTAL)
     {
         throw std::runtime_error("ComponentType isn't a valid PacketComponent. Make sure size is set and inside bounds.");
     }
@@ -170,7 +146,7 @@ bool PacketManager::SendPacketComponentMulticastWithLod(const ComponentType& InP
         for (const auto& connection : connections)
         {
             // Check associated data validity
-            const PacketComponentAssociatedData* associatedData = FetchPacketComponentAssociatedData(InPacketComponent.GetIdentifier());
+            const PacketComponentAssociatedData* associatedData = SimpleNetLibCore::Get()->GetPacketComponentRegistry()->FetchPacketComponentAssociatedData(InPacketComponent.GetIdentifier());
             if (!associatedData)
             {
                 continue;
@@ -193,83 +169,5 @@ bool PacketManager::SendPacketComponentMulticastWithLod(const ComponentType& InP
         return true;
     }
     return false;
-}
-
-template <typename ComponentType>
-void PacketManager::RegisterPacketComponent(const PacketComponentAssociatedData& InAssociatedData)
-{
-    static_assert(std::is_base_of_v<PacketComponent, ComponentType>, "ComponentType must be derived from PacketComponent");
-    
-    RegisterAssociatedData<ComponentType>(InAssociatedData);
-}
-
-template <typename ComponentType>
-void PacketManager::RegisterPacketComponent(const PacketComponentAssociatedData& InAssociatedData, const std::function<void(const sockaddr_storage&, const PacketComponent&)>& InFunction)
-{
-    static_assert(std::is_base_of_v<PacketComponent, ComponentType>, "ComponentType must be derived from PacketComponent");
-    
-    RegisterAssociatedData<ComponentType>(InAssociatedData);
-
-    packetComponentHandleDelegator_.SubscribeToPacketComponentDelegate<ComponentType>(InFunction);
-}
-
-template<typename ComponentType, typename OwningObjectType>
-void PacketManager::RegisterPacketComponent(const PacketComponentAssociatedData& InAssociatedData, const std::function<void(OwningObjectType*, const sockaddr_storage&, const PacketComponent&)>& InFunction, OwningObjectType* InOwnerObject)
-{
-    static_assert(std::is_base_of_v<PacketComponent, ComponentType>, "ComponentType must be derived from PacketComponent");
-    if (InOwnerObject == nullptr)
-    {
-        throw std::runtime_error("Tried registering a packet component with a null owner object");
-    }
-    
-    RegisterAssociatedData<ComponentType>(InAssociatedData);
-
-    packetComponentHandleDelegator_.SubscribeToPacketComponentDelegate<ComponentType, OwningObjectType>(InFunction, InOwnerObject);
-}
-
-template <typename ComponentType>
-const PacketComponentAssociatedData* PacketManager::FetchPacketComponentAssociatedData()
-{
-    const ComponentType componentDefaultObject = ComponentType();
-    if (packetAssociatedData_.find(componentDefaultObject.GetIdentifier()) != packetAssociatedData_.end())
-    {
-        return &packetAssociatedData_.at(componentDefaultObject.GetIdentifier());
-    }
-    return nullptr;
-}
-
-template <typename ComponentType>
-bool PacketManager::IsPacketComponentValid()
-{
-    static_assert(std::is_base_of_v<PacketComponent, ComponentType>, "ComponentType must be derived from PacketComponent");
-    
-    const ComponentType componentDefaultObject = ComponentType();
-    if (packetAssociatedData_.find(componentDefaultObject.GetIdentifier()) == packetAssociatedData_.end()
-        || !componentDefaultObject.IsValid())
-    {
-        return false;
-    }
-
-    return true;
-}
-
-template <typename ComponentType>
-void PacketManager::RegisterAssociatedData(PacketComponentAssociatedData InComponentSettings)
-{
-    const ComponentType componentDefaultObject = ComponentType();
-    if (!componentDefaultObject.IsValid())
-    {
-        throw std::runtime_error("ComponentType isn't a valid PacketComponent. Make sure identifier and size is set");
-    }
-
-    uint16_t identifier = componentDefaultObject.GetIdentifier();
-    if (packetAssociatedData_.find(identifier) != packetAssociatedData_.end())
-    {
-        throw std::runtime_error("Component with the same Identifier has already been registered!");
-    }
-
-    InComponentSettings.SortLodFrequencies();
-    
-    packetAssociatedData_.emplace(identifier, InComponentSettings);
 }
 }

@@ -62,12 +62,12 @@ SimpleNetLibCore::~SimpleNetLibCore()
     delete packetComponentHandleDelegator_;
 }
 
-void SimpleNetLibCore::SetUpServer(const PCWSTR InServerAddress, const u_short InServerPort)
+void SimpleNetLibCore::SetUpServer(const PCSTR InServerAddress, const u_short InServerPort)
 {
     netHandler_->SetUpServer(InServerAddress, InServerPort);
 }
 
-void SimpleNetLibCore::ConnectToServer(const PCWSTR InServerAddress, const u_short InServerPort)
+void SimpleNetLibCore::ConnectToServer(const PCSTR InServerAddress, const u_short InServerPort)
 {
     netHandler_->ConnectToServer(InServerAddress, InServerPort);
 }

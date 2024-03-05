@@ -9,6 +9,7 @@
 #include "..\Packet\CorePacketComponents\ServerConnectPacketComponent.hpp"
 #include "../Packet/CorePacketComponents/ReturnAckComponent.hpp"
 #include "../Packet/CorePacketComponents/SuccessfullyConnectedToServer.hpp"
+#include "../Utility/StringUtility.hpp"
 
 namespace Net
 {
@@ -77,7 +78,7 @@ bool NetHandler::IsConnected(const sockaddr_storage& InAddress)
     return connectionHandler_.ContainsConnection(InAddress);
 }
 
-void NetHandler::SetUpServer(const PCWSTR InServerAddress, const u_short InServerPort)
+void NetHandler::SetUpServer(const PCSTR InServerAddress, const u_short InServerPort)
 {
     if (!bIsRunning_)
     {
@@ -98,7 +99,7 @@ void NetHandler::SetUpServer(const PCWSTR InServerAddress, const u_short InServe
     }
 }
 
-void NetHandler::ConnectToServer(const PCWSTR InServerAddress, const u_short InServerPort)
+void NetHandler::ConnectToServer(const PCSTR InServerAddress, const u_short InServerPort)
 {
     if (!bIsRunning_)
     {
@@ -159,7 +160,7 @@ bool NetHandler::InitializeWin32(const NetSettings& InSettings)
         connectedParentServerAddress_.sin_port = htons(InSettings.parentServerPort);
         connectedParentServerAddress_.sin_family = AF_INET;
         
-        if (InetPton(AF_INET, InSettings.parentServerAddress, &connectedParentServerAddress_.sin_addr.s_addr) != 1)
+        if (InetPton(AF_INET, StringUtility::StringToWideString(InSettings.parentServerAddress).c_str(), &connectedParentServerAddress_.sin_addr.s_addr) != 1)
         {
             std::cerr << "Parent server address and port was invalid!" << '\n';
             bHasParentServer_ = false;
@@ -171,8 +172,10 @@ bool NetHandler::InitializeWin32(const NetSettings& InSettings)
     {
         address_.sin_port = htons(InSettings.serverPort);
         address_.sin_family = AF_INET;
+
+        std::cout << "Server Address " << InSettings.serverAddress << " : " << InSettings.serverPort << "\n";
         
-        if (InetPton(AF_INET, InSettings.serverAddress, &address_.sin_addr.s_addr) != 1)
+        if (InetPton(AF_INET, StringUtility::StringToWideString(InSettings.serverAddress).c_str(), &address_.sin_addr.s_addr) != 1)
         {
             std::cerr << "Address and port was invalid!" << '\n';
             std::cerr << "Error: " << WSAGetLastError() << '\n';

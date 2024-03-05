@@ -4,6 +4,7 @@
 
 #include "SimpleNetLib.h"
 #include "source/Entity/RenderManager.h"
+#include "Utility/StringUtility.hpp"
 
 Client::Client()
 {
@@ -47,8 +48,8 @@ void Client::Update(const float InDeltaTime)
 
             if (ImGui::Button("Connect"))
             {
-                std::cout << "Connect To Server\n";
-                Net::SimpleNetLibCore::Get()->ConnectToServer(); // TODO: Doesn't use address and port at the moment
+                const u_short port = static_cast<u_short>(std::stoi(portBuffer_));
+                Net::SimpleNetLibCore::Get()->ConnectToServer(std::string(addressBuffer_).c_str(), port);
             }
             
             ImGui::End();

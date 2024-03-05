@@ -14,17 +14,17 @@ namespace Net
 {
 struct NetSettings
 {
-    explicit NetSettings(const PCWSTR InParentServerAddress = TEXT(""), const PCWSTR InServerAddress = DEFAULT_SERVER_ADDRESS_WIDE):
+    explicit NetSettings(const PCSTR InParentServerAddress = "", const PCSTR InServerAddress = DEFAULT_SERVER_ADDRESS):
         parentServerAddress(InParentServerAddress),
         serverAddress(InServerAddress)
     {
     }
 
-    PCWSTR parentServerAddress;
+    PCSTR parentServerAddress;
     u_short parentServerPort = 0; // Leave at 0 if no server connection
 
     // Self address if server
-    PCWSTR serverAddress;
+    PCSTR serverAddress;
     u_short serverPort = DEFAULT_SERVER_PORT;
 };
 }

@@ -40,6 +40,8 @@ Local/
 *.idb
 *.sln
 
+TGA_Engine_Project/Bin/*
+
 Bin/*.exe
 Bin/*.pdb
 Bin/*.ilk
@@ -77,3 +79,5 @@ x64/
 *.dll
 *.cso
 *.idb
+*.exe
+TGA_Engine_Project/Bin/Client_Debug.exe

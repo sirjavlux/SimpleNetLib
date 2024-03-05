@@ -1,5 +1,12 @@
 #include "Server.h"
+
+#include <fstream>
+
 #include "SimpleNetLib.h"
+
+#include "json.hpp"
+
+using json = nlohmann::json;
 
 Server::Server()
 {
@@ -13,9 +20,15 @@ Server::~Server()
 
 void Server::Init()
 {
-    Net::SimpleNetLibCore::Initialize();
+    std::ifstream f("../EngineAssets/config.json");
+    json data = json::parse(f);
 
-    Net::SimpleNetLibCore::Get()->SetUpServer(); // TODO: Custom port if not locally(Good idea to set this up in a file outside project to read from)
+    const std::string serverAddress = data["ServerAddress"].get<std::string>();
+    const u_short port = static_cast<u_short>(data["Port"].get<int>());
+    
+    Net::SimpleNetLibCore::Initialize();
+    
+    Net::SimpleNetLibCore::Get()->SetUpServer(serverAddress.c_str(), port);
 }
 
 void Server::End()

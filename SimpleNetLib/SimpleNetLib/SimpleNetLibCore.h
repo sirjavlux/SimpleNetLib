@@ -25,8 +25,8 @@ public:
     SimpleNetLibCore();
     ~SimpleNetLibCore();
 
-    void SetUpServer(PCWSTR InServerAddress = DEFAULT_SERVER_ADDRESS_WIDE, u_short InServerPort = DEFAULT_SERVER_PORT);
-    void ConnectToServer(PCWSTR InServerAddress = DEFAULT_SERVER_ADDRESS_WIDE, u_short InServerPort = DEFAULT_SERVER_PORT);
+    void SetUpServer(PCSTR InServerAddress = DEFAULT_SERVER_ADDRESS, u_short InServerPort = DEFAULT_SERVER_PORT);
+    void ConnectToServer(PCSTR InServerAddress = DEFAULT_SERVER_ADDRESS, u_short InServerPort = DEFAULT_SERVER_PORT);
 
     void DisconnectFromServer();
 

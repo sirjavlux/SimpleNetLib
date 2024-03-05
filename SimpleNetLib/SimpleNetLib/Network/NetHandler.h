@@ -35,8 +35,8 @@ public:
     
     bool IsServer() const { return bIsServer_; }
 
-    void SetUpServer(PCWSTR InServerAddress, u_short InServerPort);
-    void ConnectToServer(PCWSTR InServerAddress, u_short InServerPort);
+    void SetUpServer(PCSTR InServerAddress, u_short InServerPort);
+    void ConnectToServer(PCSTR InServerAddress, u_short InServerPort);
     void DisconnectFromServer();
     
     void SendPacketToTargetAndResetPacket(const sockaddr_storage& InTarget, Packet& InPacket) const;

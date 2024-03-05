@@ -15,13 +15,9 @@ void ControllerComponent::Init()
 
 void ControllerComponent::Update(float InDeltaTime)
 {
-  //currentDirection_.x = targetDirection_.x; //FMath::Lerp(currentDirection_.x, targetDirection_.x, directionLerpSpeed_ * InDeltaTime);
-  //currentDirection_.y = targetDirection_.y; //FMath::Lerp(currentDirection_.y, targetDirection_.y, directionLerpSpeed_ * InDeltaTime);
   currentDirection_.x = FMath::Lerp(currentDirection_.x, targetDirection_.x, directionLerpSpeed_ * InDeltaTime);
   currentDirection_.y = FMath::Lerp(currentDirection_.y, targetDirection_.y, directionLerpSpeed_ * InDeltaTime);
   owner_->SetDirection({currentDirection_.x, currentDirection_.y});
-
-  // std::cout << "Rotation " << std::atan2(currentDirection_.y, currentDirection_.x) << " Target Rotation " << std::atan2(targetDirection_.y, targetDirection_.x) << "\n";
 }
 
 void ControllerComponent::FixedUpdate()
@@ -123,7 +119,7 @@ void ControllerComponent::UpdateServerPosition()
   
   Tga::Vector2f newPos = owner_->GetTargetPosition();
 
-  constexpr int indexesBehind = 2;
+  constexpr int indexesBehind = 3;
   for (int i = indexesBehind; i < INPUT_BUFFER_SIZE - 1; ++i)
   {
     const InputUpdateEntry& input = inputHistoryBuffer_[i];
@@ -174,7 +170,7 @@ void ControllerComponent::UpdateServerPosition()
   
   updateEntityPositionComponent.overrideDefiningData = updateEntityPositionComponent.entityIdentifier;
 
-  const NetUtility::NetVector3 lodPos = { owner_->GetPosition().x, owner_->GetPosition().y, 0.f };
+  const NetUtility::NetVector3 lodPos = { owner_->GetTargetPosition().x, owner_->GetTargetPosition().y, 0.f };
   Net::PacketManager::Get()->SendPacketComponentMulticastWithLod<UpdateEntityControllerPositionComponent>(updateEntityPositionComponent, lodPos);
 
   // Update net position for culling
@@ -194,7 +190,7 @@ void ControllerComponent::UpdateClientPositionFromServerPositionUpdate()
   // Forward position
   if (bIsPossessed_)
   {
-    constexpr int indexesBehind = 4;
+    constexpr int indexesBehind = 6;
     for (int i = indexesBehind; i < INPUT_BUFFER_SIZE; ++i)
     {
       const InputUpdateEntry& entry = inputHistoryBuffer_[i];
@@ -250,9 +246,9 @@ void ControllerComponent::UpdateVelocity(const float InInputX, const float InInp
   velocity_ *= resistanceMultiplier_;
   
   // Clamp maximum velocity
-  if (velocity_.LengthSqr() > maxVelocity_ * maxVelocity_ * FIXED_UPDATE_DELTA_TIME)
+  if (velocity_.LengthSqr() > maxVelocity_ * maxVelocity_)
   {
-    velocity_ = velocity_.GetNormalized() * maxVelocity_ * FIXED_UPDATE_DELTA_TIME;
+    velocity_ = velocity_.GetNormalized() * maxVelocity_;
   }
 }
 

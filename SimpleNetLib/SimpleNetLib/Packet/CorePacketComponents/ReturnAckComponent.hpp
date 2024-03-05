@@ -13,5 +13,5 @@ public:
 
 inline ReturnAckComponent::ReturnAckComponent()
     : PacketComponent(static_cast<int16_t>(Net::EPacketComponent::ReturnAck), sizeof(ReturnAckComponent)),
-    ackIdentifier(-1)
+    ackIdentifier(0)
 { }

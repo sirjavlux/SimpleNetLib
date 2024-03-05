@@ -25,12 +25,16 @@ public:
 	void OnTriggerEnter(const ColliderComponent& InColliderComponent);
 	void OnTriggerExit(const ColliderComponent& InColliderComponent);
 	void OnColliderCollision(const ColliderComponent& InColliderComponent);
+
+	const Tga::Vector2f& GetPositionLastFrame() const { return positionLastFrame_; }
 	
 	DynamicMulticastDelegate<const ColliderComponent&> triggerEnterDelegate;
 	DynamicMulticastDelegate<const ColliderComponent&> triggerExitDelegate;
 	DynamicMulticastDelegate<const ColliderComponent&> collisionDelegate;
 	
 private:
+	Tga::Vector2f positionLastFrame_;
+	
 	bool bIsMarkedForRemoval_ = false;
 
 	bool bIsTrigger_ = true;

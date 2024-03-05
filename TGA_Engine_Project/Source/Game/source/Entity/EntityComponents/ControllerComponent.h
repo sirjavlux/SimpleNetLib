@@ -69,7 +69,7 @@ private:
   Tga::Vector2f velocity_ = 0.f;
 
   // Character movement settings
-  const float maxVelocity_ = 0.5f;
+  const float maxVelocity_ = 0.2f * FIXED_UPDATE_DELTA_TIME;
   const float acceleration_ = 0.012f;
   const float resistanceMultiplier_ = 0.98f;
   const float directionChangeSpeed_ = 4.;

@@ -39,6 +39,7 @@ void ColliderComponent::FixedUpdate()
 	}
 	
 	collidersCollidedWithLastUpdate_.clear();
+	positionLastFrame_ = owner_->GetPosition();
 }
 
 void ColliderComponent::SetCollider(const std::shared_ptr<Collider>& InCollider)

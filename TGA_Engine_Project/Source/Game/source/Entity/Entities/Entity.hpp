@@ -231,7 +231,7 @@ inline void Entity::OnReadReplicationBase(const sockaddr_storage& InAddress, con
 	if (castedComponent.identifierData == id_)
 	{
 		DataReplicationPacketComponent componentCpy = castedComponent;
-		componentCpy.dataIter = 0;
+		componentCpy.variableDataObject.Begin();
 		OnReadReplication(componentCpy);
 	}
 }

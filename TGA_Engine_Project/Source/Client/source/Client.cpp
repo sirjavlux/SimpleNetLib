@@ -32,7 +32,7 @@ void Client::End()
     Tga::Engine::Shutdown();
     
     Net::SimpleNetLibCore::End();
-    bIsRunning = false;
+    bIsRunning_ = false;
 }
 
 void Client::Update(const float InDeltaTime)
@@ -45,11 +45,15 @@ void Client::Update(const float InDeltaTime)
         {
             ImGui::InputText("Server Address", &addressBuffer_[0], 24);
             ImGui::InputText("Server Port", &portBuffer_[0], 6);
+            ImGui::InputText("Username", &usernameBuffer_[0], 24);
 
             if (ImGui::Button("Connect"))
             {
+                VariableDataObject<CONNECTION_DATA_SIZE> data;
+                data << usernameBuffer_;
+                
                 const u_short port = static_cast<u_short>(std::stoi(portBuffer_));
-                Net::SimpleNetLibCore::Get()->ConnectToServer(std::string(addressBuffer_).c_str(), port);
+                Net::SimpleNetLibCore::Get()->ConnectToServer(data, std::string(addressBuffer_).c_str(), port);
             }
             
             ImGui::End();

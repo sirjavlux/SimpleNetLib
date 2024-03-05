@@ -2,9 +2,6 @@
 
 #include "../../Utility/VariableDataObject.hpp"
 
-#define REPLICATION_COMPONENT_SIZE_EMPTY (DEFAULT_PACKET_COMPONENT_SIZE + 4)
-#define REPLICATION_DATA_SIZE (NET_PACKET_COMPONENT_DATA_SIZE_TOTAL - REPLICATION_COMPONENT_SIZE_EMPTY)
-
 class NET_LIB_EXPORT DataReplicationPacketComponent : public Net::PacketComponent
 {
 public:

@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "../Packet/PacketComponent.h"
+#include "../NetIncludes.h"
 
 template<int DataSize>
 struct VariableDataObject

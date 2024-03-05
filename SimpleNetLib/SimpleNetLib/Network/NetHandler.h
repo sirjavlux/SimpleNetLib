@@ -4,6 +4,7 @@
 
 #include "NetConnectionHandler.h"
 #include "../Packet/Packet.h"
+#include "../Utility/VariableDataObject.hpp"
 
 class ServerConnectPacketComponent;
 class ServerDisconnectPacketComponent;
@@ -36,7 +37,7 @@ public:
     bool IsServer() const { return bIsServer_; }
 
     void SetUpServer(PCSTR InServerAddress, u_short InServerPort);
-    void ConnectToServer(PCSTR InServerAddress, u_short InServerPort);
+    void ConnectToServer(const VariableDataObject<CONNECTION_DATA_SIZE>& InVariableData, PCSTR InServerAddress, u_short InServerPort);
     void DisconnectFromServer();
     
     void SendPacketToTargetAndResetPacket(const sockaddr_storage& InTarget, Packet& InPacket) const;
@@ -59,7 +60,8 @@ private:
     void Update();
     
     bool InitializeWin32(const NetSettings& InSettings);
-
+    void SendConnectionPacket(const VariableDataObject<CONNECTION_DATA_SIZE>& InVariableData);
+    
     static void SendReturnAckBackToNetTarget(const sockaddr_storage& Target, const Packet& InPacket);
 
     void ProcessPackets();

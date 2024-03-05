@@ -8,7 +8,7 @@ public:
     ~Client();
 
     void Init();
-    bool IsRunning() const { return bIsRunning; }
+    bool IsRunning() const { return bIsRunning_; }
 
     void End();
 
@@ -19,5 +19,7 @@ private:
     char addressBuffer_[24] = DEFAULT_SERVER_ADDRESS;
     char portBuffer_[6];
     
-    bool bIsRunning = true;
+    char usernameBuffer_[24] = "username";
+    
+    bool bIsRunning_ = true;
 };

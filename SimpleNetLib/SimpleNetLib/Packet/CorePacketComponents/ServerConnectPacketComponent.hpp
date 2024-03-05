@@ -1,14 +1,20 @@
 ﻿#pragma once
 
 #include "../PacketComponent.h"
+#include "../../Utility/VariableDataObject.hpp"
 
 class NET_LIB_EXPORT ServerConnectPacketComponent : public Net::PacketComponent
 {
 public:
-    ServerConnectPacketComponent();
+    void SetVariableData(const VariableDataObject<CONNECTION_DATA_SIZE>& InVariableData)
+    {
+        variableDataObject = InVariableData;
+        sizeData_ = DEFAULT_PACKET_COMPONENT_SIZE + variableDataObject.dataIter;
+    }
     
-};
+    VariableDataObject<CONNECTION_DATA_SIZE> variableDataObject;
 
-inline ServerConnectPacketComponent::ServerConnectPacketComponent()
-    : PacketComponent(static_cast<int16_t>(Net::EPacketComponent::ServerConnect), sizeof(ServerConnectPacketComponent))
-{ }
+    ServerConnectPacketComponent::ServerConnectPacketComponent()
+    : PacketComponent(static_cast<int16_t>(Net::EPacketComponent::ServerConnect), CONNECTION_COMPONENT_SIZE_EMPTY)
+    { }
+};

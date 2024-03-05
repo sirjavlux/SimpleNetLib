@@ -99,7 +99,7 @@ void NetHandler::SetUpServer(const PCSTR InServerAddress, const u_short InServer
     }
 }
 
-void NetHandler::ConnectToServer(const PCSTR InServerAddress, const u_short InServerPort)
+void NetHandler::ConnectToServer(const VariableDataObject<CONNECTION_DATA_SIZE>& InVariableData, const PCSTR InServerAddress, const u_short InServerPort)
 {
     if (!bIsRunning_)
     {
@@ -112,9 +112,12 @@ void NetHandler::ConnectToServer(const PCSTR InServerAddress, const u_short InSe
         #ifdef _WIN32
         if (InitializeWin32(netSettings))
         {
+            SendConnectionPacket(InVariableData);
+            
             packetListenerThread_ = new std::thread(&NetHandler::PacketListener, this);
             PacketManager::Get()->managerType_ = ENetworkHandleType::Client;
             serverConnectionTimePoint_ = std::chrono::steady_clock::now();
+            
             bIsRunning_ = true;
         }
         #endif
@@ -243,7 +246,11 @@ bool NetHandler::InitializeWin32(const NetSettings& InSettings)
         return false;
     }
     
-    // Send Join Packet
+    return true;
+}
+
+void NetHandler::SendConnectionPacket(const VariableDataObject<CONNECTION_DATA_SIZE>& InVariableData)
+{
     if (!bIsServer_)
     {
         parentConnection_ = NetUtility::RetrieveStorageFromIPv4Address(connectedParentServerAddress_);
@@ -253,13 +260,12 @@ bool NetHandler::InitializeWin32(const NetSettings& InSettings)
         PacketManager::Get()->packetTargetDataMap_.insert({ parentConnection_, PacketTargetData() });
 
         // Send packet component
-        const ServerConnectPacketComponent connectComponent;
+        ServerConnectPacketComponent connectComponent;
+        connectComponent.SetVariableData(InVariableData);
         PacketManager::Get()->SendPacketComponent<ServerConnectPacketComponent>(connectComponent, parentConnection_);
 
         std::cout << "Connecting to server...\n";
     }
-    
-    return true;
 }
 
 void NetHandler::PacketListener(NetHandler* InNetHandler)

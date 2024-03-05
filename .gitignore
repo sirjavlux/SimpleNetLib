@@ -40,6 +40,7 @@ Local/
 *.idb
 *.sln
 
+TGA_Engine_Project/Lib/*
 TGA_Engine_Project/Bin/*
 
 Bin/*.exe

@@ -1,5 +1,6 @@
 #pragma once
 #include "Packet/PacketDefinitions.hpp"
+#include "source/GameWorld.h"
 
 class Client
 {
@@ -12,14 +13,18 @@ public:
 
     void End();
 
-    void Update(const float InDeltaTime);
+    void Update(float InDeltaTime);
+
+    void OnCloseConnectionEvent();
     
 private:
+    GameWorld* gameWorld_ = nullptr;
+    
     bool bIsOpen_ = true;
     char addressBuffer_[24] = DEFAULT_SERVER_ADDRESS;
     char portBuffer_[6];
     
-    char usernameBuffer_[24] = "username";
+    char usernameBuffer_[USERNAME_MAX_LENGTH] = "username";
     
     bool bIsRunning_ = true;
 };

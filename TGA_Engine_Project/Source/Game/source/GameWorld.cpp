@@ -19,6 +19,7 @@ GameWorld::GameWorld()
 GameWorld::~GameWorld()
 {
 	EntityManager::End();
+	Locator::End();
 }
 
 void GameWorld::InitClient()

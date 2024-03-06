@@ -21,7 +21,9 @@ void PlayerShipEntity::Init()
   std::shared_ptr<CircleCollider> circleCollider = std::make_shared<CircleCollider>();
   circleCollider->radius = 0.03f;
   colliderComponent->SetCollider(circleCollider);
-
+  colliderComponent->SetCollisionFilter(ECollisionFilter::Player | ECollisionFilter::Projectile);
+  colliderComponent->SetColliderCollisionType(ECollisionFilter::Player);
+  
   colliderComponent->triggerEnterDelegate.AddDynamic<PlayerShipEntity>(this, &PlayerShipEntity::OnTriggerEntered);
   colliderComponent->triggerExitDelegate.AddDynamic<PlayerShipEntity>(this, &PlayerShipEntity::OnTriggerExit);
 }
@@ -38,8 +40,6 @@ void PlayerShipEntity::OnTriggerEntered(const ColliderComponent& InCollider)
   if (bulletEntity->GetTypeTagHash() == NetTag("bullet").GetHash()
     && bulletEntity->GetShooterId() != 0 && bulletEntity->GetShooterId() != GetId())
   {
-    std::cout << "Enemy Hit!\n";
-    
     if (Net::PacketManager::Get()->IsServer())
     {
       health_ -= bulletEntity->GetDamage();

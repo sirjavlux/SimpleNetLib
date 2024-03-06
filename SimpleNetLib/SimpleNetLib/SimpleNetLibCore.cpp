@@ -17,6 +17,8 @@ SimpleNetLibCore* SimpleNetLibCore::Initialize()
         instance_->packetComponentRegistry_ = new PacketComponentRegistry();
         instance_->packetComponentHandleDelegator_ = new PacketComponentDelegator();
         instance_->netHandler_ = new NetHandler();
+
+        instance_->netHandler_->Initialize();
         
         EventSystem::Initialize();
         PacketManager::Initialize();

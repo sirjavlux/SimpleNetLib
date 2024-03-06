@@ -256,6 +256,8 @@ inline void Entity::UpdateReplication()
 		positionComponent.yPos = targetPosition_.y;
 		positionComponent.rotation = std::atan2(direction_.y, direction_.x);
 		positionComponent.entityIdentifier = GetId();
+		positionComponent.overrideDefiningData = GetId();
 		Net::PacketManager::Get()->SendPacketComponentMulticastWithLod<UpdateEntityPositionComponent>(positionComponent, { targetPosition_.x, targetPosition_.y, 0.f });
+		//Net::PacketManager::Get()->SendPacketComponentMulticast<UpdateEntityPositionComponent>(positionComponent);
 	}
 }

@@ -7,7 +7,7 @@ class NET_LIB_EXPORT KickedFromServerPacketComponent : public Net::PacketCompone
 public:
     explicit KickedFromServerPacketComponent();
 
-    ENetDisconnectType disconnectType;
+    uint8_t disconnectType;
 };
 
 inline KickedFromServerPacketComponent::KickedFromServerPacketComponent()

@@ -33,6 +33,8 @@ class NetHandler
 public:
     explicit NetHandler();
     ~NetHandler();
+
+    void Initialize();
     
     bool IsServer() const { return bIsServer_; }
 
@@ -55,6 +57,10 @@ public:
     void OnChildDisconnectReceived(const sockaddr_storage& InSender, const PacketComponent& InComponent);
     void OnChildConnectionReceived(const sockaddr_storage& InNetTarget, const PacketComponent& InComponent);
     void OnConnectionToServerSuccessful(const sockaddr_storage& InNetTarget, const PacketComponent& InComponent);
+
+    void KickNetTarget(const sockaddr_storage& InAddress, uint8_t InKickReason);
+
+    void OnKickedFromServerReceived(const sockaddr_storage& InAddress, const PacketComponent& InComponent);
     
 private:
     void Update();
@@ -75,8 +81,6 @@ private:
     void UpdateNetTarget(const sockaddr_storage& InAddress);
     
     void KickInactiveNetTargets();
-
-    void KickNetTarget(const sockaddr_storage& InAddress, ENetDisconnectType InKickReason);
 
     void StopAndCleanUpConnection();
     
@@ -101,6 +105,8 @@ private:
     bool bIsServer_ = false;
 
     bool bIsRunning_ = false;
+
+    bool bShouldDisconnect_ = false;
     
     friend class SimpleNetLibCore;
 };

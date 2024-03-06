@@ -6,11 +6,13 @@
 class SetEntityPossessedComponent : public Net::PacketComponent
 {
 public:
-  SetEntityPossessedComponent();
+	SetEntityPossessedComponent();
 
-  uint16_t entityIdentifier = 0;
+	char usernameBuffer[USERNAME_MAX_LENGTH];
+	
+	uint16_t entityIdentifier = 0;
 
-  bool bShouldPossess = false;
+	bool bShouldPossess = false;
 };
 
 inline SetEntityPossessedComponent::SetEntityPossessedComponent()

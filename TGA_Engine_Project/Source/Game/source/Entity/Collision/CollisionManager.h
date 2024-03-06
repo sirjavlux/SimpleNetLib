@@ -11,7 +11,7 @@ class CollisionManager
 public:
 	void Initialize();
 
-	void UpdateComponents();
+	void UpdateComponents(); // TODO: This is really heavy at the moment
 	
 	void AddColliderComponent(const std::weak_ptr<ColliderComponent>& InComponent);
 

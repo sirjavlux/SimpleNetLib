@@ -20,7 +20,7 @@ namespace Net
         // Connection events
         DynamicMulticastDelegate<const sockaddr_storage&> onClientConnectEvent;
         DynamicMulticastDelegate<const sockaddr_storage&> onConnectedToServerEvent;
-        DynamicMulticastDelegate<const sockaddr_storage&, ENetDisconnectType> onClientDisconnectEvent;
+        DynamicMulticastDelegate<const sockaddr_storage&, uint8_t> onClientDisconnectEvent;
         
     private:
         static EventSystem* instance_;

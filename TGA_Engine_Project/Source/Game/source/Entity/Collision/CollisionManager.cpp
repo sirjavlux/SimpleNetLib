@@ -45,12 +45,18 @@ void CollisionManager::UpdateComponents()
 			{
 				continue;
 			}
-
+			
+			// Collision Filter Check
+			if (!colliderComponentSecondPtr->CanCollideWith(*colliderComponentFirstPtr))
+			{
+				continue;
+			}
+			
 			// Collision Trigger Check
 			if (Collision::Intersects(*firstCollider, *secondCollider))
 			{
-				colliderComponentFirstPtr->OnColliderCollision(*colliderComponentSecondPtr);
-				colliderComponentSecondPtr->OnColliderCollision(*colliderComponentFirstPtr);
+				colliderComponentFirstPtr->OnColliderCollision(colliderComponentSecond);
+				colliderComponentSecondPtr->OnColliderCollision(colliderComponentFirst);
 			}
 		}
 	}

@@ -67,11 +67,11 @@ private:
     bool DoesUpdateIterMatchPacketFrequency(const PacketFrequencyData& InPacketFrequencyData, bool InIsPacketResend) const;
     
     static void OnNetTargetConnected(const sockaddr_storage& InTarget);
-    static void OnNetTargetDisconnection(const sockaddr_storage& InTarget, ENetDisconnectType InDisconnectType);
+    static void OnNetTargetDisconnection(const sockaddr_storage& InTarget, uint8_t InDisconnectType);
 
     void OnAckReturnReceived(const sockaddr_storage& InTarget, const PacketComponent& InComponent);
 
-    void RegisterDefaultPacketComponents();
+    void SubscribeToPacketComponents();
     void UnSubscribeFromDelegates();
     
     void UpdateServerPinging();

@@ -21,6 +21,8 @@ void BulletEntity::Init()
 	std::shared_ptr<CircleCollider> circleCollider = std::make_shared<CircleCollider>();
 	circleCollider->radius = 0.02f;
 	colliderComponent->SetCollider(circleCollider);
+	colliderComponent->SetCollisionFilter(ECollisionFilter::Player);
+	colliderComponent->SetColliderCollisionType(ECollisionFilter::Projectile);
 }
 
 void BulletEntity::Update(float InDeltaTime)

@@ -27,7 +27,11 @@ void ColliderComponent::FixedUpdate()
 		const uint16_t& colliderIndex = it->first;
 		if (collidersCollidedWithLastUpdate_.find(colliderIndex) == collidersCollidedWithLastUpdate_.end())
 		{
-			OnTriggerExit(it->second);
+			const ColliderComponent* colliderComponent = it->second.lock().get();
+			if (colliderComponent != nullptr)
+			{
+				OnTriggerExit(*colliderComponent);
+			}
 			collidersToRemove.insert(colliderIndex);
 		}
 	}
@@ -60,18 +64,24 @@ void ColliderComponent::OnTriggerExit(const ColliderComponent& InColliderCompone
 		triggerExitDelegate.Execute(InColliderComponent);
 }
 
-void ColliderComponent::OnColliderCollision(const ColliderComponent& InColliderComponent)
+void ColliderComponent::OnColliderCollision(std::weak_ptr<ColliderComponent> InColliderComponent)
 {
-	collisionDelegate.Execute(InColliderComponent);
+	const ColliderComponent* colliderComponent = InColliderComponent.lock().get();
+	if (colliderComponent == nullptr)
+	{
+		return;
+	}
+	
+	collisionDelegate.Execute(*colliderComponent);
 	
 	// Update Triggers Entered and add Collider to cached colliders this frame
-	if (collidersCollidedWithLastUpdate_.find(InColliderComponent.GetLocalId()) == collidersCollidedWithLastUpdate_.end())
+	if (collidersCollidedWithLastUpdate_.find(colliderComponent->GetLocalId()) == collidersCollidedWithLastUpdate_.end())
 	{
-		collidersCollidedWithLastUpdate_.insert({InColliderComponent.GetLocalId(), InColliderComponent});
-		if (collidersEntered_.find(InColliderComponent.GetLocalId()) == collidersEntered_.end())
+		collidersCollidedWithLastUpdate_.insert({colliderComponent->GetLocalId(), InColliderComponent});
+		if (collidersEntered_.find(colliderComponent->GetLocalId()) == collidersEntered_.end())
 		{
-			collidersEntered_.insert({InColliderComponent.GetLocalId(), InColliderComponent});
-			OnTriggerEnter(InColliderComponent);
+			collidersEntered_.insert({colliderComponent->GetLocalId(), InColliderComponent});
+			OnTriggerEnter(*colliderComponent);
 		}
 	}
 }

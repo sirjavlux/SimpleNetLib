@@ -172,6 +172,7 @@ void ControllerComponent::UpdateServerPosition()
 
   const NetUtility::NetVector3 lodPos = { owner_->GetTargetPosition().x, owner_->GetTargetPosition().y, 0.f };
   Net::PacketManager::Get()->SendPacketComponentMulticastWithLod<UpdateEntityControllerPositionComponent>(updateEntityPositionComponent, lodPos);
+  //Net::PacketManager::Get()->SendPacketComponentMulticast<UpdateEntityControllerPositionComponent>(updateEntityPositionComponent);
 
   // Update net position for culling
   Net::PacketManager::Get()->UpdateClientNetPosition(possessedBy_, lodPos);

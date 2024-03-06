@@ -11,17 +11,17 @@ struct VariableDataObject
 	uint8_t data[DataSize];
 
 	uint16_t dataIter = 0;
-
-	// Only handles objects of fixed sizes // TODO: 
-	template<typename T>
+	
+	template<typename T, int ArraySize = 1>
 	uint16_t operator<<(const T& InData)
 	{
-		if (dataIter + sizeof(InData) >= DataSize)
+		const int dataSize = sizeof(T) * ArraySize;
+		
+		// Ensure that there's enough space in the data buffer
+		if (dataIter + dataSize > DataSize)
 		{
-			return 0; // TODO: Handle this case in a better way
+			throw std::runtime_error("Insufficient space in the data buffer");
 		}
-
-		const int dataSize = sizeof(InData);
 	
 		std::memcpy(&data[dataIter], &InData, dataSize);
 		dataIter += dataSize;
@@ -29,15 +29,20 @@ struct VariableDataObject
 		return dataSize;
 	}
 	
-	// Only handles objects of fixed sizes // TODO: 
-	template<typename T>
-	friend T operator<<(T& OutResult, VariableDataObject& InComponent);
+	template<typename T, int ArraySize = 1>
+	friend T operator<<(T& OutResult, VariableDataObject<DataSize>& InVariableData);
 };
 
-template<typename T, int DataSize>
-T operator<<(T& OutResult, VariableDataObject<DataSize>& InVariableData)
+template<typename T, int DataSize, int ArraySize = 1>
+T& operator<<(T& OutResult, VariableDataObject<DataSize>& InVariableData)
 {
-	const int dataSize = sizeof(OutResult);
+	const int dataSize = sizeof(T) * ArraySize;
+
+	// Ensure that there's enough space in the data buffer
+	if (InVariableData.dataIter + dataSize > DataSize)
+	{
+		throw std::runtime_error("Insufficient space in the data buffer");
+	}
 	
 	std::memcpy(&OutResult, &InVariableData.data[InVariableData.dataIter], dataSize);
 	InVariableData.dataIter += dataSize;

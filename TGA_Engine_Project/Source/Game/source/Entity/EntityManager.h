@@ -36,6 +36,7 @@ public:
   // Client sided
   void OnEntitySpawnReceived(const sockaddr_storage& InAddress, const Net::PacketComponent& InComponent);
   void OnEntityDespawnReceived(const sockaddr_storage& InAddress, const Net::PacketComponent& InComponent);
+  void OnKickedFromServerReceived(const sockaddr_storage& InAddress, const Net::PacketComponent& InComponent); // TODO: Needs more player feedback
   
   // Server sided
   void OnEntitySpawnRequestReceived(const sockaddr_storage& InAddress, const Net::PacketComponent& InComponent);
@@ -46,10 +47,12 @@ public:
   void OnPositionUpdateReceived(const sockaddr_storage& InAddress, const Net::PacketComponent& InComponent);
   void OnSetEntityPossessedReceived(const sockaddr_storage& InAddress, const Net::PacketComponent& InComponent);
   void OnReturnAckReceived(const sockaddr_storage& InAddress, const Net::PacketComponent& InComponent);
-  void OnClientDisconnect(const sockaddr_storage& InAddress, ENetDisconnectType InDisconnectType);
+  void OnClientDisconnect(const sockaddr_storage& InAddress, uint8_t InDisconnectType);
+
+  bool IsUsernameTaken(const std::string& InUsername) const;
   
   template<typename EntityType>
-  void RegisterEntityTemplate(NetTag InTag); // TODO: Needs testing
+  void RegisterEntityTemplate(NetTag InTag);
 
   void SetPossessedEntityByNetTarget(const sockaddr_storage& InAddress, uint16_t InIdentifier);
   
@@ -94,12 +97,13 @@ private:
   std::map<uint16_t, std::shared_ptr<Entity>> entitiesLocal_;
 
   bool bPossession_ = false;
+  std::string possessionUsername_;
   int16_t entityToUpdatePossess_ = -1;
   
   using EntityCreator = std::function<std::shared_ptr<Entity>()>;
   std::map<uint64_t, EntityCreator> entityFactoryMap_;
 
-  std::map<sockaddr_storage, uint64_t> entitiesPossessed_;
+  std::map<sockaddr_storage, uint16_t> entitiesPossessed_;
   Entity* possessedEntity_ = nullptr;
 
   std::chrono::steady_clock::time_point lastUpdateTime_;

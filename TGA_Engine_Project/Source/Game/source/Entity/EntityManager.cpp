@@ -3,6 +3,8 @@
 
 #include <ffmpeg-2.0/libavutil/mathematics.h>
 
+#include "../Definitions.hpp"
+#include "../GameWorld.h"
 #include "../Combat/BulletManager.h"
 #include "../PacketComponents/DeSpawnEntityComponent.hpp"
 #include "../PacketComponents/InputComponent.hpp"
@@ -18,6 +20,8 @@
 #include "Packet/CorePacketComponents/ReturnAckComponent.hpp"
 #include "Packet/CorePacketComponents/ServerConnectPacketComponent.hpp"
 #include "../Locator/Locator.h"
+#include "Packet/CorePacketComponents/KickedFromServerPacketComponent.hpp"
+#include "tge/drawers/DebugDrawer.h"
 
 EntityManager* EntityManager::instance_ = nullptr;
 
@@ -54,7 +58,22 @@ void EntityManager::End()
 {
   if (instance_ != nullptr)
   {
+    Net::SimpleNetLibCore::Get()->GetPacketComponentDelegator()->UnSubscribeFromPacketComponentDelegate<DeSpawnEntityComponent, EntityManager>(&EntityManager::OnEntityDespawnReceived, instance_);
+    Net::SimpleNetLibCore::Get()->GetPacketComponentDelegator()->UnSubscribeFromPacketComponentDelegate<SpawnEntityComponent, EntityManager>(&EntityManager::OnEntitySpawnReceived, instance_);
+    Net::SimpleNetLibCore::Get()->GetPacketComponentDelegator()->UnSubscribeFromPacketComponentDelegate<RequestDeSpawnEntityComponent, EntityManager>(&EntityManager::OnEntityDespawnRequestReceived, instance_);
+    Net::SimpleNetLibCore::Get()->GetPacketComponentDelegator()->UnSubscribeFromPacketComponentDelegate<RequestSpawnEntityComponent, EntityManager>(&EntityManager::OnEntitySpawnRequestReceived, instance_);
+    Net::SimpleNetLibCore::Get()->GetPacketComponentDelegator()->UnSubscribeFromPacketComponentDelegate<SetEntityPossessedComponent, EntityManager>(&EntityManager::OnSetEntityPossessedReceived, instance_);
+    Net::SimpleNetLibCore::Get()->GetPacketComponentDelegator()->UnSubscribeFromPacketComponentDelegate<InputComponent, EntityManager>(&EntityManager::OnInputReceived, instance_);
+    Net::SimpleNetLibCore::Get()->GetPacketComponentDelegator()->UnSubscribeFromPacketComponentDelegate<UpdateEntityControllerPositionComponent, EntityManager>(&EntityManager::OnControllerPositionUpdateReceived, instance_);
+    Net::SimpleNetLibCore::Get()->GetPacketComponentDelegator()->UnSubscribeFromPacketComponentDelegate<UpdateEntityPositionComponent, EntityManager>(&EntityManager::OnPositionUpdateReceived, instance_);
+    Net::SimpleNetLibCore::Get()->GetPacketComponentDelegator()->UnSubscribeFromPacketComponentDelegate<ServerConnectPacketComponent, EntityManager>(&EntityManager::OnConnectionReceived, instance_);
+    Net::SimpleNetLibCore::Get()->GetPacketComponentDelegator()->UnSubscribeFromPacketComponentDelegate<ReturnAckComponent, EntityManager>(&EntityManager::OnReturnAckReceived, instance_);
+    Net::SimpleNetLibCore::Get()->GetPacketComponentDelegator()->UnSubscribeFromPacketComponentDelegate<KickedFromServerPacketComponent, EntityManager>(&EntityManager::OnKickedFromServerReceived, instance_);
+
+    Net::EventSystem::Get()->onClientDisconnectEvent.RemoveDynamic<EntityManager>(instance_, &EntityManager::OnClientDisconnect);
+    
     delete instance_;
+    instance_ = nullptr;
   }
 }
 
@@ -209,19 +228,31 @@ void EntityManager::OnEntitySpawnReceived(const sockaddr_storage& InAddress, con
 {
   const SpawnEntityComponent* component = reinterpret_cast<const SpawnEntityComponent*>(&InComponent);
   Entity* entitySpawned = AddEntity(component->entityTypeHash, component->entityId);
+  if (entitySpawned == nullptr)
+  {
+    return;
+  }
+  
   entitySpawned->SetPosition({ component->xPos, component->yPos }, true);
 
   const float xDir = std::cos(component->rotation);
   const float yDir = std::sin(component->rotation);
   entitySpawned->SetDirection({ xDir, yDir });
   
-  std::cout << "Spawn entity received! " << entitySpawned->GetTypeTagHash() << " : " <<  component->entityId << "\n";
+  //std::cout << "Spawn entity received! " << entitySpawned->GetTypeTagHash() << " : " <<  component->entityId << "\n";
 }
 
 void EntityManager::OnEntityDespawnReceived(const sockaddr_storage& InAddress, const Net::PacketComponent& InComponent)
 {
   const DeSpawnEntityComponent* component = reinterpret_cast<const DeSpawnEntityComponent*>(&InComponent);
   RemoveEntity(component->entityId);
+}
+
+void EntityManager::OnKickedFromServerReceived(const sockaddr_storage& InAddress, const Net::PacketComponent& InComponent)
+{
+  const KickedFromServerPacketComponent* component = reinterpret_cast<const KickedFromServerPacketComponent*>(&InComponent);
+
+  // TODO: Tell the player, username was already in use
 }
 
 void EntityManager::OnEntitySpawnRequestReceived(const sockaddr_storage& InAddress, const Net::PacketComponent& InComponent)
@@ -238,6 +269,22 @@ void EntityManager::OnEntityDespawnRequestReceived(const sockaddr_storage& InAdd
 
 void EntityManager::OnConnectionReceived(const sockaddr_storage& InAddress, const Net::PacketComponent& InComponent)
 {
+  ServerConnectPacketComponent component = *reinterpret_cast<const ServerConnectPacketComponent*>(&InComponent);
+
+  // Extract data from in packet component
+  component.variableDataObject.Begin();
+  char usernameBuffer[USERNAME_MAX_LENGTH];
+  
+  operator<<<char, CONNECTION_DATA_SIZE, USERNAME_MAX_LENGTH>(*usernameBuffer, component.variableDataObject);
+  const std::string username = usernameBuffer;
+
+  // Kick player if username is taken
+  if (IsUsernameTaken(username))
+  {
+    Net::SimpleNetLibCore::Get()->GetNetHandler()->KickNetTarget(InAddress, static_cast<uint8_t>(EDisconnectType::UsernameTaken));
+    return;
+  }
+  
   // Spawn existing entities // TODO: Might need to update this to not be as intense, sending data pieces culled by range
   for (const auto& entity : entities_)
   {
@@ -248,15 +295,17 @@ void EntityManager::OnConnectionReceived(const sockaddr_storage& InAddress, cons
     spawnEntityComponent.yPos = entity.second->GetPosition().y;
     Net::PacketManager::Get()->SendPacketComponent<SpawnEntityComponent>(spawnEntityComponent, InAddress);
   }
-
+  
   // Spawn player controllable entity
   const NetTag playerTypeTag = NetTag("player.ship");
   PlayerShipEntity* entitySpawned = dynamic_cast<PlayerShipEntity*>(SpawnEntityServer(playerTypeTag));
   entitySpawned->GetFirstComponent<ControllerComponent>().lock()->SetPossessedBy(InAddress);
-
+  entitySpawned->SetUsername(username);
+  
   SetEntityPossessedComponent setEntityPossessed;
   setEntityPossessed.entityIdentifier = entitySpawned->GetId();
   setEntityPossessed.bShouldPossess = true;
+  std::memcpy(setEntityPossessed.usernameBuffer, usernameBuffer, USERNAME_MAX_LENGTH);
   Net::PacketManager::Get()->SendPacketComponent<SetEntityPossessedComponent>(setEntityPossessed, InAddress);
 }
 
@@ -341,6 +390,7 @@ void EntityManager::OnSetEntityPossessedReceived(const sockaddr_storage& InAddre
   const SetEntityPossessedComponent* component = reinterpret_cast<const SetEntityPossessedComponent*>(&InComponent);
   entityToUpdatePossess_ = static_cast<int16_t>(component->entityIdentifier);
   bPossession_ = component->bShouldPossess;
+  possessionUsername_ = component->usernameBuffer;
 }
 
 void EntityManager::OnReturnAckReceived(const sockaddr_storage& InAddress, const Net::PacketComponent& InComponent)
@@ -348,13 +398,28 @@ void EntityManager::OnReturnAckReceived(const sockaddr_storage& InAddress, const
   const ReturnAckComponent* component = reinterpret_cast<const ReturnAckComponent*>(&InComponent);
 }
 
-void EntityManager::OnClientDisconnect(const sockaddr_storage& InAddress, const ENetDisconnectType InDisconnectType)
+void EntityManager::OnClientDisconnect(const sockaddr_storage& InAddress, const uint8_t InDisconnectType)
 {
   // TODO: Erase and handle traces of client on server
   if (entitiesPossessed_.find(InAddress) != entitiesPossessed_.end())
   {
     DestroyEntityServer(entitiesPossessed_.at(InAddress));
+    entitiesPossessed_.erase(InAddress);
   }
+}
+
+bool EntityManager::IsUsernameTaken(const std::string& InUsername) const
+{
+  const NetTag tag = NetTag(InUsername.c_str());
+  for (const auto& user : entitiesPossessed_)
+  {
+    const PlayerShipEntity* playerEntity = dynamic_cast<PlayerShipEntity*>(entities_.at(user.second).get());
+    if (playerEntity && playerEntity->GetUsername().GetHash() == tag.GetHash())
+    {
+      return true;
+    }
+  }
+  return false;
 }
 
 void EntityManager::SetPossessedEntityByNetTarget(const sockaddr_storage& InAddress, uint16_t InIdentifier)
@@ -376,6 +441,12 @@ void EntityManager::UpdateEntityPossession()
       if (controllerComponent)
       {
         controllerComponent->SetPossessed(bPossession_);
+        PlayerShipEntity* playerShip = dynamic_cast<PlayerShipEntity*>(controllerComponent->GetOwner());
+        if (playerShip)
+        {
+          playerShip->SetUsername(possessionUsername_);
+        }
+        
         possessedEntity_ = controllerComponent->GetOwner();
       }
       entityToUpdatePossess_ = -1; // Reset
@@ -385,6 +456,11 @@ void EntityManager::UpdateEntityPossession()
 
 Entity* EntityManager::AddEntity(const uint64_t InEntityTypeHash, const uint16_t InIdentifier, const bool InIsLocallySpawned)
 {
+  if (entities_.find(InIdentifier) != entities_.end())
+  {
+    return nullptr;
+  }
+  
   std::shared_ptr<Entity> newEntity = CreateNewEntityFromTemplate(InEntityTypeHash);
   newEntity->id_ = InIdentifier;
   newEntity->Init();
@@ -467,7 +543,7 @@ void EntityManager::RegisterPacketComponents()
   packetLodFrequencies.push_back({ 4.f, 0.4f });
   const PacketComponentAssociatedData associatedEntityPositionData = PacketComponentAssociatedData
   {
-    true,
+    false,
     FIXED_UPDATE_DELTA_TIME,
     1.f,
     EPacketHandlingType::None,
@@ -486,4 +562,5 @@ void EntityManager::SubscribeToPacketComponents()
 
   componentDelegator->SubscribeToPacketComponentDelegate<ServerConnectPacketComponent, EntityManager>(&EntityManager::OnConnectionReceived, this);
   componentDelegator->SubscribeToPacketComponentDelegate<ReturnAckComponent, EntityManager>(&EntityManager::OnReturnAckReceived, this);
+  componentDelegator->SubscribeToPacketComponentDelegate<KickedFromServerPacketComponent, EntityManager>(&EntityManager::OnKickedFromServerReceived, this);
 }

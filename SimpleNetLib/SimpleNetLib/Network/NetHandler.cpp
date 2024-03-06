@@ -6,9 +6,13 @@
 #include "../Events/EventSystem.h"
 
 #include "../Packet/PacketManager.h"
-#include "..\Packet\CorePacketComponents\ServerConnectPacketComponent.hpp"
+#include "../Packet/CorePacketComponents/ServerConnectPacketComponent.hpp"
 #include "../Packet/CorePacketComponents/ReturnAckComponent.hpp"
 #include "../Packet/CorePacketComponents/SuccessfullyConnectedToServer.hpp"
+#include "../Packet/CorePacketComponents/KickedFromServerPacketComponent.hpp"
+#include "../Packet/CorePacketComponents/ServerPingPacketComponent.hpp"
+#include "../Packet/CorePacketComponents/DataReplicationPacketComponent.hpp"
+#include "../Packet/CorePacketComponents/ServerDisconnectPacketComponent.hpp"
 #include "../Utility/StringUtility.hpp"
 
 namespace Net
@@ -21,6 +25,58 @@ NetHandler::NetHandler()
 NetHandler::~NetHandler()
 {
     StopAndCleanUpConnection();
+}
+
+void NetHandler::Initialize()
+{
+    {
+        const PacketComponentAssociatedData associatedData = PacketComponentAssociatedData
+        {
+            false,
+            0.3f,
+            4.f,
+            EPacketHandlingType::Ack
+        };
+        SimpleNetLibCore::Get()->GetPacketComponentRegistry()->RegisterPacketComponent<ServerDisconnectPacketComponent, NetHandler>
+            (associatedData, &NetHandler::OnChildDisconnectReceived, this);
+        SimpleNetLibCore::Get()->GetPacketComponentRegistry()->RegisterPacketComponent<ServerConnectPacketComponent, NetHandler>
+            (associatedData, &NetHandler::OnChildConnectionReceived, this);
+        SimpleNetLibCore::Get()->GetPacketComponentRegistry()->RegisterPacketComponent<SuccessfullyConnectedToServer, NetHandler>
+            (associatedData, &NetHandler::OnConnectionToServerSuccessful, this);
+    }
+    {
+        const PacketComponentAssociatedData associatedData = PacketComponentAssociatedData
+        {
+            false,
+            1.f,
+            1.f,
+            EPacketHandlingType::Ack
+        };
+        SimpleNetLibCore::Get()->GetPacketComponentRegistry()->RegisterPacketComponent<ServerPingPacketComponent>(associatedData);
+    }
+    {
+        const PacketComponentAssociatedData associatedData = PacketComponentAssociatedData
+        {
+            false,
+            FIXED_UPDATE_DELTA_TIME,
+            1.f,
+        };
+        SimpleNetLibCore::Get()->GetPacketComponentRegistry()->RegisterPacketComponent<DataReplicationPacketComponent>(associatedData);
+    }
+    {
+        const PacketComponentAssociatedData associatedData = PacketComponentAssociatedData
+        {
+            false,
+            0.05f,
+            1.f,
+            EPacketHandlingType::None
+        };
+        SimpleNetLibCore::Get()->GetPacketComponentRegistry()->RegisterPacketComponent<ReturnAckComponent>(associatedData);
+        SimpleNetLibCore::Get()->GetPacketComponentRegistry()->RegisterPacketComponent<KickedFromServerPacketComponent>(associatedData);
+    }
+    
+    SimpleNetLibCore::Get()->GetPacketComponentDelegator()->SubscribeToPacketComponentDelegate
+        <KickedFromServerPacketComponent, NetHandler>(&NetHandler::OnKickedFromServerReceived, this);
 }
 
 void NetHandler::Update()
@@ -40,6 +96,14 @@ void NetHandler::Update()
             DisconnectFromServer();
             std::cout << "Timed out, no connection.\n";
             return;
+        }
+
+        if (bShouldDisconnect_ == true)
+        {
+            bShouldDisconnect_ = false;
+            
+            DisconnectFromServer();
+            std::cout << "Disconnected from server.\n";
         }
     }
     
@@ -61,7 +125,6 @@ void NetHandler::SendPacketToTargetAndResetPacket(const sockaddr_storage& InTarg
 void NetHandler::SendPacketToTarget(const sockaddr_storage& InTarget, const Packet& InPacket) const
 {
     const sockaddr_in targetAddress = NetUtility::RetrieveIPv4AddressFromStorage(InTarget);
-    //std::cout << InPacket.GetIdentifier() << " : " << (InPacket.GetPacketType() == EPacketHandlingType::Ack ? "Ack" : "Not Ack") << " : " << "Sent Packet!\n"; // Temporary Debug
     if (sendto(udpSocket_, reinterpret_cast<const char*>(&InPacket), NET_BUFFER_SIZE_TOTAL, 0, reinterpret_cast<const sockaddr*>(&targetAddress), sizeof(targetAddress)) == SOCKET_ERROR)
     {
         std::cout << "Error: " << WSAGetLastError() << '\n';
@@ -285,7 +348,7 @@ void NetHandler::PacketListener(NetHandler* InNetHandler)
         }
         else if (bytesReceived == 0)
         {
-            InNetHandler->KickNetTarget(senderAddress, ENetDisconnectType::ConnectionClosed);
+            InNetHandler->KickNetTarget(senderAddress, static_cast<uint8_t>(ENetDisconnectType::ConnectionClosed));
             std::cerr << "Connection closed by peer.\n";
         }
         else if (bytesReceived == SOCKET_ERROR)
@@ -381,7 +444,7 @@ void NetHandler::ProcessPackets()
         {
             PacketManager::Get()->HandleComponent(senderAddress, *component);
         }
-
+        
         // Mark packet as received
         if (IsConnected(senderAddress))
         {
@@ -413,12 +476,14 @@ void NetHandler::OnChildDisconnectReceived(const sockaddr_storage& InSender, con
 {
     if (connectionHandler_.ContainsConnection(InSender))
     {
-        KickNetTarget(InSender, ENetDisconnectType::Disconnected);
+        KickNetTarget(InSender, static_cast<uint8_t>(ENetDisconnectType::Disconnected));
     }
 }
 
 void NetHandler::OnChildConnectionReceived(const sockaddr_storage& InNetTarget, const PacketComponent& InComponent)
 {
+    const ServerConnectPacketComponent* component = reinterpret_cast<const ServerConnectPacketComponent*>(&InComponent);
+    
     if (InNetTarget.ss_family == AF_INET)
     {
         const sockaddr_in ipv4Address = NetUtility::RetrieveIPv4AddressFromStorage(InNetTarget);
@@ -435,7 +500,8 @@ void NetHandler::OnChildConnectionReceived(const sockaddr_storage& InNetTarget, 
         PacketManager::Get()->OnNetTargetConnected(InNetTarget);
 
         // Send Client connection success packet component back
-        const SuccessfullyConnectedToServer successPacketComponent;
+        SuccessfullyConnectedToServer successPacketComponent;
+        successPacketComponent.SetVariableData(component->variableDataObject);
         PacketManager::Get()->SendPacketComponent(successPacketComponent, InNetTarget);
     }
 }
@@ -464,7 +530,7 @@ void NetHandler::KickInactiveNetTargets()
         
         if (timeDifference.count() > NET_TIME_UNTIL_TIME_OUT_SEC)
         {
-            KickNetTarget(netTarget.address, ENetDisconnectType::TimeOut);
+            KickNetTarget(netTarget.address, static_cast<uint8_t>(ENetDisconnectType::TimeOut));
         }
     }
 
@@ -475,10 +541,21 @@ void NetHandler::KickInactiveNetTargets()
     }
 }
 
-void NetHandler::KickNetTarget(const sockaddr_storage& InAddress, const ENetDisconnectType InKickReason)
+void NetHandler::KickNetTarget(const sockaddr_storage& InAddress, const uint8_t InKickReason)
 {
     if (connectionHandler_.ContainsConnection(InAddress))
     {
+        // Send kick packet to client
+        KickedFromServerPacketComponent kickedFromServerPacketComponent;
+        kickedFromServerPacketComponent.disconnectType = InKickReason;
+        
+        Packet packet(EPacketHandlingType::None);
+        packet.AddComponent(kickedFromServerPacketComponent);
+        packet.CalculateAndUpdateCheckSum();
+        
+        SendPacketToTarget(InAddress, packet);
+
+        // Remove tracked net target
         connectionHandler_.RemoveConnection(InAddress);
         PacketManager::Get()->OnNetTargetDisconnection(InAddress, InKickReason);
 
@@ -492,6 +569,11 @@ void NetHandler::KickNetTarget(const sockaddr_storage& InAddress, const ENetDisc
             }
         }
     }
+}
+
+void NetHandler::OnKickedFromServerReceived(const sockaddr_storage& InAddress, const PacketComponent& InComponent)
+{
+    bShouldDisconnect_ = true;
 }
 
 void NetHandler::StopAndCleanUpConnection()
@@ -510,6 +592,8 @@ void NetHandler::StopAndCleanUpConnection()
     #endif
 
     packetDataToProcess_.clear();
+
+    connectionHandler_ = NetConnectionHandler();
     
     PacketManager::End();
     PacketManager::Initialize();

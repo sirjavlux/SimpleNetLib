@@ -19,8 +19,13 @@ public:
 
 	void OnSendReplication(DataReplicationPacketComponent& OutComponent) override;
 	void OnReadReplication(DataReplicationPacketComponent& InComponent) override;
+
+	void SetUsername(const std::string& InUsername) { username_ = InUsername; }
+	const NetTag& GetUsername() const { return username_; }
 	
 private:
+	NetTag username_;
+	
 	uint16_t health_ = 0;
 	uint16_t maxHealth_ = 100;
 };

@@ -57,22 +57,11 @@ void Go()
 		Client client;
 		client.Init();
 		
-		GameWorld gameWorld;
-		gameWorld.Init();
-		gameWorld.InitClient();
-		
 		Tga::Engine* engine = Tga::Engine::GetInstance();
 		
 		while (engine->BeginFrame())
 		{
 			client.Update(engine->GetDeltaTime());
-
-			if (Net::SimpleNetLibCore::Get()->GetNetHandler()->IsRunning())
-			{
-				gameWorld.Update(engine->GetDeltaTime());
-			
-				gameWorld.Render();
-			}
 			
 			engine->EndFrame();
 		}

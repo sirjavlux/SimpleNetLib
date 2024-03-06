@@ -2,6 +2,7 @@
 
 #include "../Events/EventSystem.h"
 #include "CorePacketComponents/DataReplicationPacketComponent.hpp"
+#include "CorePacketComponents/KickedFromServerPacketComponent.hpp"
 #include "CorePacketComponents/ReturnAckComponent.hpp"
 #include "CorePacketComponents/ServerDisconnectPacketComponent.hpp"
 #include "CorePacketComponents/ServerPingPacketComponent.hpp"
@@ -33,7 +34,7 @@ PacketManager* PacketManager::Initialize()
         instance_->lastUpdateTime_ = steady_clock::now();
         instance_->lastUpdateFinishedTime_ = steady_clock::now();
         
-        instance_->RegisterDefaultPacketComponents();
+        instance_->SubscribeToPacketComponents();
     }
     
     return instance_;
@@ -213,7 +214,7 @@ void PacketManager::OnNetTargetConnected(const sockaddr_storage& InTarget)
     EventSystem::Get()->onClientConnectEvent.Execute(InTarget);
 }
 
-void PacketManager::OnNetTargetDisconnection(const sockaddr_storage& InTarget, const ENetDisconnectType InDisconnectType)
+void PacketManager::OnNetTargetDisconnection(const sockaddr_storage& InTarget, const uint8_t InDisconnectType)
 {
     auto& packetTargetDataMap = Get()->packetTargetDataMap_;
     if (packetTargetDataMap.find(InTarget) != packetTargetDataMap.end())
@@ -233,74 +234,9 @@ void PacketManager::OnAckReturnReceived(const sockaddr_storage& InTarget, const 
     }
 }
 
-void PacketManager::RegisterDefaultPacketComponents()
+void PacketManager::SubscribeToPacketComponents()
 {
-    {
-        const PacketComponentAssociatedData associatedData = PacketComponentAssociatedData
-        {
-            true,
-            FIXED_UPDATE_DELTA_TIME,
-            1.f,
-        };
-        SimpleNetLibCore::Get()->GetPacketComponentRegistry()->RegisterPacketComponent<DataReplicationPacketComponent>(associatedData);
-    }
-    {
-        const PacketComponentAssociatedData associatedData = PacketComponentAssociatedData
-        {
-            false,
-            0.3f,
-            4.f,
-            EPacketHandlingType::Ack
-        };
-        SimpleNetLibCore::Get()->GetPacketComponentRegistry()->RegisterPacketComponent<ServerConnectPacketComponent, NetHandler>
-            (associatedData, &NetHandler::OnChildConnectionReceived, SimpleNetLibCore::Get()->GetNetHandler());
-    }
-    {
-        const PacketComponentAssociatedData associatedData = PacketComponentAssociatedData
-        {
-            false,
-            0.3f,
-            4.f,
-            EPacketHandlingType::Ack
-        };
-        SimpleNetLibCore::Get()->GetPacketComponentRegistry()->RegisterPacketComponent<ServerDisconnectPacketComponent, NetHandler>
-            (associatedData, &NetHandler::OnChildDisconnectReceived, SimpleNetLibCore::Get()->GetNetHandler());
-    }
-    {
-        const PacketComponentAssociatedData associatedData = PacketComponentAssociatedData
-        {
-            false,
-            0.05f,
-            1.f,
-            EPacketHandlingType::None
-        };
-        SimpleNetLibCore::Get()->GetPacketComponentRegistry()->RegisterPacketComponent<ReturnAckComponent, PacketManager>(associatedData, &PacketManager::OnAckReturnReceived, this);
-    }
-    {
-        const PacketComponentAssociatedData associatedData = PacketComponentAssociatedData
-        {
-            false,
-            1.f,
-            1.f,
-            EPacketHandlingType::Ack
-        };
-        SimpleNetLibCore::Get()->GetPacketComponentRegistry()->RegisterPacketComponent<ServerPingPacketComponent>(associatedData);
-    }
-    {
-        const PacketComponentAssociatedData associatedData = PacketComponentAssociatedData
-        {
-            false,
-            0.3f,
-            4.f,
-            EPacketHandlingType::Ack
-        };
-        SimpleNetLibCore::Get()->GetPacketComponentRegistry()->RegisterPacketComponent<SuccessfullyConnectedToServer, NetHandler>
-            (associatedData, &NetHandler::OnConnectionToServerSuccessful, SimpleNetLibCore::Get()->GetNetHandler());
-    }
-
-    SimpleNetLibCore::Get()->GetPacketComponentDelegator()->SubscribeToPacketComponentDelegate
-    <ServerDisconnectPacketComponent, NetHandler>(&NetHandler::OnChildDisconnectReceived, SimpleNetLibCore::Get()->GetNetHandler());
-
+    SimpleNetLibCore::Get()->GetPacketComponentDelegator()->SubscribeToPacketComponentDelegate<ReturnAckComponent, PacketManager>(&PacketManager::OnAckReturnReceived, this);
 }
 
 void PacketManager::UnSubscribeFromDelegates()

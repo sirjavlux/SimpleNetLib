@@ -69,10 +69,10 @@ void RenderComponent::Update(float InDeltaTime)
   spriteInstance_.myRotation = std::atan2(owner_->GetDirection().y, owner_->GetDirection().x);
     
   // Cull sprite if outside window bounds
-  if (((spriteInstance_.myPosition.x < 0 && spriteInstance_.myPosition.x < spriteInstance_.mySize.x)
-    || (spriteInstance_.myPosition.y < 0 && spriteInstance_.myPosition.y < spriteInstance_.mySize.y))
-    || ((spriteInstance_.myPosition.x > resolution.x && spriteInstance_.myPosition.x - resolution.x > spriteInstance_.mySize.x)
-    || (spriteInstance_.myPosition.y > resolution.y && spriteInstance_.myPosition.y - resolution.y > spriteInstance_.mySize.y)))
+  if ((spriteInstance_.myPosition.x + spriteInstance_.mySize.x / 2.f < 0
+    || spriteInstance_.myPosition.y + spriteInstance_.mySize.y / 2.f < 0)
+    || (spriteInstance_.myPosition.x - spriteInstance_.mySize.x / 2.f > resolution.x
+    || spriteInstance_.myPosition.y - spriteInstance_.mySize.y / 2.f > resolution.y))
   {
     return;
   }

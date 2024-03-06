@@ -17,8 +17,8 @@ public:
 	uint16_t GetHealth() const { return health_; }
 	uint16_t GetMaxHealth() const { return maxHealth_; }
 
+	void OnReadReplication(const DataReplicationPacketComponent& InComponent) override;
 	void OnSendReplication(DataReplicationPacketComponent& OutComponent) override;
-	void OnReadReplication(DataReplicationPacketComponent& InComponent) override;
 
 	void SetUsername(const std::string& InUsername) { username_ = InUsername; }
 	const NetTag& GetUsername() const { return username_; }

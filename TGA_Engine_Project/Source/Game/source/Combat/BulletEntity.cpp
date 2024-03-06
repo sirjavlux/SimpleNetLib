@@ -47,7 +47,7 @@ void BulletEntity::FixedUpdate()
 	}
 }
 
-void BulletEntity::OnReadReplication(DataReplicationPacketComponent& InComponent)
+void BulletEntity::OnReadReplication(const DataReplicationPacketComponent& InComponent)
 {
 	shooterId_ << InComponent;
 }

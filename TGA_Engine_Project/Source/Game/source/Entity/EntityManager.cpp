@@ -58,17 +58,19 @@ void EntityManager::End()
 {
   if (instance_ != nullptr)
   {
-    Net::SimpleNetLibCore::Get()->GetPacketComponentDelegator()->UnSubscribeFromPacketComponentDelegate<DeSpawnEntityComponent, EntityManager>(&EntityManager::OnEntityDespawnReceived, instance_);
-    Net::SimpleNetLibCore::Get()->GetPacketComponentDelegator()->UnSubscribeFromPacketComponentDelegate<SpawnEntityComponent, EntityManager>(&EntityManager::OnEntitySpawnReceived, instance_);
-    Net::SimpleNetLibCore::Get()->GetPacketComponentDelegator()->UnSubscribeFromPacketComponentDelegate<RequestDeSpawnEntityComponent, EntityManager>(&EntityManager::OnEntityDespawnRequestReceived, instance_);
-    Net::SimpleNetLibCore::Get()->GetPacketComponentDelegator()->UnSubscribeFromPacketComponentDelegate<RequestSpawnEntityComponent, EntityManager>(&EntityManager::OnEntitySpawnRequestReceived, instance_);
-    Net::SimpleNetLibCore::Get()->GetPacketComponentDelegator()->UnSubscribeFromPacketComponentDelegate<SetEntityPossessedComponent, EntityManager>(&EntityManager::OnSetEntityPossessedReceived, instance_);
-    Net::SimpleNetLibCore::Get()->GetPacketComponentDelegator()->UnSubscribeFromPacketComponentDelegate<InputComponent, EntityManager>(&EntityManager::OnInputReceived, instance_);
-    Net::SimpleNetLibCore::Get()->GetPacketComponentDelegator()->UnSubscribeFromPacketComponentDelegate<UpdateEntityControllerPositionComponent, EntityManager>(&EntityManager::OnControllerPositionUpdateReceived, instance_);
-    Net::SimpleNetLibCore::Get()->GetPacketComponentDelegator()->UnSubscribeFromPacketComponentDelegate<UpdateEntityPositionComponent, EntityManager>(&EntityManager::OnPositionUpdateReceived, instance_);
-    Net::SimpleNetLibCore::Get()->GetPacketComponentDelegator()->UnSubscribeFromPacketComponentDelegate<ServerConnectPacketComponent, EntityManager>(&EntityManager::OnConnectionReceived, instance_);
-    Net::SimpleNetLibCore::Get()->GetPacketComponentDelegator()->UnSubscribeFromPacketComponentDelegate<ReturnAckComponent, EntityManager>(&EntityManager::OnReturnAckReceived, instance_);
-    Net::SimpleNetLibCore::Get()->GetPacketComponentDelegator()->UnSubscribeFromPacketComponentDelegate<KickedFromServerPacketComponent, EntityManager>(&EntityManager::OnKickedFromServerReceived, instance_);
+    Net::PacketComponentDelegator* componentDelegator = Net::SimpleNetLibCore::Get()->GetPacketComponentDelegator();
+    componentDelegator->UnSubscribeFromPacketComponentDelegate<DeSpawnEntityComponent, EntityManager>(&EntityManager::OnEntityDespawnReceived, instance_);
+    componentDelegator->UnSubscribeFromPacketComponentDelegate<SpawnEntityComponent, EntityManager>(&EntityManager::OnEntitySpawnReceived, instance_);
+    componentDelegator->UnSubscribeFromPacketComponentDelegate<RequestDeSpawnEntityComponent, EntityManager>(&EntityManager::OnEntityDespawnRequestReceived, instance_);
+    componentDelegator->UnSubscribeFromPacketComponentDelegate<RequestSpawnEntityComponent, EntityManager>(&EntityManager::OnEntitySpawnRequestReceived, instance_);
+    componentDelegator->UnSubscribeFromPacketComponentDelegate<SetEntityPossessedComponent, EntityManager>(&EntityManager::OnSetEntityPossessedReceived, instance_);
+    componentDelegator->UnSubscribeFromPacketComponentDelegate<InputComponent, EntityManager>(&EntityManager::OnInputReceived, instance_);
+    componentDelegator->UnSubscribeFromPacketComponentDelegate<UpdateEntityControllerPositionComponent, EntityManager>(&EntityManager::OnControllerPositionUpdateReceived, instance_);
+    componentDelegator->UnSubscribeFromPacketComponentDelegate<UpdateEntityPositionComponent, EntityManager>(&EntityManager::OnPositionUpdateReceived, instance_);
+    componentDelegator->UnSubscribeFromPacketComponentDelegate<ServerConnectPacketComponent, EntityManager>(&EntityManager::OnConnectionReceived, instance_);
+    componentDelegator->UnSubscribeFromPacketComponentDelegate<ReturnAckComponent, EntityManager>(&EntityManager::OnReturnAckReceived, instance_);
+    componentDelegator->UnSubscribeFromPacketComponentDelegate<KickedFromServerPacketComponent, EntityManager>(&EntityManager::OnKickedFromServerReceived, instance_);
+    componentDelegator->UnSubscribeFromPacketComponentDelegate<DataReplicationPacketComponent, EntityManager>(&EntityManager::OnReadReplication, instance_);
 
     Net::EventSystem::Get()->onClientDisconnectEvent.RemoveDynamic<EntityManager>(instance_, &EntityManager::OnClientDisconnect);
     
@@ -253,6 +255,19 @@ void EntityManager::OnKickedFromServerReceived(const sockaddr_storage& InAddress
   const KickedFromServerPacketComponent* component = reinterpret_cast<const KickedFromServerPacketComponent*>(&InComponent);
 
   // TODO: Tell the player, username was already in use
+}
+
+void EntityManager::OnReadReplication(const sockaddr_storage& InAddress, const Net::PacketComponent& InComponent)
+{
+  const DataReplicationPacketComponent* component = reinterpret_cast<const DataReplicationPacketComponent*>(&InComponent);
+
+  if (entities_.find(component->identifierData) != entities_.end())
+  {
+    Entity* entity = entities_.at(component->identifierData).get();
+    const DataReplicationPacketComponent componentCpy = *component;
+    componentCpy.variableDataObject.Begin();
+    entity->OnReadReplication(componentCpy);
+  }
 }
 
 void EntityManager::OnEntitySpawnRequestReceived(const sockaddr_storage& InAddress, const Net::PacketComponent& InComponent)
@@ -543,7 +558,7 @@ void EntityManager::RegisterPacketComponents()
   packetLodFrequencies.push_back({ 4.f, 0.4f });
   const PacketComponentAssociatedData associatedEntityPositionData = PacketComponentAssociatedData
   {
-    false,
+    true,
     FIXED_UPDATE_DELTA_TIME,
     1.f,
     EPacketHandlingType::None,
@@ -563,4 +578,5 @@ void EntityManager::SubscribeToPacketComponents()
   componentDelegator->SubscribeToPacketComponentDelegate<ServerConnectPacketComponent, EntityManager>(&EntityManager::OnConnectionReceived, this);
   componentDelegator->SubscribeToPacketComponentDelegate<ReturnAckComponent, EntityManager>(&EntityManager::OnReturnAckReceived, this);
   componentDelegator->SubscribeToPacketComponentDelegate<KickedFromServerPacketComponent, EntityManager>(&EntityManager::OnKickedFromServerReceived, this);
+  componentDelegator->SubscribeToPacketComponentDelegate<DataReplicationPacketComponent, EntityManager>(&EntityManager::OnReadReplication, this);
 }

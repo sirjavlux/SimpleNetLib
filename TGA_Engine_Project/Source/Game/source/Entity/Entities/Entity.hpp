@@ -64,9 +64,7 @@ public:
 	// Server Sided
 	virtual void OnSendReplication(DataReplicationPacketComponent& OutComponent) {}
 	// Client Sided
-	virtual void OnReadReplication(DataReplicationPacketComponent& InComponent) {} 
-
-	void OnReadReplicationBase(const sockaddr_storage& InAddress, const Net::PacketComponent& InComponent);
+	virtual void OnReadReplication(const DataReplicationPacketComponent& InComponent) {} 
 	
 protected:
 	void UpdateReplication();
@@ -176,12 +174,12 @@ std::weak_ptr<ComponentType> Entity::GetFirstComponent()
 
 inline Entity::Entity()
 {
-	Net::SimpleNetLibCore::Get()->GetPacketComponentDelegator()->SubscribeToPacketComponentDelegate<DataReplicationPacketComponent, Entity>(&Entity::OnReadReplicationBase, this);
+	
 }
 
 inline Entity::~Entity()
 {
-	Net::SimpleNetLibCore::Get()->GetPacketComponentDelegator()->UnSubscribeFromPacketComponentDelegate<DataReplicationPacketComponent, Entity>(&Entity::OnReadReplicationBase, this);
+	
 }
 
 inline void Entity::UpdateComponents(const float InDeltaTime)
@@ -222,17 +220,6 @@ inline void Entity::SetPosition(const Tga::Vector2f& InPos, const bool InIsTelep
 	if (InIsTeleport)
 	{
 		SetTargetPosition(InPos);
-	}
-}
-
-inline void Entity::OnReadReplicationBase(const sockaddr_storage& InAddress, const Net::PacketComponent& InComponent)
-{
-	const DataReplicationPacketComponent& castedComponent = reinterpret_cast<const DataReplicationPacketComponent&>(InComponent);
-	if (castedComponent.identifierData == id_)
-	{
-		DataReplicationPacketComponent componentCpy = castedComponent;
-		componentCpy.variableDataObject.Begin();
-		OnReadReplication(componentCpy);
 	}
 }
 

@@ -31,7 +31,7 @@ bool DataReplicationPacketComponent::operator<<(const T& InData)
 }
 
 template<typename T>
-T operator<<(T& OutResult, DataReplicationPacketComponent& InComponent)
+T operator<<(T& OutResult, const DataReplicationPacketComponent& InComponent)
 {
 	OutResult << InComponent.variableDataObject;
 

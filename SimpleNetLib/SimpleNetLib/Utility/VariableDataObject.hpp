@@ -5,12 +5,12 @@
 template<int DataSize>
 struct VariableDataObject
 {
-	void Begin();
+	void Begin() const;
 	void Reset();
 	
 	uint8_t data[DataSize];
 
-	uint16_t dataIter = 0;
+	mutable uint16_t dataIter = 0;
 	
 	template<typename T, int ArraySize = 1>
 	uint16_t operator<<(const T& InData)
@@ -34,7 +34,7 @@ struct VariableDataObject
 };
 
 template<typename T, int DataSize, int ArraySize = 1>
-T& operator<<(T& OutResult, VariableDataObject<DataSize>& InVariableData)
+T& operator<<(T& OutResult, const VariableDataObject<DataSize>& InVariableData)
 {
 	const int dataSize = sizeof(T) * ArraySize;
 
@@ -51,7 +51,7 @@ T& operator<<(T& OutResult, VariableDataObject<DataSize>& InVariableData)
 }
 
 template <int DataSize>
-void VariableDataObject<DataSize>::Begin()
+void VariableDataObject<DataSize>::Begin() const
 {
 	dataIter = 0;
 }

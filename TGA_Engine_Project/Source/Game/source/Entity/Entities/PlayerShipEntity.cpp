@@ -67,7 +67,7 @@ void PlayerShipEntity::OnTriggerExit(const ColliderComponent& InCollider)
   }
 }
 
-void PlayerShipEntity::OnReadReplication(DataReplicationPacketComponent& InComponent)
+void PlayerShipEntity::OnReadReplication(const DataReplicationPacketComponent& InComponent)
 {
   health_ << InComponent;
 }

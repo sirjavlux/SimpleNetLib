@@ -85,13 +85,18 @@ void PacketToSendData::AddComponent(const std::shared_ptr<Net::PacketComponent>&
   const uint16_t componentIdentifier = InComponent->GetIdentifier();
   if (InAssociatedData.shouldOverrideOldWaitingComponent)
   {
-    if (componentTypeIndexMap_.find(componentIdentifier) != componentTypeIndexMap_.end())
+    for (const auto& componentIndexData : componentTypeIndexMap_)
     {
-      const uint16_t index = componentTypeIndexMap_.at(componentIdentifier);
-      const std::shared_ptr<Net::PacketComponent> component = components_[index];
-      if (component->overrideDefiningData == InComponent->overrideDefiningData)
+      if (componentIndexData.first != componentIdentifier)
       {
-        components_[index] = InComponent;
+        continue;
+      }
+      
+      const std::shared_ptr<Net::PacketComponent> component = components_[componentIndexData.second];
+      if (component->overrideDefiningData == InComponent->overrideDefiningData
+        && component->overrideDefiningData != 0 && InComponent->overrideDefiningData != 0)
+      {
+        components_[componentIndexData.second] = InComponent;
         return;
       }
     }

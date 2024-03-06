@@ -37,6 +37,7 @@ public:
   void OnEntitySpawnReceived(const sockaddr_storage& InAddress, const Net::PacketComponent& InComponent);
   void OnEntityDespawnReceived(const sockaddr_storage& InAddress, const Net::PacketComponent& InComponent);
   void OnKickedFromServerReceived(const sockaddr_storage& InAddress, const Net::PacketComponent& InComponent); // TODO: Needs more player feedback
+  void OnReadReplication(const sockaddr_storage& InAddress, const Net::PacketComponent& InComponent);
   
   // Server sided
   void OnEntitySpawnRequestReceived(const sockaddr_storage& InAddress, const Net::PacketComponent& InComponent);

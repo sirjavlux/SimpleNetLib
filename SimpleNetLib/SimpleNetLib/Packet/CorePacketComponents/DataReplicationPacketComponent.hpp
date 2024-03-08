@@ -9,20 +9,20 @@ public:
 
 	void Reset();
 	
-	uint16_t identifierData;
+	uint16_t identifierDataFirst;
 	uint16_t identifierDataSecond;
 
 	VariableDataObject<REPLICATION_DATA_SIZE> variableDataObject;
 
-	template<typename T>
-	bool operator<<(const T& InData);
+	template<typename DataType>
+	bool operator<<(const DataType& InData);
 	
 	template<typename T>
 	friend T operator<<(T& OutResult, DataReplicationPacketComponent& InComponent);
 };
 
-template <typename T>
-bool DataReplicationPacketComponent::operator<<(const T& InData)
+template <typename DataType>
+bool DataReplicationPacketComponent::operator<<(const DataType& InData)
 {
 	const uint16_t size = variableDataObject << InData;
 	sizeData_ += size;

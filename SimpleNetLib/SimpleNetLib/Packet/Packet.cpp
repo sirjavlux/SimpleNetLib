@@ -4,6 +4,11 @@
 
 namespace Net
 {
+Packet::Packet(const Packet& InPacket)
+{
+    *this = InPacket;
+}
+
 Packet::Packet(const EPacketHandlingType InPacketHandlingType)
     : packetHandlingType_(InPacketHandlingType), packetIdentifier_(GenerateIdentifier())
 {
@@ -85,6 +90,18 @@ uint16_t Packet::CalculateCheckSum() const
 uint16_t Packet::GetCheckSum() const
 {
     return checkSum_;
+}
+
+Packet& Packet::operator=(const Packet& InPacket)
+{
+    this->packetIdentifier_ = InPacket.packetIdentifier_;
+    this->checkSum_ = InPacket.checkSum_;
+    this->packetHandlingType_ = InPacket.packetHandlingType_;
+    this->packetDataIter_ = InPacket.packetDataIter_;
+    
+    std::memcpy(this->data_, InPacket.data_, NET_PACKET_COMPONENT_DATA_SIZE_TOTAL);
+
+    return *this;
 }
 
 void Packet::ExtractComponent(std::vector<const PacketComponent*>& OutComponents, int& Iterator) const

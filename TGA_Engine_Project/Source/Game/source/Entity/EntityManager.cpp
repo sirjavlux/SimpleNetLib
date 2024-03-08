@@ -261,9 +261,9 @@ void EntityManager::OnReadReplication(const sockaddr_storage& InAddress, const N
 {
   const DataReplicationPacketComponent* component = reinterpret_cast<const DataReplicationPacketComponent*>(&InComponent);
 
-  if (entities_.find(component->identifierData) != entities_.end())
+  if (entities_.find(component->identifierDataFirst) != entities_.end())
   {
-    Entity* entity = entities_.at(component->identifierData).get();
+    Entity* entity = entities_.at(component->identifierDataFirst).get();
     const DataReplicationPacketComponent componentCpy = *component;
     componentCpy.variableDataObject.Begin();
     entity->OnReadReplication(componentCpy);

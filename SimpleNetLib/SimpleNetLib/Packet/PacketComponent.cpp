@@ -15,6 +15,16 @@ PacketComponent::PacketComponent(const PacketComponent& InPacketComponent)
 
 PacketComponent::~PacketComponent() = default;
 
+bool PacketComponent::ShouldOverrideComponent(const PacketComponent& InComponent) const
+{
+    if (InComponent.identifier_ == identifier_
+       && InComponent.IsOverridingDefiningDataSet() && IsOverridingDefiningDataSet())
+    {
+        return InComponent.overrideDefiningData_ == overrideDefiningData_;
+    }
+    return false;
+}
+
 bool PacketComponent::operator!=(const PacketComponent& InPacketComponent) const
 {
     return identifier_ != InPacketComponent.identifier_;
@@ -31,7 +41,7 @@ PacketComponent& PacketComponent::operator=(const PacketComponent& InPacketCompo
     {
         identifier_ = InPacketComponent.identifier_;
         sizeData_ = InPacketComponent.sizeData_;
-        overrideDefiningData = InPacketComponent.overrideDefiningData;
+        overrideDefiningData_ = InPacketComponent.overrideDefiningData_;
     }
     return *this;
 }

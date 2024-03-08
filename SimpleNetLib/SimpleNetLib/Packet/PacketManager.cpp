@@ -203,6 +203,7 @@ bool PacketManager::DoesUpdateIterMatchPacketFrequency(const PacketFrequencyData
     {
        modifiedFrequency = static_cast<int>(static_cast<float>(modifiedFrequency) * InPacketFrequencyData.ackFrequencyMultiplier);
     }
+    modifiedFrequency = modifiedFrequency <= 0 ? 1 : modifiedFrequency;
     
     const int updateIterator = std::abs(updateIterator_);
     return updateIterator % modifiedFrequency == 0;

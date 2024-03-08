@@ -167,8 +167,7 @@ void ControllerComponent::UpdateServerPosition()
   UpdateEntityControllerPositionComponent updateEntityPositionComponent;
   updateEntityPositionComponent.entityIdentifier = owner_->GetId();
   updateEntityPositionComponent.positionUpdateEntry = entryData;
-  
-  updateEntityPositionComponent.overrideDefiningData = updateEntityPositionComponent.entityIdentifier;
+  updateEntityPositionComponent.SetOverrideDefiningData(updateEntityPositionComponent.entityIdentifier);
 
   const NetUtility::NetVector3 lodPos = { owner_->GetTargetPosition().x, owner_->GetTargetPosition().y, 0.f };
   Net::PacketManager::Get()->SendPacketComponentMulticastWithLod<UpdateEntityControllerPositionComponent>(updateEntityPositionComponent, lodPos);

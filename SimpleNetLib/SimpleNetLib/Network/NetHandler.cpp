@@ -565,7 +565,7 @@ void NetHandler::KickNetTarget(const sockaddr_storage& InAddress, const uint8_t 
             char ipString[INET_ADDRSTRLEN];
             if (inet_ntop(AF_INET, &ipv4Address.sin_addr, ipString, INET_ADDRSTRLEN))
             {
-                std::cout << ipString << ":" << ntohs(ipv4Address.sin_port) << " kicked/disconnected from the server!\n";    
+                std::cout << ipString << ":" << ntohs(ipv4Address.sin_port) << " kicked/disconnected from the server! " << InKickReason << "\n";    
             }
         }
     }

@@ -18,6 +18,7 @@ namespace Net
 class NET_LIB_EXPORT Packet
 {
 public:
+    Packet(const Packet& InPacket);
     Packet(EPacketHandlingType InPacketHandlingType);
     Packet(const char* InBuffer, int InBytesReceived);
     
@@ -39,6 +40,8 @@ public:
     uint16_t CalculateAndUpdateCheckSum();
     uint16_t CalculateCheckSum() const;
     uint16_t GetCheckSum() const;
+
+    Packet& operator=(const Packet& InPacket);
     
 private:
     void ExtractComponent(std::vector<const PacketComponent*>& OutComponents, int& Iterator) const;
@@ -56,5 +59,7 @@ private:
     // Data bypassing the packet size limit
     // THIS DATA IS NOT INCLUDED IN PACKET NET TRANSFERS
     uint16_t packetDataIter_ = 0;
+
+    friend class PacketTargetData;
 };
 }

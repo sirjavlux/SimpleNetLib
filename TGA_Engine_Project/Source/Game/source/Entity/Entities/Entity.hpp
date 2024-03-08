@@ -227,7 +227,7 @@ inline void Entity::UpdateReplication()
 {
 	// Custom replication
 	replicationPacketComponent_.Reset();
-	replicationPacketComponent_.identifierData = id_;
+	replicationPacketComponent_.identifierDataFirst = id_;
 	OnSendReplication(replicationPacketComponent_);
 	if (replicationPacketComponent_.GetSize() > REPLICATION_COMPONENT_SIZE_EMPTY)
 	{
@@ -243,7 +243,7 @@ inline void Entity::UpdateReplication()
 		positionComponent.yPos = targetPosition_.y;
 		positionComponent.rotation = std::atan2(direction_.y, direction_.x);
 		positionComponent.entityIdentifier = GetId();
-		positionComponent.overrideDefiningData = GetId();
+		positionComponent.SetOverrideDefiningData(GetId());
 		Net::PacketManager::Get()->SendPacketComponentMulticastWithLod<UpdateEntityPositionComponent>(positionComponent, { targetPosition_.x, targetPosition_.y, 0.f });
 		//Net::PacketManager::Get()->SendPacketComponentMulticast<UpdateEntityPositionComponent>(positionComponent);
 	}

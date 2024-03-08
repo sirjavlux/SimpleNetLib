@@ -91,7 +91,15 @@ public:
 		return GetSize() >= DEFAULT_PACKET_COMPONENT_SIZE && GetSize() <= NET_PACKET_COMPONENT_DATA_SIZE_TOTAL && identifier_ > -1;
 	}
 	
-	uint16_t GetIdentifier() const { return identifier_; }
+	int16_t GetIdentifier() const { return identifier_; }
+
+	bool ShouldOverrideComponent(const PacketComponent& InComponent) const;
+	
+	void SetOverrideDefiningData(const uint16_t InData) { overrideDefiningData_ = static_cast<int16_t>(InData); }
+	int16_t GetOverrideDefiningData() const { return overrideDefiningData_; }
+	
+	bool IsOverridingDefiningDataSet() const { return overrideDefiningData_ > 0; }
+	void ResetOverridingDefiningData() { overrideDefiningData_ = -1; }
 	
 	bool operator!=(const PacketComponent& InPacketComponent) const;
 	bool operator==(const PacketComponent& InPacketComponent) const;
@@ -102,7 +110,6 @@ protected:
 	uint16_t sizeData_ = 0;
 private:
 	int16_t identifier_ = -1; // Valid identifier can't be negative
-public:
-	uint16_t overrideDefiningData = 0;
+	int16_t overrideDefiningData_ = -1;
 };
 }

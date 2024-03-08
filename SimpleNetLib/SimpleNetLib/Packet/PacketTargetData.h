@@ -16,7 +16,6 @@ struct PacketToSendData
     void RemoveComponent(int InIndex);
   
 private:
-    std::map<uint16_t, uint16_t> componentTypeIndexMap_;
     std::vector<std::shared_ptr<Net::PacketComponent>> components_;
 };
 

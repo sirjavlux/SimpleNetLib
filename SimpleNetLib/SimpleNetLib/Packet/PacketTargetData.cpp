@@ -53,7 +53,7 @@ void Net::PacketTargetData::AddAckPacketIfContainingData(const PacketFrequencyDa
   }
   
   ackPacketsNotReturned_.insert({ Packet.GetIdentifier(), { PacketFrequencyData, Packet } });
-
+  
   //std::cout << "Added ack packet " << Packet.GetIdentifier() << "\n"; // Temporary debug
 }
 
@@ -85,24 +85,21 @@ void PacketToSendData::AddComponent(const std::shared_ptr<Net::PacketComponent>&
   const uint16_t componentIdentifier = InComponent->GetIdentifier();
   if (InAssociatedData.shouldOverrideOldWaitingComponent)
   {
-    for (const auto& componentIndexData : componentTypeIndexMap_)
+    for (auto& component : components_)
     {
-      if (componentIndexData.first != componentIdentifier)
+      if (component->GetIdentifier() != componentIdentifier)
       {
         continue;
       }
       
-      const std::shared_ptr<Net::PacketComponent> component = components_[componentIndexData.second];
-      if (component->overrideDefiningData == InComponent->overrideDefiningData
-        && component->overrideDefiningData != 0 && InComponent->overrideDefiningData != 0)
+      if (InComponent->ShouldOverrideComponent(*component))
       {
-        components_[componentIndexData.second] = InComponent;
+        component = InComponent;
         return;
       }
     }
   }
- 
-  componentTypeIndexMap_.insert({componentIdentifier, components_.size()});
+  
   components_.push_back(InComponent);
 }
 
@@ -125,12 +122,6 @@ void PacketToSendData::RemoveComponent(const int InIndex)
 {
   if (static_cast<int>(components_.size()) > InIndex)
   {
-    const Net::PacketComponent& component = *components_.at(InIndex);
-    if (componentTypeIndexMap_.find(component.GetIdentifier()) != componentTypeIndexMap_.end())
-    {
-      componentTypeIndexMap_.erase(component.GetIdentifier());
-    }
-    // Remove component
     components_.erase(components_.begin() + InIndex);
   }
 }

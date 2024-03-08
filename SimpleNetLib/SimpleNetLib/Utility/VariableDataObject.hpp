@@ -12,7 +12,7 @@ struct MemberVariableDataStorage
 	uint8_t size;
 	T data;
 
-	bool operator==(const MemberVariableDataStorage& InDataStorage)
+	bool operator==(const MemberVariableDataStorage& InDataStorage) const
 	{
 		return InDataStorage.variableOffsetInClass == variableOffsetInClass
 			&& InDataStorage.size == size;
@@ -83,25 +83,28 @@ public:
 	// Serialize piece of data.
 	// Needs to be deserialized in the same order as serialized.
 	template <typename DataType>
-	void SerializeData(const DataType& InData, uint16_t InCount = 1);
+	void SerializeData(const DataType& InData, uint16_t InSize = 1);
 
 	// DeSerialize piece of data.
 	// Needs to be deserialized in the same order as serialized.
 	template <typename DataType>
-	uint16_t DeSerializeData(DataType& OutData, uint16_t InCount = 1);
+	uint16_t DeSerializeData(DataType& OutData, uint16_t InSize = 1) const;
 	
 	// Serialized class members needs to have a deterministic offset to the parent class
 	template <class OwnerClass, typename MemberVariable>
-	void SerializeMemberVariable(const OwnerClass& InOwnerClass, const MemberVariable& InData, uint16_t InCount = 1);
+	void SerializeMemberVariable(const OwnerClass& InOwnerClass, const MemberVariable& InData, uint16_t InSize = 1);
 
 	// DeSerialized class members needs to have a deterministic offset to the parent class
 	template <class OwnerClass, typename MemberVariable>
-	bool DeSerializeMemberVariable(const OwnerClass& InOwnerClass, MemberVariable& OutData, uint16_t InCount = 1);
+	bool DeSerializeMemberVariable(const OwnerClass& InOwnerClass, MemberVariable& OutData, uint16_t InSize = 1) const;
 
 private:
 	template <class OwnerClass, typename MemberVariable>
-	uint8_t GetMemberVariableOffset(const OwnerClass& InOwnerClass, const MemberVariable& InData);
+	uint8_t GetMemberVariableOffset(const OwnerClass& InOwnerClass, const MemberVariable& InData) const;
 
+	template <typename MemberVariable>
+	void FindDataStorage(MemberVariableDataStorage<MemberVariable>& OutDataStorage, int& Iterator) const;
+	
 	uint16_t totalSize_ = 0; // Doesn't transfer by network
 };
 
@@ -139,24 +142,24 @@ void VariableDataObject<DataSize>::ResetData()
 
 template <int DataSize>
 template <typename DataType>
-void VariableDataObject<DataSize>::SerializeData(const DataType& InData, uint16_t InCount)
+void VariableDataObject<DataSize>::SerializeData(const DataType& InData, uint16_t InSize)
 {
-	this.template operator<<<DataType, DataSize, InCount>(InData);
+	this.template operator<<<DataType, DataSize, InSize>(InData);
 }
 
 template <int DataSize>
 template <typename DataType>
-uint16_t VariableDataObject<DataSize>::DeSerializeData(DataType& OutData, uint16_t InCount)
+uint16_t VariableDataObject<DataSize>::DeSerializeData(DataType& OutData, uint16_t InSize) const
 {
-	return operator<<<DataType, DataSize, InCount>(OutData, *this);
+	return operator<<<DataType, DataSize, InSize>(OutData, *this);
 }
 
 template <int DataSize>
 template <class OwnerClass, typename MemberVariable>
-void VariableDataObject<DataSize>::SerializeMemberVariable(const OwnerClass& InOwnerClass, const MemberVariable& InData, const uint16_t InCount)
+void VariableDataObject<DataSize>::SerializeMemberVariable(const OwnerClass& InOwnerClass, const MemberVariable& InData, const uint16_t InSize)
 {
 	const uint8_t offset = GetMemberVariableOffset(InOwnerClass, InData);
-	const uint16_t dataSize = sizeof(MemberVariable) * InCount;
+	const uint16_t dataSize = sizeof(MemberVariable) * InSize;
 
 	if (totalSize_ + dataSize + MEMBER_VARIABLE_STORAGE_DEFAULT_SIZE > DataSize)
 	{
@@ -166,25 +169,39 @@ void VariableDataObject<DataSize>::SerializeMemberVariable(const OwnerClass& InO
 	MemberVariableDataStorage<MemberVariable> dataStorage;
 	dataStorage.variableOffsetInClass = offset;
 	dataStorage.size = dataSize;
-	std::memcpy(dataStorage.data, &InData, dataSize);
+	std::memcpy(&dataStorage.data, &InData, dataSize);
 
 	std::memcpy(&data_, &dataStorage, sizeof(dataStorage));
 	
-	totalSize_ += dataSize;
+	totalSize_ += dataSize + MEMBER_VARIABLE_STORAGE_DEFAULT_SIZE;
 }
 
 template <int DataSize>
 template <class OwnerClass, typename MemberVariable>
-bool VariableDataObject<DataSize>::DeSerializeMemberVariable(const OwnerClass& InOwnerClass, MemberVariable& OutData, const uint16_t InCount)
+bool VariableDataObject<DataSize>::DeSerializeMemberVariable(const OwnerClass& InOwnerClass, MemberVariable& OutData, const uint16_t InSize) const
 {
 	const uint8_t offset = GetMemberVariableOffset(InOwnerClass, OutData);
+	const uint16_t dataSize = sizeof(MemberVariable) * InSize;
 
+	MemberVariableDataStorage<MemberVariable> dataStorage;
+	dataStorage.variableOffsetInClass = offset;
+	dataStorage.size = dataSize;
+
+	int iterator = memberVariableDataStartIndex_;
+	FindDataStorage<MemberVariable>(dataStorage, iterator);
+
+	if (iterator < totalSize_)
+	{
+		std::memcpy(&OutData, &dataStorage.data, dataSize);
+		return true;
+	}
+	
 	return false;
 }
 
 template <int DataSize>
 template <class OwnerClass, typename MemberVariable>
-uint8_t VariableDataObject<DataSize>::GetMemberVariableOffset(const OwnerClass& InOwnerClass, const MemberVariable& InData)
+uint8_t VariableDataObject<DataSize>::GetMemberVariableOffset(const OwnerClass& InOwnerClass, const MemberVariable& InData) const
 {
 	static_assert(std::is_member_pointer<MemberVariable OwnerClass::*>::value, "MemberVariable is not a member variable of OwnerClass");
 	
@@ -194,4 +211,21 @@ uint8_t VariableDataObject<DataSize>::GetMemberVariableOffset(const OwnerClass& 
 	const uint8_t dataOffset = dataPtr - ownerPtr;
 
 	return dataOffset;
+}
+
+template <int DataSize>
+template <typename MemberVariable>
+void VariableDataObject<DataSize>::FindDataStorage(MemberVariableDataStorage<MemberVariable>& OutDataStorage, int& Iterator) const
+{
+	if (Iterator < totalSize_)
+	{
+		const MemberVariableDataStorage<MemberVariable>* dataStorage = reinterpret_cast<const MemberVariableDataStorage<MemberVariable>*>(&data_[Iterator]);
+		if (OutDataStorage == *dataStorage)
+		{
+			std::memcpy(&OutDataStorage.data, &dataStorage->data, dataStorage->size);
+			return;
+		}
+
+		Iterator += dataStorage->size + MEMBER_VARIABLE_STORAGE_DEFAULT_SIZE;
+	}
 }

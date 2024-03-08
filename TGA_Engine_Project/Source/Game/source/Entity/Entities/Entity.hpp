@@ -229,6 +229,7 @@ inline void Entity::UpdateReplication()
 	replicationPacketComponent_.Reset();
 	replicationPacketComponent_.identifierDataFirst = id_;
 	OnSendReplication(replicationPacketComponent_);
+	replicationPacketComponent_.UpdateSize();
 	if (replicationPacketComponent_.GetSize() > REPLICATION_COMPONENT_SIZE_EMPTY)
 	{
 		Net::PacketManager::Get()->SendPacketComponentMulticast<DataReplicationPacketComponent>(replicationPacketComponent_);

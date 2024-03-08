@@ -69,10 +69,10 @@ void PlayerShipEntity::OnTriggerExit(const ColliderComponent& InCollider)
 
 void PlayerShipEntity::OnReadReplication(const DataReplicationPacketComponent& InComponent)
 {
-  health_ << InComponent;
+  InComponent.variableDataObject.DeSerializeMemberVariable(*this, health_);
 }
 
 void PlayerShipEntity::OnSendReplication(DataReplicationPacketComponent& OutComponent)
 {
-  OutComponent << health_;
+  OutComponent.variableDataObject.SerializeMemberVariable(*this, health_);
 }

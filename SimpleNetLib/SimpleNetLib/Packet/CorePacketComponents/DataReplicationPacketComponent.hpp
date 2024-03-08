@@ -8,6 +8,8 @@ public:
 	explicit DataReplicationPacketComponent();
 
 	void Reset();
+
+	void UpdateSize();
 	
 	uint16_t identifierDataFirst;
 	uint16_t identifierDataSecond;
@@ -40,10 +42,17 @@ T operator<<(T& OutResult, const DataReplicationPacketComponent& InComponent)
 
 inline DataReplicationPacketComponent::DataReplicationPacketComponent()
 	: PacketComponent(static_cast<int16_t>(Net::EPacketComponent::DataReplication), REPLICATION_COMPONENT_SIZE_EMPTY) // Exclude size of data in the child component as it can vary
-{ }
+{
+	UpdateSize();
+}
 
 inline void DataReplicationPacketComponent::Reset()
 {
 	variableDataObject.ResetData();
 	sizeData_ = REPLICATION_COMPONENT_SIZE_EMPTY;
+}
+
+inline void DataReplicationPacketComponent::UpdateSize()
+{
+	sizeData_ = variableDataObject.GetTotalSizeOfObject() + REPLICATION_COMPONENT_SIZE_EMPTY;
 }

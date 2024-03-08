@@ -9,7 +9,7 @@ public:
     void SetVariableData(const VariableDataObject<CONNECTION_DATA_SIZE>& InVariableData)
     {
         variableDataObject = InVariableData;
-        sizeData_ = DEFAULT_PACKET_COMPONENT_SIZE + variableDataObject.dataIter;
+        sizeData_ = DEFAULT_PACKET_COMPONENT_SIZE + variableDataObject.GetTotalSizeOfObject();
     }
     
     VariableDataObject<CONNECTION_DATA_SIZE> variableDataObject;

@@ -44,6 +44,6 @@ inline DataReplicationPacketComponent::DataReplicationPacketComponent()
 
 inline void DataReplicationPacketComponent::Reset()
 {
-	variableDataObject.Reset();
+	variableDataObject.ResetData();
 	sizeData_ = REPLICATION_COMPONENT_SIZE_EMPTY;
 }

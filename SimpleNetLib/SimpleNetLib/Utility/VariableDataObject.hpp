@@ -35,9 +35,14 @@ struct VariableDataObject
 	void ResetData();
 
 	static uint8_t GetDefaultEmptySize() { return VARIABLE_DATA_OBJECT_DEFAULT_SIZE; }
-	
+
+	// Total size doesn't transfer over network
 	uint16_t GetTotalSize() const { return totalSize_; }
+	// Total size doesn't transfer over network
 	uint16_t GetTotalSizeOfObject() const { return totalSize_ + VARIABLE_DATA_OBJECT_DEFAULT_SIZE; }
+
+	static uint16_t GetMaxDataSize() { return DataSize - VARIABLE_DATA_OBJECT_DEFAULT_SIZE; }
+	
 	uint16_t GetMemberVariableDataStartIndex() const { return memberVariableDataStartIndex_; }
 
 	const uint8_t* GetData() const { return data_; }
@@ -45,7 +50,7 @@ struct VariableDataObject
 private:
 	uint16_t memberVariableDataStartIndex_ = 0; // Regular data is always stored in front of Member Variable data.
 	uint8_t data_[DataSize - VARIABLE_DATA_OBJECT_DEFAULT_SIZE];
-
+	
 public:
 	
 	mutable uint16_t dataReadIter = 0; // Doesn't transfer by network
@@ -78,7 +83,7 @@ public:
 	// DeSerialize piece of data.
 	// Needs to be deserialized in the same order as serialized.
 	template<typename T, int ArraySize = 1>
-	friend T& operator<<(T& OutResult, const VariableDataObject<DataSize>& InVariableData);
+	friend T& operator<<(T& OutResult, const VariableDataObject& InVariableData);
 
 	// Serialize piece of data.
 	// Needs to be deserialized in the same order as serialized.
@@ -98,6 +103,8 @@ public:
 	template <class OwnerClass, typename MemberVariable>
 	bool DeSerializeMemberVariable(const OwnerClass& InOwnerClass, MemberVariable& OutData, uint16_t InSize = 1) const;
 
+	VariableDataObject& operator=(const VariableDataObject& InDataObject);
+	
 private:
 	template <class OwnerClass, typename MemberVariable>
 	uint8_t GetMemberVariableOffset(const OwnerClass& InOwnerClass, const MemberVariable& InData) const;
@@ -200,6 +207,17 @@ bool VariableDataObject<DataSize>::DeSerializeMemberVariable(const OwnerClass& I
 }
 
 template <int DataSize>
+VariableDataObject<DataSize>& VariableDataObject<DataSize>::operator=(const VariableDataObject& InDataObject)
+{
+	this->dataReadIter = InDataObject.dataReadIter;
+	this->totalSize_ = InDataObject.totalSize_;
+	this->memberVariableDataStartIndex_ = InDataObject.memberVariableDataStartIndex_;
+	std::memcpy(&this->data_[0], &InDataObject.data_[0], GetMaxDataSize());
+
+	return *this;
+}
+
+template <int DataSize>
 template <class OwnerClass, typename MemberVariable>
 uint8_t VariableDataObject<DataSize>::GetMemberVariableOffset(const OwnerClass& InOwnerClass, const MemberVariable& InData) const
 {
@@ -217,7 +235,7 @@ template <int DataSize>
 template <typename MemberVariable>
 void VariableDataObject<DataSize>::FindDataStorage(MemberVariableDataStorage<MemberVariable>& OutDataStorage, int& Iterator) const
 {
-	if (Iterator < totalSize_)
+	if (Iterator < GetMaxDataSize() && data_[Iterator] > MEMBER_VARIABLE_STORAGE_DEFAULT_SIZE)
 	{
 		const MemberVariableDataStorage<MemberVariable>* dataStorage = reinterpret_cast<const MemberVariableDataStorage<MemberVariable>*>(&data_[Iterator]);
 		if (OutDataStorage == *dataStorage)

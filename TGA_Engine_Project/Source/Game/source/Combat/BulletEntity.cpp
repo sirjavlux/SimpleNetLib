@@ -50,6 +50,7 @@ void BulletEntity::FixedUpdate()
 void BulletEntity::OnReadReplication(const DataReplicationPacketComponent& InComponent)
 {
 	InComponent.variableDataObject.DeSerializeMemberVariable(*this, shooterId_);
+	InComponent.variableDataObject.DeSerializeMemberVariable(*this, damage_);
 }
 
 void BulletEntity::OnSendReplication(DataReplicationPacketComponent& OutComponent)

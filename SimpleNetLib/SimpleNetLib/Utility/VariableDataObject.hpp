@@ -3,19 +3,59 @@
 #include "../NetIncludes.h"
 
 #define MEMBER_VARIABLE_STORAGE_DEFAULT_SIZE 2
-#define VARIABLE_DATA_OBJECT_DEFAULT_SIZE 2
+#define VARIABLE_DATA_OBJECT_DEFAULT_SIZE 4
+
+#define MAX_MEMBER_VARIABLE_OFFSET 1024
+#define MAX_MEMBER_VARIABLE_SIZE 64
+
+#define MEMBER_VARIABLE_OFFSET_BITS 10
+#define MEMBER_VARIABLE_SIZE_BITS 6
 
 template <typename T>
 struct MemberVariableDataStorage
 {
-	uint8_t variableOffsetInClass;
-	uint8_t size;
+	// 10 bits for offset, 6 bits for size. Maximum size = 64, Maximum offset = 1024
+	uint16_t variableOffsetAndSize = 0;
 	T data;
 
+	void SetOffset(const uint16_t InOffset)
+	{
+		constexpr uint16_t mask = (1 << MEMBER_VARIABLE_OFFSET_BITS) - 1;
+    
+		variableOffsetAndSize &= ~mask; // Clear the offset bits
+		variableOffsetAndSize |= InOffset & mask; // Set the offset bits
+	}
+
+	void SetSize(const uint8_t InSize)
+	{
+		constexpr uint16_t mask = (1 << MEMBER_VARIABLE_SIZE_BITS) - 1;
+    
+		variableOffsetAndSize &= ~(mask << MEMBER_VARIABLE_OFFSET_BITS); // Clear the size bits
+		variableOffsetAndSize |= (InSize & mask) << MEMBER_VARIABLE_OFFSET_BITS; // Set the size bits
+	}
+	
+	uint16_t GetOffset() const
+	{
+		constexpr uint16_t mask = (1 << MEMBER_VARIABLE_OFFSET_BITS) - 1;
+		const uint16_t result = variableOffsetAndSize & mask;
+		
+		return result;
+	}
+	
+	uint16_t GetSize() const
+	{
+		uint16_t mask = (1 << MEMBER_VARIABLE_SIZE_BITS) - 1;
+		mask <<= (16 - MEMBER_VARIABLE_SIZE_BITS);
+
+		uint16_t result = variableOffsetAndSize & mask;
+		result >>= (16 - MEMBER_VARIABLE_SIZE_BITS);
+		
+		return result;
+	}
+	
 	bool operator==(const MemberVariableDataStorage& InDataStorage) const
 	{
-		return InDataStorage.variableOffsetInClass == variableOffsetInClass
-			&& InDataStorage.size == size;
+		return InDataStorage.variableOffsetAndSize == variableOffsetAndSize;
 	}
 };
 
@@ -35,10 +75,8 @@ struct VariableDataObject
 	void ResetData();
 
 	static uint8_t GetDefaultEmptySize() { return VARIABLE_DATA_OBJECT_DEFAULT_SIZE; }
-
-	// Total size doesn't transfer over network
+	
 	uint16_t GetTotalSize() const { return totalSize_; }
-	// Total size doesn't transfer over network
 	uint16_t GetTotalSizeOfObject() const { return totalSize_ + VARIABLE_DATA_OBJECT_DEFAULT_SIZE; }
 
 	static uint16_t GetMaxDataSize() { return DataSize - VARIABLE_DATA_OBJECT_DEFAULT_SIZE; }
@@ -48,6 +86,7 @@ struct VariableDataObject
 	const uint8_t* GetData() const { return data_; }
 	
 private:
+	uint16_t totalSize_ = 0;
 	uint16_t memberVariableDataStartIndex_ = 0; // Regular data is always stored in front of Member Variable data.
 	uint8_t data_[DataSize - VARIABLE_DATA_OBJECT_DEFAULT_SIZE];
 	
@@ -107,12 +146,10 @@ public:
 	
 private:
 	template <class OwnerClass, typename MemberVariable>
-	uint8_t GetMemberVariableOffset(const OwnerClass& InOwnerClass, const MemberVariable& InData) const;
+	uint16_t GetMemberVariableOffset(const OwnerClass& InOwnerClass, const MemberVariable& InData) const;
 
 	template <typename MemberVariable>
 	void FindDataStorage(MemberVariableDataStorage<MemberVariable>& OutDataStorage, int& Iterator) const;
-	
-	uint16_t totalSize_ = 0; // Doesn't transfer by network
 };
 
 template<typename T, int DataSize, int ArraySize = 1>
@@ -165,7 +202,7 @@ template <int DataSize>
 template <class OwnerClass, typename MemberVariable>
 void VariableDataObject<DataSize>::SerializeMemberVariable(const OwnerClass& InOwnerClass, const MemberVariable& InData, const uint16_t InSize)
 {
-	const uint8_t offset = GetMemberVariableOffset(InOwnerClass, InData);
+	const uint16_t offset = GetMemberVariableOffset(InOwnerClass, InData);
 	const uint16_t dataSize = sizeof(MemberVariable) * InSize;
 
 	if (totalSize_ + dataSize + MEMBER_VARIABLE_STORAGE_DEFAULT_SIZE > DataSize)
@@ -174,8 +211,8 @@ void VariableDataObject<DataSize>::SerializeMemberVariable(const OwnerClass& InO
 	}
 
 	MemberVariableDataStorage<MemberVariable> dataStorage;
-	dataStorage.variableOffsetInClass = offset;
-	dataStorage.size = dataSize;
+	dataStorage.SetOffset(offset);
+	dataStorage.SetSize(dataSize);
 	std::memcpy(&dataStorage.data, &InData, dataSize);
 
 	std::memcpy(&data_, &dataStorage, sizeof(dataStorage));
@@ -187,17 +224,17 @@ template <int DataSize>
 template <class OwnerClass, typename MemberVariable>
 bool VariableDataObject<DataSize>::DeSerializeMemberVariable(const OwnerClass& InOwnerClass, MemberVariable& OutData, const uint16_t InSize) const
 {
-	const uint8_t offset = GetMemberVariableOffset(InOwnerClass, OutData);
-	const uint16_t dataSize = sizeof(MemberVariable) * InSize;
-
+	const uint16_t offset = GetMemberVariableOffset(InOwnerClass, OutData);
+	const uint8_t dataSize = sizeof(MemberVariable) * InSize;
+	
 	MemberVariableDataStorage<MemberVariable> dataStorage;
-	dataStorage.variableOffsetInClass = offset;
-	dataStorage.size = dataSize;
+	dataStorage.SetOffset(offset);
+	dataStorage.SetSize(dataSize);
 
 	int iterator = memberVariableDataStartIndex_;
 	FindDataStorage<MemberVariable>(dataStorage, iterator);
 
-	if (iterator < totalSize_)
+	if (iterator < GetMaxDataSize() && iterator < totalSize_)
 	{
 		std::memcpy(&OutData, &dataStorage.data, dataSize);
 		return true;
@@ -219,14 +256,14 @@ VariableDataObject<DataSize>& VariableDataObject<DataSize>::operator=(const Vari
 
 template <int DataSize>
 template <class OwnerClass, typename MemberVariable>
-uint8_t VariableDataObject<DataSize>::GetMemberVariableOffset(const OwnerClass& InOwnerClass, const MemberVariable& InData) const
+uint16_t VariableDataObject<DataSize>::GetMemberVariableOffset(const OwnerClass& InOwnerClass, const MemberVariable& InData) const
 {
 	static_assert(std::is_member_pointer<MemberVariable OwnerClass::*>::value, "MemberVariable is not a member variable of OwnerClass");
 	
 	// Calculate offset
 	const uintptr_t ownerPtr = reinterpret_cast<uintptr_t>(&InOwnerClass);
 	const uintptr_t dataPtr = reinterpret_cast<uintptr_t>(&InData);
-	const uint8_t dataOffset = dataPtr - ownerPtr;
+	const uint16_t dataOffset = dataPtr - ownerPtr;
 
 	return dataOffset;
 }
@@ -235,15 +272,16 @@ template <int DataSize>
 template <typename MemberVariable>
 void VariableDataObject<DataSize>::FindDataStorage(MemberVariableDataStorage<MemberVariable>& OutDataStorage, int& Iterator) const
 {
-	if (Iterator < GetMaxDataSize() && data_[Iterator] > MEMBER_VARIABLE_STORAGE_DEFAULT_SIZE)
+	if (Iterator < totalSize_)
 	{
 		const MemberVariableDataStorage<MemberVariable>* dataStorage = reinterpret_cast<const MemberVariableDataStorage<MemberVariable>*>(&data_[Iterator]);
+		const uint8_t dataSize = dataStorage->GetSize();
 		if (OutDataStorage == *dataStorage)
 		{
-			std::memcpy(&OutDataStorage.data, &dataStorage->data, dataStorage->size);
+			std::memcpy(&OutDataStorage.data, &dataStorage->data, dataSize);
 			return;
 		}
 
-		Iterator += dataStorage->size + MEMBER_VARIABLE_STORAGE_DEFAULT_SIZE;
+		Iterator += dataSize + MEMBER_VARIABLE_STORAGE_DEFAULT_SIZE;
 	}
 }

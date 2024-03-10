@@ -25,7 +25,7 @@ public:
 	
 private:
 	NetTag username_;
-	
-	uint16_t health_ = 0;
+
 	uint16_t maxHealth_ = 100;
+	uint16_t health_ = maxHealth_;
 };

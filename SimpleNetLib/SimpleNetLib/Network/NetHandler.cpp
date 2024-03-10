@@ -443,6 +443,7 @@ void NetHandler::ProcessPackets()
         for (const PacketComponent* component : outComponents)
         {
             PacketManager::Get()->HandleComponent(senderAddress, *component);
+            delete[] reinterpret_cast<const uint8_t*>(component);
         }
         
         // Mark packet as received
@@ -520,7 +521,8 @@ void NetHandler::KickInactiveNetTargets()
     
     static int iterationOffset = 0;
 
-    const std::unordered_map<sockaddr_in, NetTarget> childConnections = connectionHandler_.GetConnections();
+    std::vector<sockaddr_storage> clientsToKickByTimeOut;
+    const std::unordered_map<sockaddr_in, NetTarget>& childConnections = connectionHandler_.GetConnections();
     for (const auto& connection : childConnections)
     {
         const NetTarget& netTarget = connection.second;
@@ -530,10 +532,16 @@ void NetHandler::KickInactiveNetTargets()
         
         if (timeDifference.count() > NET_TIME_UNTIL_TIME_OUT_SEC)
         {
-            KickNetTarget(netTarget.address, static_cast<uint8_t>(ENetDisconnectType::TimeOut));
+            clientsToKickByTimeOut.push_back(netTarget.address);
         }
     }
 
+    // Kick Timed out Clients
+    for (const sockaddr_storage& client : clientsToKickByTimeOut)
+    {
+        KickNetTarget(client, static_cast<uint8_t>(ENetDisconnectType::TimeOut));
+    }
+    
     ++iterationOffset;
     if (iterationOffset == iterationAddition)
     {

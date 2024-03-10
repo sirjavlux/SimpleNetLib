@@ -40,7 +40,8 @@ void ControllerComponent::SetPossessedBy(const sockaddr_storage& InAddress)
 
   if (Net::PacketManager::Get()->IsServer())
   {
-    EntityManager::Get()->SetPossessedEntityByNetTarget(InAddress, owner_->GetId());
+    const sockaddr_in ipv4Address = NetUtility::RetrieveIPv4AddressFromStorage(InAddress);
+    EntityManager::Get()->SetPossessedEntityByNetTarget(ipv4Address, owner_->GetId());
   }
 }
 

@@ -1,6 +1,8 @@
 #include "Packet.h"
 
 #include "PacketComponent.h"
+#include "PacketComponentRegistry.h"
+#include "../SimpleNetLibCore.h"
 
 namespace Net
 {
@@ -106,17 +108,32 @@ Packet& Packet::operator=(const Packet& InPacket)
 
 void Packet::ExtractComponent(std::vector<const PacketComponent*>& OutComponents, int& Iterator) const
 {
-    if (NET_PACKET_COMPONENT_DATA_SIZE_TOTAL <= Iterator || data_[Iterator] == '\0')
+    while (Iterator < NET_PACKET_COMPONENT_DATA_SIZE_TOTAL)
     {
-        return;    
-    }
+        // Check if the component data is null-terminated
+        if (data_[Iterator] == '\0')
+        {
+            break;
+        }
+        
+        const uint16_t componentNetworkSentSize = *reinterpret_cast<const uint16_t*>(&data_[Iterator]);
+        
+        // Check if the component size exceeds the remaining buffer size
+        if (componentNetworkSentSize == 0 || Iterator + componentNetworkSentSize > NET_PACKET_COMPONENT_DATA_SIZE_TOTAL)
+        {
+            break;
+        }
 
-    const PacketComponent* componentExtracted = reinterpret_cast<const PacketComponent*>(&data_[Iterator]);
-    const uint16_t componentSize = componentExtracted->GetSize();
-    OutComponents.push_back(componentExtracted);
-    
-    Iterator += componentSize;
-    
-    ExtractComponent(OutComponents, Iterator);
+        const uint16_t identifier = *reinterpret_cast<const uint16_t*>(&data_[Iterator + 2]);
+        const uint16_t totalComponentObjectSize = SimpleNetLibCore::Get()->GetPacketComponentRegistry()->FetchPacketComponentAssociatedData(identifier)->componentObjectTotalSize;
+        
+        uint8_t* packetComponentAllocatedMemory = new uint8_t[totalComponentObjectSize];
+        std::memcpy(packetComponentAllocatedMemory, &data_[Iterator], componentNetworkSentSize);
+        
+        const PacketComponent* componentExtracted = reinterpret_cast<const PacketComponent*>(packetComponentAllocatedMemory);
+        
+        OutComponents.push_back(componentExtracted);
+        Iterator += componentNetworkSentSize;
+    }
 }
 }

@@ -61,6 +61,9 @@ struct PacketComponentAssociatedData
 	// first -> distance : second -> frequency
 	std::vector<std::pair<float, float>> packetLodFrequencies;
 
+	// Total size of component object
+	uint16_t componentObjectTotalSize = 0;
+	
 	static bool Compare(const std::pair<float, float>& A, const std::pair<float, float>& B)
 	{
 		return A.first < B.first;

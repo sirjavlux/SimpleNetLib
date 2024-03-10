@@ -100,6 +100,8 @@ void PacketComponentRegistry::RegisterAssociatedData(PacketComponentAssociatedDa
         throw std::runtime_error("ComponentType isn't a valid PacketComponent. Make sure identifier and size is set");
     }
 
+    InComponentSettings.componentObjectTotalSize = sizeof(ComponentType);
+    
     const uint16_t identifier = componentDefaultObject.GetIdentifier();
     if (packetAssociatedData_.find(identifier) != packetAssociatedData_.end())
     {

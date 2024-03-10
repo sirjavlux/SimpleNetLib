@@ -11,7 +11,8 @@ public:
 	char usernameBuffer[USERNAME_MAX_LENGTH];
 	
 	uint16_t entityIdentifier = 0;
-
+	sockaddr_in possessor;
+	
 	bool bShouldPossess = false;
 };
 

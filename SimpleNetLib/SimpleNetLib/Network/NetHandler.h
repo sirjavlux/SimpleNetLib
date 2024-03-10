@@ -61,6 +61,8 @@ public:
     void KickNetTarget(const sockaddr_storage& InAddress, uint8_t InKickReason);
 
     void OnKickedFromServerReceived(const sockaddr_storage& InAddress, const PacketComponent& InComponent);
+
+    const sockaddr_in& GetAddress() const { return address_; }
     
 private:
     void Update();
@@ -98,7 +100,7 @@ private:
 
     std::mutex packetProcessingMutexLock_;
     std::vector<PacketProcessData> packetDataToProcess_;
-
+    
     std::chrono::steady_clock::time_point serverConnectionTimePoint_;
     
     bool bHasParentServer_ = false;

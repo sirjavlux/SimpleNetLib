@@ -2,11 +2,10 @@
 
 #include <map>
 
-#include "Entities\Entity.hpp"
+#include "Entities/Entity.hpp"
 #include "SimpleNetLib.h"
-#include "../PacketComponents/RequestSpawnEntityComponent.hpp"
-#include "../PacketComponents/SpawnEntityComponent.hpp"
 #include "Utility/HashUtility.hpp"
+#include "../PacketComponents/SetEntityPossessedComponent.hpp"
 
 class EntityManager
 {
@@ -55,8 +54,10 @@ public:
   template<typename EntityType>
   void RegisterEntityTemplate(NetTag InTag);
 
-  void SetPossessedEntityByNetTarget(const sockaddr_storage& InAddress, uint16_t InIdentifier);
+  void SetPossessedEntityByNetTarget(const sockaddr_in& InAddress, uint16_t InIdentifier);
+  const std::unordered_map<sockaddr_in, uint16_t>& GetEntityPossessionMap() const { return entitiesPossessed_; }
   
+  // Client sided function
   Entity* GetPossessedEntity() { return possessedEntity_; }
 
   Entity* GetEntityById(const uint16_t InIdentifier)
@@ -94,17 +95,15 @@ private:
 
   std::vector<uint16_t> entitiesToDestroy_;
   
-  std::map<uint16_t, std::shared_ptr<Entity>> entities_;
-  std::map<uint16_t, std::shared_ptr<Entity>> entitiesLocal_;
+  std::unordered_map<uint16_t, std::shared_ptr<Entity>> entities_;
+  std::unordered_map<uint16_t, std::shared_ptr<Entity>> entitiesLocal_;
 
-  bool bPossession_ = false;
-  std::string possessionUsername_;
-  int16_t entityToUpdatePossess_ = -1;
+  std::vector<SetEntityPossessedComponent> entityPossessionBuffer_;
   
   using EntityCreator = std::function<std::shared_ptr<Entity>()>;
-  std::map<uint64_t, EntityCreator> entityFactoryMap_;
+  std::unordered_map<uint64_t, EntityCreator> entityFactoryMap_;
 
-  std::map<sockaddr_storage, uint16_t> entitiesPossessed_;
+  std::unordered_map<sockaddr_in, uint16_t> entitiesPossessed_;
   Entity* possessedEntity_ = nullptr;
 
   std::chrono::steady_clock::time_point lastUpdateTime_;

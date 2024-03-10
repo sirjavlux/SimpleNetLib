@@ -246,10 +246,10 @@ bool VariableDataObject<DataSize>::DeSerializeMemberVariable(const OwnerClass& I
 template <int DataSize>
 VariableDataObject<DataSize>& VariableDataObject<DataSize>::operator=(const VariableDataObject& InDataObject)
 {
-	this->dataReadIter = InDataObject.dataReadIter;
+	this->dataReadIter = 0;
 	this->totalSize_ = InDataObject.totalSize_;
 	this->memberVariableDataStartIndex_ = InDataObject.memberVariableDataStartIndex_;
-	std::memcpy(&this->data_[0], &InDataObject.data_[0], GetMaxDataSize());
+	std::memcpy(&this->data_[0], &InDataObject.data_[0], InDataObject.totalSize_);
 
 	return *this;
 }
@@ -272,7 +272,7 @@ template <int DataSize>
 template <typename MemberVariable>
 void VariableDataObject<DataSize>::FindDataStorage(MemberVariableDataStorage<MemberVariable>& OutDataStorage, int& Iterator) const
 {
-	if (Iterator < totalSize_)
+	while (Iterator < totalSize_)
 	{
 		const MemberVariableDataStorage<MemberVariable>* dataStorage = reinterpret_cast<const MemberVariableDataStorage<MemberVariable>*>(&data_[Iterator]);
 		const uint8_t dataSize = dataStorage->GetSize();

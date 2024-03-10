@@ -130,6 +130,7 @@ void EntityManager::UpdateEntities(const float InDeltaTime)
   {
     DestroyEntityServer(id);
   }
+  entitiesToDestroy_.clear();
 }
 
 void EntityManager::RenderEntities()
@@ -403,9 +404,7 @@ void EntityManager::OnPositionUpdateReceived(const sockaddr_storage& InAddress, 
 void EntityManager::OnSetEntityPossessedReceived(const sockaddr_storage& InAddress, const Net::PacketComponent& InComponent)
 {
   const SetEntityPossessedComponent* component = reinterpret_cast<const SetEntityPossessedComponent*>(&InComponent);
-  entityToUpdatePossess_ = static_cast<int16_t>(component->entityIdentifier);
-  bPossession_ = component->bShouldPossess;
-  possessionUsername_ = component->usernameBuffer;
+  entityPossessionBuffer_.push_back(*component);
 }
 
 void EntityManager::OnReturnAckReceived(const sockaddr_storage& InAddress, const Net::PacketComponent& InComponent)
@@ -416,10 +415,11 @@ void EntityManager::OnReturnAckReceived(const sockaddr_storage& InAddress, const
 void EntityManager::OnClientDisconnect(const sockaddr_storage& InAddress, const uint8_t InDisconnectType)
 {
   // TODO: Erase and handle traces of client on server
-  if (entitiesPossessed_.find(InAddress) != entitiesPossessed_.end())
+  const sockaddr_in ipv4Address = NetUtility::RetrieveIPv4AddressFromStorage(InAddress);
+  if (entitiesPossessed_.find(ipv4Address) != entitiesPossessed_.end())
   {
-    DestroyEntityServer(entitiesPossessed_.at(InAddress));
-    entitiesPossessed_.erase(InAddress);
+    DestroyEntityServer(entitiesPossessed_.at(ipv4Address));
+    entitiesPossessed_.erase(ipv4Address);
   }
 }
 
@@ -437,7 +437,7 @@ bool EntityManager::IsUsernameTaken(const std::string& InUsername) const
   return false;
 }
 
-void EntityManager::SetPossessedEntityByNetTarget(const sockaddr_storage& InAddress, uint16_t InIdentifier)
+void EntityManager::SetPossessedEntityByNetTarget(const sockaddr_in& InAddress, uint16_t InIdentifier)
 {
   if (entitiesPossessed_.find(InAddress) == entitiesPossessed_.end())
   {
@@ -448,24 +448,36 @@ void EntityManager::SetPossessedEntityByNetTarget(const sockaddr_storage& InAddr
 
 void EntityManager::UpdateEntityPossession()
 {
-  if (entityToUpdatePossess_ > -1)
+  int iter = 0;
+  std::vector<int> componentsToRemove;
+  for (auto& component : entityPossessionBuffer_)
   {
-    if (entities_.find(entityToUpdatePossess_) != entities_.end())
+    if (entities_.find(component.entityIdentifier) != entities_.end())
     {
-      ControllerComponent* controllerComponent = entities_.at(entityToUpdatePossess_)->GetFirstComponent<ControllerComponent>().lock().get();
+      ControllerComponent* controllerComponent = entities_.at(component.entityIdentifier)->GetFirstComponent<ControllerComponent>().lock().get();
       if (controllerComponent)
       {
-        controllerComponent->SetPossessed(bPossession_);
+        controllerComponent->SetPossessed(component.bShouldPossess);
         PlayerShipEntity* playerShip = dynamic_cast<PlayerShipEntity*>(controllerComponent->GetOwner());
         if (playerShip)
         {
-          playerShip->SetUsername(possessionUsername_);
+          playerShip->SetUsername(component.usernameBuffer);
         }
         
         possessedEntity_ = controllerComponent->GetOwner();
+        SetPossessedEntityByNetTarget(component.possessor, component.entityIdentifier);
       }
-      entityToUpdatePossess_ = -1; // Reset
+      componentsToRemove.push_back(iter);
     }
+    
+    ++iter;
+  }
+
+  int entitiesRemoved = 0;
+  for (const int indexToRemove : componentsToRemove)
+  {
+    entityPossessionBuffer_.erase(entityPossessionBuffer_.begin() + indexToRemove - entitiesRemoved);
+    ++entitiesRemoved;
   }
 }
 

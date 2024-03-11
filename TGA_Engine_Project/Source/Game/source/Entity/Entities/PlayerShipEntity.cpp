@@ -1,12 +1,18 @@
 ﻿#include "PlayerShipEntity.h"
 
 #include "../../Combat/BulletEntity.h"
+#include "../../Combat/StatTracker.h"
 #include "../Collision/CircleCollider.hpp"
 #include "../EntityComponents/RenderComponent.h"
 #include "../EntityComponents/ControllerComponent.h"
 
 void PlayerShipEntity::Init()
 {
+  if (Net::PacketManager::Get()->IsServer())
+  {
+    Locator::Get()->GetStatTracker()->SetStat(GetId(), NetTag("health"), maxHealth_);
+  }
+  
   if (!Net::PacketManager::Get()->IsServer())
   {
     RenderComponent* renderComponent = AddComponent<RenderComponent>().lock().get();
@@ -42,7 +48,7 @@ void PlayerShipEntity::OnTriggerEntered(const ColliderComponent& InCollider)
   {
     if (Net::PacketManager::Get()->IsServer())
     {
-      health_ -= bulletEntity->GetDamage();
+      TakeDamage(bulletEntity->GetDamage(), bulletEntity->GetShooterId());
     }
     else
     {
@@ -69,10 +75,33 @@ void PlayerShipEntity::OnTriggerExit(const ColliderComponent& InCollider)
 
 void PlayerShipEntity::OnReadReplication(const DataReplicationPacketComponent& InComponent)
 {
-  InComponent.variableDataObject.DeSerializeMemberVariable(*this, health_);
+  
 }
 
 void PlayerShipEntity::OnSendReplication(DataReplicationPacketComponent& OutComponent)
 {
-  OutComponent.variableDataObject.SerializeMemberVariable(*this, health_);
+  
+}
+
+void PlayerShipEntity::TakeDamage(const int InDamage, const uint16_t InDamagingEntity)
+{
+  if (Net::PacketManager::Get()->IsServer())
+  {
+    float currentHealth = Locator::Get()->GetStatTracker()->GetStat(GetId(), NetTag("health")) - InDamage;
+    currentHealth = currentHealth < 0 ? 0 : currentHealth;
+    Locator::Get()->GetStatTracker()->SetStat(GetId(), NetTag("health"), currentHealth);
+
+    // Death
+    if (currentHealth <= 0)
+    {
+      const float newKillAmount = Locator::Get()->GetStatTracker()->GetStat(InDamagingEntity, NetTag("kills")) + 1;
+      Locator::Get()->GetStatTracker()->SetStat(InDamagingEntity, NetTag("kills"), newKillAmount);
+
+      const float newDeathAmount = Locator::Get()->GetStatTracker()->GetStat(GetId(), NetTag("deaths")) + 1;
+      Locator::Get()->GetStatTracker()->SetStat(GetId(), NetTag("deaths"), newDeathAmount);
+
+      // TODO: Respawn logic needed
+      // ...
+    }
+  }
 }

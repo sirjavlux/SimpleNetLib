@@ -13,19 +13,17 @@ public:
 
 	void OnTriggerEntered(const ColliderComponent& InCollider);
 	void OnTriggerExit(const ColliderComponent& InCollider);
-
-	uint16_t GetHealth() const { return health_; }
-	uint16_t GetMaxHealth() const { return maxHealth_; }
-
+	
 	void OnReadReplication(const DataReplicationPacketComponent& InComponent) override;
 	void OnSendReplication(DataReplicationPacketComponent& OutComponent) override;
 
 	void SetUsername(const std::string& InUsername) { username_ = InUsername; }
 	const NetTag& GetUsername() const { return username_; }
+
+	void TakeDamage(int InDamage, uint16_t InDamagingEntity);
 	
 private:
 	NetTag username_;
 
 	uint16_t maxHealth_ = 100;
-	uint16_t health_ = maxHealth_;
 };

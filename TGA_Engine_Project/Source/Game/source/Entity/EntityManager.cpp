@@ -6,6 +6,7 @@
 #include "../Definitions.hpp"
 #include "../GameWorld.h"
 #include "../Combat/BulletManager.h"
+#include "../Combat/StatTracker.h"
 #include "../PacketComponents/DeSpawnEntityComponent.hpp"
 #include "../PacketComponents/InputComponent.hpp"
 #include "../PacketComponents/SpawnEntityComponent.hpp"
@@ -323,6 +324,8 @@ void EntityManager::OnConnectionReceived(const sockaddr_storage& InAddress, cons
   setEntityPossessed.bShouldPossess = true;
   std::memcpy(setEntityPossessed.usernameBuffer, usernameBuffer, USERNAME_MAX_LENGTH);
   Net::PacketManager::Get()->SendPacketComponent<SetEntityPossessedComponent>(setEntityPossessed, InAddress);
+
+  Locator::Get()->GetStatTracker()->UpdateAllStatsForPlayer(InAddress);
 }
 
 void EntityManager::OnInputReceived(const sockaddr_storage& InAddress, const Net::PacketComponent& InComponent)
@@ -418,7 +421,10 @@ void EntityManager::OnClientDisconnect(const sockaddr_storage& InAddress, const 
   const sockaddr_in ipv4Address = NetUtility::RetrieveIPv4AddressFromStorage(InAddress);
   if (entitiesPossessed_.find(ipv4Address) != entitiesPossessed_.end())
   {
-    DestroyEntityServer(entitiesPossessed_.at(ipv4Address));
+    const uint16_t playerEntityId = entitiesPossessed_.at(ipv4Address);
+    
+    Locator::Get()->GetStatTracker()->RemovePlayerStats(playerEntityId);
+    DestroyEntityServer(playerEntityId);
     entitiesPossessed_.erase(ipv4Address);
   }
 }

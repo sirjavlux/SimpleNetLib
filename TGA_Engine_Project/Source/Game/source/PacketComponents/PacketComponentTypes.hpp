@@ -14,4 +14,5 @@ enum class EPacketComponentType : uint16_t
   UpdateEntityPosition = 52,
   SetEntityPossessed = 53,
   UpdateEntityControllerPosition = 54,
+  UpdateStat = 55,
 };

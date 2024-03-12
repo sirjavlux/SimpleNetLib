@@ -246,6 +246,5 @@ inline void Entity::UpdateReplication()
 		positionComponent.entityIdentifier = GetId();
 		positionComponent.SetOverrideDefiningData(GetId());
 		Net::PacketManager::Get()->SendPacketComponentMulticastWithLod<UpdateEntityPositionComponent>(positionComponent, { targetPosition_.x, targetPosition_.y, 0.f });
-		//Net::PacketManager::Get()->SendPacketComponentMulticast<UpdateEntityPositionComponent>(positionComponent);
 	}
 }

@@ -1,10 +1,10 @@
 ﻿#include "stdafx.h"
 #include "EntityManager.h"
 
+#include <random>
 #include <ffmpeg-2.0/libavutil/mathematics.h>
 
 #include "../Definitions.hpp"
-#include "../GameWorld.h"
 #include "../Combat/BulletManager.h"
 #include "../Combat/StatTracker.h"
 #include "../PacketComponents/DeSpawnEntityComponent.hpp"
@@ -22,13 +22,12 @@
 #include "Packet/CorePacketComponents/ServerConnectPacketComponent.hpp"
 #include "../Locator/Locator.h"
 #include "Packet/CorePacketComponents/KickedFromServerPacketComponent.hpp"
-#include "tge/drawers/DebugDrawer.h"
 
 EntityManager* EntityManager::instance_ = nullptr;
 
 EntityManager::EntityManager()
 {
-  
+  random_Engine_.seed(0);
 }
 
 EntityManager::~EntityManager()
@@ -228,6 +227,27 @@ bool EntityManager::IsServer()
   return Net::PacketManager::Get()->GetManagerType() == ENetworkHandleType::Server;
 }
 
+Tga::Vector2f EntityManager::GenerateRandomSpawnPos()
+{
+  std::default_random_engine& randomEngine = Get()->GetRandomEngine();
+  
+  std::uniform_real_distribution distributionX(-WORLD_BG_GENERATION_SIZE_X / 2.8f, WORLD_BG_GENERATION_SIZE_X / 2.8f);
+  std::uniform_real_distribution distributionY(-WORLD_BG_GENERATION_SIZE_Y / 2.8f, WORLD_BG_GENERATION_SIZE_Y / 2.8f);
+
+  const Tga::Vector2f newPosition = { distributionX(randomEngine), distributionY(randomEngine) };
+
+  // TODO: Needs to check for intersections and spawning inside other objects
+  
+  return newPosition;
+}
+
+void EntityManager::RespawnPlayerAtRandomPos(PlayerShipEntity* InPlayerEntity)
+{
+  Locator::Get()->GetStatTracker()->SetStat(InPlayerEntity->GetId(), NetTag("health"), InPlayerEntity->GetMaxHealth());
+  
+  InPlayerEntity->GetFirstComponent<ControllerComponent>().lock()->TeleportToPosition(GenerateRandomSpawnPos());
+}
+
 void EntityManager::OnEntitySpawnReceived(const sockaddr_storage& InAddress, const Net::PacketComponent& InComponent)
 {
   const SpawnEntityComponent* component = reinterpret_cast<const SpawnEntityComponent*>(&InComponent);
@@ -286,7 +306,7 @@ void EntityManager::OnEntityDespawnRequestReceived(const sockaddr_storage& InAdd
 
 void EntityManager::OnConnectionReceived(const sockaddr_storage& InAddress, const Net::PacketComponent& InComponent)
 {
-  ServerConnectPacketComponent component = *reinterpret_cast<const ServerConnectPacketComponent*>(&InComponent);
+  const ServerConnectPacketComponent component = *reinterpret_cast<const ServerConnectPacketComponent*>(&InComponent);
 
   // Extract data from in packet component
   component.variableDataObject.Begin();
@@ -315,7 +335,8 @@ void EntityManager::OnConnectionReceived(const sockaddr_storage& InAddress, cons
   
   // Spawn player controllable entity
   const NetTag playerTypeTag = NetTag("player.ship");
-  PlayerShipEntity* entitySpawned = dynamic_cast<PlayerShipEntity*>(SpawnEntityServer(playerTypeTag));
+  const Tga::Vector2f startPosition = GenerateRandomSpawnPos();
+  PlayerShipEntity* entitySpawned = dynamic_cast<PlayerShipEntity*>(SpawnEntityServer(playerTypeTag, startPosition));
   entitySpawned->GetFirstComponent<ControllerComponent>().lock()->SetPossessedBy(InAddress);
   entitySpawned->SetUsername(username);
   

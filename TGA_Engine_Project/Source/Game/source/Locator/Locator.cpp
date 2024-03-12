@@ -4,6 +4,7 @@
 
 #include "../Combat/BulletManager.h"
 #include "../Combat/StatTracker.h"
+#include "../Entity/AsteroidManager.h"
 #include "../Entity/Collision/CollisionManager.h"
 
 Locator* Locator::instance_ = nullptr;
@@ -29,6 +30,8 @@ Locator* Locator::Initialize()
 		instance_->collisionManager_->Initialize();
 		instance_->statTracker_ = std::make_shared<StatTracker>();
 		instance_->statTracker_->Initialize();
+		instance_->asteroidManager_ = std::make_shared<AsteroidManager>();
+		instance_->asteroidManager_->Initialize();
 	}
 	return instance_;
 }

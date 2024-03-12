@@ -1,12 +1,14 @@
 ﻿#pragma once
 
 #include <map>
+#include <random>
 
 #include "Entities/Entity.hpp"
 #include "SimpleNetLib.h"
 #include "Utility/HashUtility.hpp"
 #include "../PacketComponents/SetEntityPossessedComponent.hpp"
 
+class PlayerShipEntity;
 class EntityManager
 {
 public:
@@ -32,6 +34,9 @@ public:
 
   static bool IsServer();
 
+  static Tga::Vector2f GenerateRandomSpawnPos();
+  static void RespawnPlayerAtRandomPos(PlayerShipEntity* InPlayerEntity);
+  
   // Client sided
   void OnEntitySpawnReceived(const sockaddr_storage& InAddress, const Net::PacketComponent& InComponent);
   void OnEntityDespawnReceived(const sockaddr_storage& InAddress, const Net::PacketComponent& InComponent);
@@ -73,6 +78,8 @@ public:
       entitiesToDestroy_.push_back(InIdentifier);
     }
   }
+
+  std::default_random_engine& GetRandomEngine() {return random_Engine_; }
   
 private:
   // This is a server sided function
@@ -108,7 +115,9 @@ private:
 
   std::chrono::steady_clock::time_point lastUpdateTime_;
   double updateLag_ = 0.0;
-  
+
+  std::default_random_engine random_Engine_;
+
   static EntityManager* instance_;
 };
 

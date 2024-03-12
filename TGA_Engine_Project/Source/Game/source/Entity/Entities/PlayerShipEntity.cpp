@@ -1,5 +1,6 @@
 ﻿#include "PlayerShipEntity.h"
 
+#include "../EntityManager.h"
 #include "../../Combat/BulletEntity.h"
 #include "../../Combat/StatTracker.h"
 #include "../Collision/CircleCollider.hpp"
@@ -35,6 +36,11 @@ void PlayerShipEntity::Init()
 }
 
 void PlayerShipEntity::Update(float InDeltaTime)
+{
+  
+}
+
+void PlayerShipEntity::FixedUpdate()
 {
   
 }
@@ -100,8 +106,7 @@ void PlayerShipEntity::TakeDamage(const int InDamage, const uint16_t InDamagingE
       const float newDeathAmount = Locator::Get()->GetStatTracker()->GetStat(GetId(), NetTag("deaths")) + 1;
       Locator::Get()->GetStatTracker()->SetStat(GetId(), NetTag("deaths"), newDeathAmount);
 
-      // TODO: Respawn logic needed
-      // ...
+      EntityManager::RespawnPlayerAtRandomPos(this);
     }
   }
 }

@@ -3,8 +3,8 @@
 #include <vector>
 #include <cstdint>
 
-#define SEQUENCE_BITMAP_START_SIZE (64 * 64)
-#define BITSIZE_PER_STORAGE_UNIT 64
+#define SEQUENCE_BITMAP_START_SIZE (64l * 64l)
+#define BITSIZE_PER_STORAGE_UNIT 64l
 
 class SequenceNumberBitmap
 {
@@ -47,9 +47,9 @@ private:
   void Grow(const uint64_t InNumber)
   {
     // Calculate Grow Size
-      const int index = InNumber / BITSIZE_PER_STORAGE_UNIT;
-      const int indexesNeeded = floor(log2f(index));
-      const int sizeToGrowTo = powf(2, indexesNeeded + 1);
+      const uint64_t index = InNumber / BITSIZE_PER_STORAGE_UNIT;
+      const uint64_t indexesNeeded = static_cast<uint64_t>(floor(log2(index)));
+      const uint64_t sizeToGrowTo = static_cast<uint64_t>(pow(2, indexesNeeded + 1));
     
       maxSequenceNumber_ = sizeToGrowTo;
       bitmap_.resize(maxSequenceNumber_);

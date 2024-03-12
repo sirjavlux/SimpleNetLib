@@ -10,7 +10,8 @@ public:
 	void Init() override;
 	
 	void Update(float InDeltaTime) override;
-
+	void FixedUpdate() override;
+	
 	void OnTriggerEntered(const ColliderComponent& InCollider);
 	void OnTriggerExit(const ColliderComponent& InCollider);
 	
@@ -21,6 +22,8 @@ public:
 	const NetTag& GetUsername() const { return username_; }
 
 	void TakeDamage(int InDamage, uint16_t InDamagingEntity);
+
+	uint16_t GetMaxHealth() const { return maxHealth_; }
 	
 private:
 	NetTag username_;

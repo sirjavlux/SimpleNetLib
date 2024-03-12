@@ -15,7 +15,7 @@ public:
 
   virtual void Init() = 0;
   
-  virtual void Update(float InDeltaTime) {}
+  virtual void Update(float /*InDeltaTime*/) {}
   virtual void FixedUpdate() {}
 
   uint16_t GetLocalId() const { return localId_; }

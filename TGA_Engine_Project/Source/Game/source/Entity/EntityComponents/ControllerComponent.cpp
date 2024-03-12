@@ -111,6 +111,26 @@ void ControllerComponent::GetCursorPosInScreenSpace(const HWND& InHwd, POINT& Ou
   }
 }
 
+void ControllerComponent::TeleportToPosition(const Tga::Vector2f& InPosition)
+{
+  owner_->SetTargetPosition({InPosition.x, InPosition.y});
+  
+  // Send new packet
+  UpdateEntityPositionComponent updateEntityPositionComponent;
+  updateEntityPositionComponent.entityIdentifier = owner_->GetId();
+  updateEntityPositionComponent.bIsTeleport = true;
+  updateEntityPositionComponent.xPos = InPosition.x;
+  updateEntityPositionComponent.yPos = InPosition.y;
+  
+  updateEntityPositionComponent.SetOverrideDefiningData(updateEntityPositionComponent.entityIdentifier);
+
+  const NetUtility::NetVector3 lodPos = { InPosition.x, InPosition.y, 0.f };
+  Net::PacketManager::Get()->SendPacketComponentMulticastWithLod<UpdateEntityPositionComponent>(updateEntityPositionComponent, lodPos);
+
+  // Update net position for culling
+  Net::PacketManager::Get()->UpdateClientNetPosition(possessedBy_, lodPos);
+}
+
 void ControllerComponent::UpdateServerPosition()
 {
   if (!Net::PacketManager::Get()->IsServer())
@@ -121,31 +141,25 @@ void ControllerComponent::UpdateServerPosition()
   Tga::Vector2f newPos = owner_->GetTargetPosition();
 
   constexpr int indexesBehind = 3;
-  for (int i = indexesBehind; i < INPUT_BUFFER_SIZE - 1; ++i)
-  {
-    const InputUpdateEntry& input = inputHistoryBuffer_[i];
-    if (input.sequenceNr <= lastInputSequenceNr_)
-    {
-      break;
-    }
+  const InputUpdateEntry& input = inputHistoryBuffer_[indexesBehind];
    
-    const InputUpdateEntry& inputBehind = inputHistoryBuffer_[i + 1];
-    uint32_t sequenceNrBehind = inputBehind.sequenceNr;
-    const uint32_t sequenceNr = input.sequenceNr;
+	const InputUpdateEntry& inputBehind = inputHistoryBuffer_[indexesBehind + 1];
+	uint32_t sequenceNrBehind = inputBehind.sequenceNr;
+	const uint32_t sequenceNr = input.sequenceNr;
     
-    // Predict lost inputs
-    while (sequenceNr > sequenceNrBehind + 1 && sequenceNr != sequenceNrBehind)
-    {
-      if (!UpdateInputBuffer({sequenceNrBehind + 1, inputBehind.xInputForce, inputBehind.yInputForce }))
-      {
-        break; 
-      }
-      ++sequenceNrBehind;
-    }
+	// Predict lost inputs
+	while (sequenceNr > sequenceNrBehind + 1 && sequenceNr != sequenceNrBehind)
+	{
+		if (!UpdateInputBuffer({sequenceNrBehind + 1, inputBehind.xInputForce, inputBehind.yInputForce }))
+		{
+			break; 
+		}
+		++sequenceNrBehind;
+	}
     
-    UpdateVelocity(input.xInputForce, input.yInputForce, input.inputTargetDirection);
-    newPos += velocity_;
-  }
+	UpdateVelocity(input.xInputForce, input.yInputForce, input.inputTargetDirection);
+	newPos += velocity_;
+  
   lastInputSequenceNr_ = inputHistoryBuffer_[indexesBehind].sequenceNr;
 
   // Snap position to map bounds
@@ -172,7 +186,6 @@ void ControllerComponent::UpdateServerPosition()
 
   const NetUtility::NetVector3 lodPos = { owner_->GetTargetPosition().x, owner_->GetTargetPosition().y, 0.f };
   Net::PacketManager::Get()->SendPacketComponentMulticastWithLod<UpdateEntityControllerPositionComponent>(updateEntityPositionComponent, lodPos);
-  //Net::PacketManager::Get()->SendPacketComponentMulticast<UpdateEntityControllerPositionComponent>(updateEntityPositionComponent);
 
   // Update net position for culling
   Net::PacketManager::Get()->UpdateClientNetPosition(possessedBy_, lodPos);

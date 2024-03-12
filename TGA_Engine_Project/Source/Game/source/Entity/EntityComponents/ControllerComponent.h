@@ -55,6 +55,10 @@ public:
   const Tga::Vector2f& GetVelocity() const { return velocity_; }
 
   static void GetCursorPosInScreenSpace(const HWND& InHwd, POINT& OutCursorPoint);
+
+  void SetMovementEnabled(const bool InShouldBeEnabled) { bIsMovementEnabled_ = InShouldBeEnabled; }
+
+  void TeleportToPosition(const Tga::Vector2f& InPosition);
   
 private:
   void UpdateServerPosition();
@@ -62,6 +66,8 @@ private:
   
   void UpdateInput();
 
+  bool bIsMovementEnabled_ = true;
+  
   const float directionLerpSpeed_ = 4.f;
   Tga::Vector2f targetDirection_ = { 0, 1 };
   Tga::Vector2f currentDirection_ = { 0, 1 };

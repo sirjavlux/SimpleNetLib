@@ -71,6 +71,9 @@ public:
 
   void OnSendReplication(DataReplicationPacketComponent& OutComponent) override;
   void OnReadReplication(const DataReplicationPacketComponent& InComponent) override;
+
+  void SetIsVisible(const bool InShouldBeVisible) { bIsVisible_ = InShouldBeVisible; }
+  bool IsVisible() const { return bIsVisible_; }
   
 private:
   std::string texturePath_;
@@ -78,6 +81,7 @@ private:
   Tga::SpriteSharedData sharedData_ = {};
   uint8_t sortingPriority_ = 0;
   NetTag textureIdentifier_;
+  bool bIsVisible_ = true;
   Tga::Vector2i spriteSize_ = { 16, 16 };
   Tga::Vector2f spriteSizeMultiplier_ = { 1.f, 1.f };
 };

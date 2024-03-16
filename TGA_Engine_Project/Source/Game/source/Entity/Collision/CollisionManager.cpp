@@ -105,7 +105,9 @@ void CollisionManager::RemoveComponents(const std::vector<int>& InComponentIndex
 	int removedCount = 0;
 	for (auto it = colliderComponents_.begin(); it != colliderComponents_.end(); )
 	{
-		if (std::find(InComponentIndexes.begin(), InComponentIndexes.end(), std::distance(colliderComponents_.begin(), it)) != InComponentIndexes.end())
+		auto currentIndex = std::distance(colliderComponents_.begin(), it); // Get current index
+
+		if (std::find(InComponentIndexes.begin() + removedCount, InComponentIndexes.end(), currentIndex) != InComponentIndexes.end())
 		{
 			it = colliderComponents_.erase(it);
 			++removedCount;

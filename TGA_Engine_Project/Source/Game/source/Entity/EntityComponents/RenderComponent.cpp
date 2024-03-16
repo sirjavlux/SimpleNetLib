@@ -46,7 +46,7 @@ void RenderComponent::Init()
 
 void RenderComponent::Update(float InDeltaTime)
 {
-  if (Net::PacketManager::Get()->IsServer() || texturePath_.empty())
+  if (Net::PacketManager::Get()->IsServer() || texturePath_.empty() || !bIsVisible_)
   {
     return;
   }
@@ -113,6 +113,7 @@ void RenderComponent::OnSendReplication(DataReplicationPacketComponent& OutCompo
   OutComponent.variableDataObject.SerializeMemberVariable(*this, spriteSize_);
   OutComponent.variableDataObject.SerializeMemberVariable(*this, spriteSizeMultiplier_);
   OutComponent.variableDataObject.SerializeMemberVariable(*this, sortingPriority_);
+  OutComponent.variableDataObject.SerializeMemberVariable(*this, bIsVisible_);
 }
 
 void RenderComponent::OnReadReplication(const DataReplicationPacketComponent& InComponent)
@@ -129,4 +130,5 @@ void RenderComponent::OnReadReplication(const DataReplicationPacketComponent& In
   InComponent.variableDataObject.DeSerializeMemberVariable(*this, spriteSize_);
   InComponent.variableDataObject.DeSerializeMemberVariable(*this, spriteSizeMultiplier_);
   InComponent.variableDataObject.DeSerializeMemberVariable(*this, sortingPriority_);
+  InComponent.variableDataObject.DeSerializeMemberVariable(*this, bIsVisible_);
 }

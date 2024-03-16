@@ -18,7 +18,7 @@ public:
 	void OnTriggerEntered(const ColliderComponent& InCollider);
 	void OnTriggerExit(const ColliderComponent& InCollider);
 
-	void OnEntityDeath(Entity& InKiller);
+	void OnEntityDeath(uint16_t InEnemy);
 	
 	void OnReadReplication(const DataReplicationPacketComponent& InComponent) override;
 	void OnSendReplication(DataReplicationPacketComponent& OutComponent) override;

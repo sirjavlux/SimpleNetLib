@@ -14,7 +14,7 @@ public:
 	void Update(float InDeltaTime) override;
 
 	void OnTriggerEntered(const ColliderComponent& InCollider);
-	void OnEntityDeath(Entity& InKiller);
+	void OnEntityDeath(uint16_t InEnemy);
 	
 	void SetGenerationData(const GenerationData& InGenerationData) { generationData_ = InGenerationData; }
 	

@@ -27,13 +27,16 @@ public:
 
 	void SetMaxHealth(const float InNewMaxHealth) { maxHealth_ = InNewMaxHealth; }
 	float GetMaxHealth() const { return maxHealth_; }
+
+	void SetIsImmortal(const bool InShouldBeImmortal) { bIsImmortal_ = InShouldBeImmortal; }
+	bool IsImmortal() const { return bIsImmortal_; }
 	
-	DynamicMulticastDelegate<Entity&> entityDeathDelegate;
-	DynamicMulticastDelegate<Entity&, float> entityTakeDamageDelegate;
+	DynamicMulticastDelegate<uint16_t> entityDeathDelegate;
+	DynamicMulticastDelegate<uint16_t, float> entityTakeDamageDelegate;
 	
 private:
 	float maxHealth_ = 100.f;
 	float collisionDamage_ = 0.f;
 
-	std::vector<uint16_t> friendlyEntities_;
+	bool bIsImmortal_ = false;
 };

@@ -18,8 +18,8 @@ void AsteroidEntity::Init()
 void AsteroidEntity::InitComponents()
 {
   RenderComponent* renderComponent = EntityManager::Get()->AddComponentToEntityOfType<RenderComponent>(id_, NetTag("RenderComponent").GetHash());
-  renderComponent->SetSpriteSizeMultiplier({ 2.f, 2.f });
-  renderComponent->SetRenderSortingPriority(5);
+  renderComponent->SetSpriteSizeMultiplier({ 4.f, 4.f });
+  renderComponent->SetRenderSortingPriority(40);
   renderComponent->SetSpriteTexture(generationData_.path.c_str());
   
   SetShouldReplicatePosition(true);
@@ -51,8 +51,11 @@ void AsteroidEntity::OnTriggerEntered(const ColliderComponent& InCollider)
   
 }
 
-void AsteroidEntity::OnEntityDeath(Entity& InKiller)
+void AsteroidEntity::OnEntityDeath(uint16_t InEnemy)
 {
   // For the moment just remove object from world
-  EntityManager::Get()->DestroyEntityServer(GetId());
+  if (EntityManager::Get()->IsServer())
+  {
+    EntityManager::Get()->DestroyEntityServer(GetId());
+  }
 }

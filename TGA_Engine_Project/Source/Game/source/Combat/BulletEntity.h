@@ -18,6 +18,8 @@ public:
 	void OnSendReplication(DataReplicationPacketComponent& OutComponent) override;
 
 	uint16_t GetDamage() const { return damage_; }
+
+	void OnEntityDeath(uint16_t InEnemy);
 	
 private:
 	uint16_t shooterId_ = 0;

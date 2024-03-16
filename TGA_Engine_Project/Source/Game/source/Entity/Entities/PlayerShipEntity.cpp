@@ -75,7 +75,7 @@ void PlayerShipEntity::OnTriggerExit(const ColliderComponent& InCollider)
   
 }
 
-void PlayerShipEntity::OnEntityDeath(Entity& InKiller)
+void PlayerShipEntity::OnEntityDeath(uint16_t InEnemy)
 {
   EntityManager::RespawnPlayerAtRandomPos(this);
 }

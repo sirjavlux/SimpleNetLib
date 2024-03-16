@@ -59,7 +59,8 @@ void NetHandler::Initialize()
         {
             false,
             FIXED_UPDATE_DELTA_TIME,
-            1.f,
+            0.1f,
+            EPacketHandlingType::Ack
         };
         SimpleNetLibCore::Get()->GetPacketComponentRegistry()->RegisterPacketComponent<DataReplicationPacketComponent>(associatedData);
     }
@@ -162,7 +163,7 @@ void NetHandler::SetUpServer(const PCSTR InServerAddress, const u_short InServer
     }
 }
 
-void NetHandler::ConnectToServer(const VariableDataObject<CONNECTION_DATA_SIZE>& InVariableData, const PCSTR InServerAddress, const u_short InServerPort)
+void NetHandler::ConnectToServer(const VariableDataObject<CONNECTION_COMPONENT_DATA_SIZE>& InVariableData, const PCSTR InServerAddress, const u_short InServerPort)
 {
     if (!bIsRunning_)
     {
@@ -312,7 +313,7 @@ bool NetHandler::InitializeWin32(const NetSettings& InSettings)
     return true;
 }
 
-void NetHandler::SendConnectionPacket(const VariableDataObject<CONNECTION_DATA_SIZE>& InVariableData)
+void NetHandler::SendConnectionPacket(const VariableDataObject<CONNECTION_COMPONENT_DATA_SIZE>& InVariableData)
 {
     if (!bIsServer_)
     {

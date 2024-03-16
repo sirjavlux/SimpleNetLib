@@ -26,7 +26,7 @@ public:
     ~SimpleNetLibCore();
 
     void SetUpServer(PCSTR InServerAddress = DEFAULT_SERVER_ADDRESS, u_short InServerPort = DEFAULT_SERVER_PORT);
-    void ConnectToServer(const VariableDataObject<CONNECTION_DATA_SIZE>& InVariableData, PCSTR InServerAddress = DEFAULT_SERVER_ADDRESS, u_short InServerPort = DEFAULT_SERVER_PORT);
+    void ConnectToServer(const VariableDataObject<CONNECTION_COMPONENT_DATA_SIZE>& InVariableData, PCSTR InServerAddress = DEFAULT_SERVER_ADDRESS, u_short InServerPort = DEFAULT_SERVER_PORT);
 
     void DisconnectFromServer();
 

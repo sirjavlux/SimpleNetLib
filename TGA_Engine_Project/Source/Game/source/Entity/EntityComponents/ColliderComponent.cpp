@@ -2,15 +2,16 @@
 
 #include "../../Locator/Locator.h"
 #include "../Collision/Collider.hpp"
+#include "../Collision/CircleCollider.hpp"
 #include "../Collision/CollisionManager.h"
-#include "../Entities/Entity.hpp"
+#include "../Entities/Entity.h"
 
 void ColliderComponent::Init()
 {
 	// TODO: This is ugly, fix this
 	for (std::weak_ptr<ColliderComponent> component : owner_->GetComponents<ColliderComponent>())
 	{
-		if (component.lock().get() && component.lock().get()->localId_ == localId_)
+		if (component.lock().get() && component.lock().get()->id_ == id_)
 		{
 			Locator::Get()->GetCollisionManager()->AddColliderComponent(component);
 		}
@@ -75,13 +76,68 @@ void ColliderComponent::OnColliderCollision(std::weak_ptr<ColliderComponent> InC
 	collisionDelegate.Execute(*colliderComponent);
 	
 	// Update Triggers Entered and add Collider to cached colliders this frame
-	if (collidersCollidedWithLastUpdate_.find(colliderComponent->GetLocalId()) == collidersCollidedWithLastUpdate_.end())
+	if (collidersCollidedWithLastUpdate_.find(colliderComponent->GetId()) == collidersCollidedWithLastUpdate_.end())
 	{
-		collidersCollidedWithLastUpdate_.insert({colliderComponent->GetLocalId(), InColliderComponent});
-		if (collidersEntered_.find(colliderComponent->GetLocalId()) == collidersEntered_.end())
+		collidersCollidedWithLastUpdate_.insert({colliderComponent->GetId(), InColliderComponent});
+		if (collidersEntered_.find(colliderComponent->GetId()) == collidersEntered_.end())
 		{
-			collidersEntered_.insert({colliderComponent->GetLocalId(), InColliderComponent});
+			collidersEntered_.insert({colliderComponent->GetId(), InColliderComponent});
 			OnTriggerEnter(*colliderComponent);
 		}
+	}
+}
+
+void ColliderComponent::OnSendReplication(DataReplicationPacketComponent& OutComponent)
+{
+	OutComponent.variableDataObject.SerializeMemberVariable(*this, colliderType_);
+	OutComponent.variableDataObject.SerializeMemberVariable(*this, collisionFilter_);
+	OutComponent.variableDataObject.SerializeMemberVariable(*this, bIsTrigger_);
+
+	const EColliderType colliderType = collider_ != nullptr ? collider_->type : EColliderType::None;
+	OutComponent.variableDataObject.SerializeData(colliderType);
+	if (collider_ != nullptr)
+	{
+		switch (collider_->type)
+		{
+		case EColliderType::None:
+			break;
+		case EColliderType::Circle:
+		{
+			const CircleCollider* circleCollider = dynamic_cast<CircleCollider*>(collider_.get());
+			OutComponent.variableDataObject.SerializeData(circleCollider->radius);
+			OutComponent.variableDataObject.SerializeData(circleCollider->localPosition);
+		}
+			break;
+		}
+	}
+}
+
+void ColliderComponent::OnReadReplication(const DataReplicationPacketComponent& InComponent)
+{
+	InComponent.variableDataObject.DeSerializeMemberVariable(*this, colliderType_);
+	InComponent.variableDataObject.DeSerializeMemberVariable(*this, collisionFilter_);
+	InComponent.variableDataObject.DeSerializeMemberVariable(*this, bIsTrigger_);
+
+	EColliderType colliderType;
+	InComponent.variableDataObject.DeSerializeData(colliderType);
+	switch (colliderType)
+	{
+	case EColliderType::None:
+		break;
+	case EColliderType::Circle:
+	{
+		if (collider_ == nullptr || std::static_pointer_cast<CircleCollider>(collider_) == nullptr)
+		{
+			std::shared_ptr<CircleCollider> circleCollider = std::make_shared<CircleCollider>();
+			circleCollider->owner = GetOwner();
+			circleCollider->type = EColliderType::Circle;
+
+			InComponent.variableDataObject.DeSerializeData(circleCollider->radius);
+			InComponent.variableDataObject.DeSerializeData(circleCollider->localPosition);
+
+			collider_ = circleCollider;
+		}
+	}
+		break;
 	}
 }

@@ -2,11 +2,14 @@
 
 #include "../../PacketComponents/UpdateEntityControllerPositionComponent.hpp"
 #include "../../PacketComponents/InputComponent.hpp"
-#include "../Entities/Entity.hpp"
+#include "../../PacketComponents/UpdateEntityPositionComponent.hpp"
+#include "../Entities/Entity.h"
 #include "Packet/PacketManager.h"
 #include "../EntityManager.h"
 #include "../RenderManager.h"
 #include "../../Definitions.hpp"
+#include "../../Locator/Locator.h"
+#include "../Collision/CollisionManager.h"
 
 void ControllerComponent::Init()
 {
@@ -25,24 +28,13 @@ void ControllerComponent::FixedUpdate()
   if (!Net::PacketManager::Get()->IsServer())
   {
     UpdateClientPositionFromServerPositionUpdate();
-    if (bIsPossessed_)
+    if (EntityManager::Get()->GetPossessedEntity() == owner_)
     {
       UpdateInput();
     }
   }
 
   UpdateServerPosition();
-}
-
-void ControllerComponent::SetPossessedBy(const sockaddr_storage& InAddress)
-{
-  possessedBy_ = InAddress;
-
-  if (Net::PacketManager::Get()->IsServer())
-  {
-    const sockaddr_in ipv4Address = NetUtility::RetrieveIPv4AddressFromStorage(InAddress);
-    EntityManager::Get()->SetPossessedEntityByNetTarget(ipv4Address, owner_->GetId());
-  }
 }
 
 void ControllerComponent::UpdatePositionBuffer(const PositionUpdateEntry& InUpdateEntry)
@@ -128,7 +120,7 @@ void ControllerComponent::TeleportToPosition(const Tga::Vector2f& InPosition)
   Net::PacketManager::Get()->SendPacketComponentMulticastWithLod<UpdateEntityPositionComponent>(updateEntityPositionComponent, lodPos);
 
   // Update net position for culling
-  Net::PacketManager::Get()->UpdateClientNetPosition(possessedBy_, lodPos);
+  Net::PacketManager::Get()->UpdateClientNetPosition(NetUtility::RetrieveStorageFromIPv4Address(EntityManager::Get()->GetNetTargetPossessingEntity(owner_->GetId())), lodPos);
 }
 
 void ControllerComponent::UpdateServerPosition()
@@ -188,7 +180,7 @@ void ControllerComponent::UpdateServerPosition()
   Net::PacketManager::Get()->SendPacketComponentMulticastWithLod<UpdateEntityControllerPositionComponent>(updateEntityPositionComponent, lodPos);
 
   // Update net position for culling
-  Net::PacketManager::Get()->UpdateClientNetPosition(possessedBy_, lodPos);
+  Net::PacketManager::Get()->UpdateClientNetPosition(NetUtility::RetrieveStorageFromIPv4Address(EntityManager::Get()->GetNetTargetPossessingEntity(owner_->GetId())), lodPos);
 }
 
 void ControllerComponent::UpdateClientPositionFromServerPositionUpdate()
@@ -202,7 +194,7 @@ void ControllerComponent::UpdateClientPositionFromServerPositionUpdate()
   positionUpdateSequenceNr_ = updateEntry.sequenceNr;
   
   // Forward position
-  if (bIsPossessed_)
+  if (EntityManager::Get()->GetPossessedEntity() == owner_)
   {
     constexpr int indexesBehind = 6;
     for (int i = indexesBehind; i < INPUT_BUFFER_SIZE; ++i)

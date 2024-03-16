@@ -17,6 +17,8 @@ class AsteroidManager
 {
 public:
 	void Initialize();
+
+	Entity* SpawnAsteroidAtPosition(const Tga::Vector2f& InPosition);
 	
 	void SpawnRandomAsteroidInMap(); // TODO:
 	void SpawnRandomAsteroidFromMapBorder(); // TODO:

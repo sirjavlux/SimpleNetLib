@@ -1,5 +1,6 @@
 ﻿#pragma once
 
+#include "../PacketComponent.h"
 #include "../../Utility/VariableDataObject.hpp"
 
 class NET_LIB_EXPORT DataReplicationPacketComponent : public Net::PacketComponent

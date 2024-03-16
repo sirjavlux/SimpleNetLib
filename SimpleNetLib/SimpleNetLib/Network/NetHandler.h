@@ -39,7 +39,7 @@ public:
     bool IsServer() const { return bIsServer_; }
 
     void SetUpServer(PCSTR InServerAddress, u_short InServerPort);
-    void ConnectToServer(const VariableDataObject<CONNECTION_DATA_SIZE>& InVariableData, PCSTR InServerAddress, u_short InServerPort);
+    void ConnectToServer(const VariableDataObject<CONNECTION_COMPONENT_DATA_SIZE>& InVariableData, PCSTR InServerAddress, u_short InServerPort);
     void DisconnectFromServer();
     
     void SendPacketToTargetAndResetPacket(const sockaddr_storage& InTarget, Packet& InPacket) const;
@@ -61,14 +61,14 @@ public:
     void KickNetTarget(const sockaddr_storage& InAddress, uint8_t InKickReason);
 
     void OnKickedFromServerReceived(const sockaddr_storage& InAddress, const PacketComponent& InComponent);
-
+    
     const sockaddr_in& GetAddress() const { return address_; }
     
 private:
     void Update();
     
     bool InitializeWin32(const NetSettings& InSettings);
-    void SendConnectionPacket(const VariableDataObject<CONNECTION_DATA_SIZE>& InVariableData);
+    void SendConnectionPacket(const VariableDataObject<CONNECTION_COMPONENT_DATA_SIZE>& InVariableData);
     
     static void SendReturnAckBackToNetTarget(const sockaddr_storage& Target, const Packet& InPacket);
 

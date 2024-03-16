@@ -1,15 +1,16 @@
 ﻿#pragma once
 
-#include "EntityComponent.hpp"
+#include "EntityComponent.h"
 #include "Utility/NetVector3.h"
 #include "NetIncludes.h"
 #include "tge/math/Vector2.h"
 
 enum class ECollisionFilter : uint16_t
 {
-	None			= 0,
-	Player			= 1 << 0,
-	Projectile		= 1 << 1,
+	None				= 0,
+	Player				= 1 << 0,
+	Projectile			= 1 << 1,
+	WorldDestructible	= 1 << 2,
 };
 
 inline ECollisionFilter operator|(ECollisionFilter InLhs, ECollisionFilter InRhs)
@@ -42,7 +43,7 @@ public:
 
 	void Remove() { bIsMarkedForRemoval_ = true; }
 	bool IsMarkedForRemoval() const { return bIsMarkedForRemoval_; }
-
+	
 	void SetCollider(const std::shared_ptr<Collider>& InCollider);
 
 	Collider* GetCollider() { return collider_.get(); }
@@ -66,12 +67,16 @@ public:
 		return (colliderType_ & InColliderComponent.GetCollisionFilter()) == colliderType_
 			&& (InColliderComponent.GetColliderCollisionType() & collisionFilter_) == InColliderComponent.GetColliderCollisionType();
 	}
+
+	void OnSendReplication(DataReplicationPacketComponent& OutComponent) override;
+	void OnReadReplication(const DataReplicationPacketComponent& InComponent) override;
 	
 	DynamicMulticastDelegate<const ColliderComponent&> triggerEnterDelegate;
 	DynamicMulticastDelegate<const ColliderComponent&> triggerExitDelegate;
 	DynamicMulticastDelegate<const ColliderComponent&> collisionDelegate;
 	
 private:
+	
 	Tga::Vector2f positionLastFrame_;
 	
 	bool bIsMarkedForRemoval_ = false;

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Collider.hpp"
-#include "../Entities/Entity.hpp"
+#include "..\Entities\Entity.h"
 
 struct CircleCollider : Collider
 {

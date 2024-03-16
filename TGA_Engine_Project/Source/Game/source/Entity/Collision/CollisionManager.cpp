@@ -2,7 +2,7 @@
 
 #include "CircleCollider.hpp"
 #include "Collider.hpp"
-#include "../Entities/Entity.hpp"
+#include "..\Entities\Entity.h"
 #include "../EntityComponents/ColliderComponent.h"
 #include "tge/drawers/CustomShapeDrawer.h"
 #include "tge/drawers/DebugDrawer.h"
@@ -36,7 +36,7 @@ void CollisionManager::UpdateComponents()
 		for (const std::weak_ptr<ColliderComponent> colliderComponentSecond : colliderComponents_)
 		{
 			ColliderComponent* colliderComponentSecondPtr = colliderComponentSecond.lock().get();
-			if (!colliderComponentSecondPtr || colliderComponentSecondPtr->IsMarkedForRemoval() || colliderComponentSecondPtr->GetLocalId() == colliderComponentFirstPtr->GetLocalId())
+			if (!colliderComponentSecondPtr || colliderComponentSecondPtr->IsMarkedForRemoval() || colliderComponentSecondPtr->GetId() == colliderComponentFirstPtr->GetId())
 			{
 				continue;
 			}
@@ -86,6 +86,9 @@ void CollisionManager::RenderColliderDebugLines()
 		}
 		
 		const Collider* collider = colliderComponentPtr->GetCollider();
+		if (!collider)
+			return;
+		
 		switch(collider->type)
 		{
 		case EColliderType::None:

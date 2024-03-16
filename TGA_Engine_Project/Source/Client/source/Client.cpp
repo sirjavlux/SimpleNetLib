@@ -25,10 +25,10 @@ void Client::OnCloseConnectionEvent()
 
 void Client::Init()
 {
-    RenderManager::Initialize();
-    
     Net::SimpleNetLibCore::Initialize();
 
+    RenderManager::Initialize();
+    
     const std::string portString = std::to_string(DEFAULT_SERVER_PORT);
     std::memcpy(&portBuffer_[0], portString.c_str(), portString.size() > 5 ? 5 : portString.size());
     portBuffer_[5] = '\0';
@@ -79,7 +79,7 @@ void Client::Update(const float InDeltaTime)
 
             if (ImGui::Button("Connect"))
             {
-                VariableDataObject<CONNECTION_DATA_SIZE> data;
+                VariableDataObject<CONNECTION_COMPONENT_DATA_SIZE> data;
                 data << usernameBuffer_;
                 
                 const u_short port = static_cast<u_short>(std::stoi(portBuffer_));

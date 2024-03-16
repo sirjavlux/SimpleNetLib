@@ -69,7 +69,7 @@ void SimpleNetLibCore::SetUpServer(const PCSTR InServerAddress, const u_short In
     netHandler_->SetUpServer(InServerAddress, InServerPort);
 }
 
-void SimpleNetLibCore::ConnectToServer(const VariableDataObject<CONNECTION_DATA_SIZE>& InVariableData, const PCSTR InServerAddress, const u_short InServerPort)
+void SimpleNetLibCore::ConnectToServer(const VariableDataObject<CONNECTION_COMPONENT_DATA_SIZE>& InVariableData, const PCSTR InServerAddress, const u_short InServerPort)
 {
     netHandler_->ConnectToServer(InVariableData, InServerAddress, InServerPort);
 }

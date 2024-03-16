@@ -1,11 +1,12 @@
 ﻿#pragma once
 
-#include "../Entity/Entities/Entity.hpp"
+#include "..\Entity\Entities\Entity.h"
 
 class BulletEntity : public Entity
 {
 public:
 	void Init() override;
+	void InitComponents() override;
 	
 	void Update(float InDeltaTime) override;
 	void FixedUpdate() override;

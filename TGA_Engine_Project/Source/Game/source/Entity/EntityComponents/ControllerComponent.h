@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "EntityComponent.hpp"
+#include "EntityComponent.h"
 #include "Utility/NetVector3.h"
 #include "NetIncludes.h"
 #include "tge/math/Vector2.h"
@@ -39,10 +39,6 @@ public:
   
   void Update(float InDeltaTime) override;
   void FixedUpdate() override;
-  
-  void SetPossessed(const bool InShouldBePossessed) { bIsPossessed_ = InShouldBePossessed; }
-  void SetPossessedBy(const sockaddr_storage& InAddress);
-  bool IsPossessedBy(const sockaddr_storage& InAddress) const { return possessedBy_ == InAddress; }
 
   float GetSpeed() const { return speed_; }
   void SetSpeed(const float InSpeed) { speed_ = InSpeed; }
@@ -84,10 +80,7 @@ private:
   float inputTargetDirection_;
   Tga::Vector2f input_;
   
-  sockaddr_storage possessedBy_ = {};
-  
   float speed_ = 0.8f;
-  bool bIsPossessed_ = false;
 
   uint32_t sequenceNumberIter_ = 1.f;
   

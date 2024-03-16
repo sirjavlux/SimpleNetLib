@@ -12,6 +12,8 @@
 #include "Combat/BulletEntity.h"
 #include "Combat/BulletManager.h"
 #include "Entity/AsteroidManager.h"
+#include "Entity/Collision/CollisionManager.h"
+#include "Entity/Entities/AsteroidEntity.h"
 #include "Locator/Locator.h"
 
 GameWorld::GameWorld()
@@ -34,12 +36,14 @@ void GameWorld::InitClient()
 void GameWorld::Init()  
 {
 	EntityManager::Initialize();
-	Locator::Initialize();
-	
+
 	// Register entities
 	EntityManager::Get()->RegisterEntityTemplate<PlayerShipEntity>(NetTag("player.ship"));
 	EntityManager::Get()->RegisterEntityTemplate<SpriteEntity>(NetTag("sprite"));
 	EntityManager::Get()->RegisterEntityTemplate<BulletEntity>(NetTag("bullet"));
+	EntityManager::Get()->RegisterEntityTemplate<AsteroidEntity>(NetTag("asteroid"));
+	
+	Locator::Initialize();
 }
 
 void GameWorld::Update(const float InTimeDelta)
@@ -54,8 +58,6 @@ void GameWorld::Update(const float InTimeDelta)
 
 void GameWorld::Render()
 {
-	EntityManager::Get()->RenderEntities();
-	
 	RenderManager::Get()->Render();
 	
 	Locator::Get()->GetCollisionManager()->RenderColliderDebugLines();
@@ -88,6 +90,9 @@ void GameWorld::GenerateStars() const
 		Entity* entity = EntityManager::Get()->SpawnEntityLocal(NetTag("sprite"), { randomXValue, randomYValue });
 		RenderComponent* renderComponent = entity->GetFirstComponent<RenderComponent>().lock().get();
 		renderComponent->SetSpriteSizeMultiplier(2.f);
+		
+		entity->SetIsStatic(true);
+		entity->SetIsOnlyVisual(true);
 		
 		// Select Sprite
 		const GenerationData generationData = GetRandomGenerationData(spritePowerMap);

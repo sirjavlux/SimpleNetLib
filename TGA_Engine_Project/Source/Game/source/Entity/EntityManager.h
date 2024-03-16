@@ -1,12 +1,13 @@
 ﻿#pragma once
 
-#include <map>
 #include <random>
 
-#include "Entities/Entity.hpp"
-#include "SimpleNetLib.h"
+#include "Entities\Entity.h"
+#include "EntityComponents\EntityComponent.h"
+#include "Packet/PacketManager.h"
 #include "Utility/HashUtility.hpp"
 #include "../PacketComponents/SetEntityPossessedComponent.hpp"
+#include "../Entity/EntityComponents/ColliderComponent.h"
 
 class PlayerShipEntity;
 class EntityManager
@@ -20,7 +21,6 @@ public:
   static void End();
 
   void UpdateEntities(float InDeltaTime);
-  void RenderEntities();
   
   // Client sided function
   void RequestSpawnEntity(const NetTag& InEntityTypeTag) const;
@@ -42,6 +42,8 @@ public:
   void OnEntityDespawnReceived(const sockaddr_storage& InAddress, const Net::PacketComponent& InComponent);
   void OnKickedFromServerReceived(const sockaddr_storage& InAddress, const Net::PacketComponent& InComponent); // TODO: Needs more player feedback
   void OnReadReplication(const sockaddr_storage& InAddress, const Net::PacketComponent& InComponent);
+  void OnAddEntityComponentReceived(const sockaddr_storage& InAddress, const Net::PacketComponent& InComponent);
+  void OnSetEntityPossessedReceived(const sockaddr_storage& InAddress, const Net::PacketComponent& InComponent);
   
   // Server sided
   void OnEntitySpawnRequestReceived(const sockaddr_storage& InAddress, const Net::PacketComponent& InComponent);
@@ -50,8 +52,9 @@ public:
   void OnInputReceived(const sockaddr_storage& InAddress, const Net::PacketComponent& InComponent);
   void OnControllerPositionUpdateReceived(const sockaddr_storage& InAddress, const Net::PacketComponent& InComponent);
   void OnPositionUpdateReceived(const sockaddr_storage& InAddress, const Net::PacketComponent& InComponent);
-  void OnSetEntityPossessedReceived(const sockaddr_storage& InAddress, const Net::PacketComponent& InComponent);
   void OnReturnAckReceived(const sockaddr_storage& InAddress, const Net::PacketComponent& InComponent);
+  void OnEntitySpawnHasBeenReceived(const sockaddr_storage& InAddress, const Net::PacketComponent& InComponent);
+  void OnEntityComponentAddHasBeenReceived(const sockaddr_storage& InAddress, const Net::PacketComponent& InComponent);
   void OnClientDisconnect(const sockaddr_storage& InAddress, uint8_t InDisconnectType);
 
   bool IsUsernameTaken(const std::string& InUsername) const;
@@ -59,8 +62,13 @@ public:
   template<typename EntityType>
   void RegisterEntityTemplate(NetTag InTag);
 
+  template<typename EntityComponentType>
+  void RegisterEntityComponentTemplate(NetTag InTag);
+
   void SetPossessedEntityByNetTarget(const sockaddr_in& InAddress, uint16_t InIdentifier);
-  const std::unordered_map<sockaddr_in, uint16_t>& GetEntityPossessionMap() const { return entitiesPossessed_; }
+  const std::unordered_map<sockaddr_in, uint16_t>& GetEntityPossessionMap() const { return netTargetEntityMap_; }
+  uint16_t GetEntityPossessedByNetTarget(const sockaddr_in& InAddress);
+  sockaddr_in GetNetTargetPossessingEntity(uint16_t InIdentifier);
   
   // Client sided function
   Entity* GetPossessedEntity() { return possessedEntity_; }
@@ -68,6 +76,11 @@ public:
   Entity* GetEntityById(const uint16_t InIdentifier)
   {
     return entities_.find(InIdentifier) != entities_.end() ? entities_.at(InIdentifier).get() : nullptr;
+  }
+
+  Entity* GetLocalEntityById(const uint16_t InIdentifier)
+  {
+    return entitiesLocal_.find(InIdentifier) != entitiesLocal_.end() ? entitiesLocal_.at(InIdentifier).get() : nullptr;
   }
 
   // Server sided
@@ -80,22 +93,35 @@ public:
   }
 
   std::default_random_engine& GetRandomEngine() {return random_Engine_; }
-  
-private:
+
   // This is a server sided function
   void DestroyEntityServer(uint16_t InIdentifier);
+
+  template<typename EntityComponentType>
+  EntityComponentType* AddComponentToEntityOfType(uint16_t InEntityIdentifier, uint64_t InComponentTypeHash, uint16_t InComponentIdentifier = 0);
+  EntityComponent* AddComponentToEntity(uint16_t InEntityIdentifier, uint64_t InComponentTypeHash, uint16_t InComponentIdentifier = 0);
+  
+private:
+
+  void InitializeEntity(Entity* entity);
+  
+  void RegisterEntityComponents();
   
   Entity* AddEntity(uint64_t InEntityTypeHash, uint16_t InIdentifier, bool InIsLocallySpawned = false);
   bool RemoveEntity(uint16_t InIdentifier, bool InIsLocallySpawned = false);
   
-  void UpdateEntityPossession();
-  
   template<typename EntityType>
   bool IsEntityTypeValid() const;
+
+  template <typename EntityComponentType>
+  bool IsEntityComponentTypeValid() const;
   
   std::shared_ptr<Entity> CreateNewEntityFromTemplate(const uint64_t& InTypeHash);
   
+  std::shared_ptr<EntityComponent> CreateNewEntityComponentFromTemplate(const uint64_t& InTypeHash);
+  
   static uint16_t GenerateEntityIdentifier();
+  static uint16_t GenerateEntityComponentIdentifier();
 
   void RegisterPacketComponents();
   void SubscribeToPacketComponents();
@@ -104,13 +130,15 @@ private:
   
   std::unordered_map<uint16_t, std::shared_ptr<Entity>> entities_;
   std::unordered_map<uint16_t, std::shared_ptr<Entity>> entitiesLocal_;
-
-  std::vector<SetEntityPossessedComponent> entityPossessionBuffer_;
   
   using EntityCreator = std::function<std::shared_ptr<Entity>()>;
   std::unordered_map<uint64_t, EntityCreator> entityFactoryMap_;
 
-  std::unordered_map<sockaddr_in, uint16_t> entitiesPossessed_;
+  using EntityComponentCreator = std::function<std::shared_ptr<EntityComponent>()>;
+  std::unordered_map<uint64_t, EntityComponentCreator> entityComponentFactoryMap_;
+
+  std::unordered_map<uint16_t, sockaddr_in> entityNetTargetMap_;
+  std::unordered_map<sockaddr_in, uint16_t> netTargetEntityMap_;
   Entity* possessedEntity_ = nullptr;
 
   std::chrono::steady_clock::time_point lastUpdateTime_;
@@ -121,12 +149,27 @@ private:
   static EntityManager* instance_;
 };
 
+template <typename EntityComponentType>
+EntityComponentType* EntityManager::AddComponentToEntityOfType(const uint16_t InEntityIdentifier, const uint64_t InComponentTypeHash, const uint16_t InComponentIdentifier)
+{
+  EntityComponentType* result = nullptr;
+  if (!IsEntityComponentTypeValid<EntityComponentType>())
+  {
+    return result;
+  }
+  
+  EntityComponent* entityComponent = AddComponentToEntity(InEntityIdentifier, InComponentTypeHash, InComponentIdentifier); 
+  result = static_cast<EntityComponentType*>(entityComponent);
+  
+  return result;
+}
+
 template <typename EntityType>
 void EntityManager::RegisterEntityTemplate(const NetTag InTag)
 {
-  if (IsEntityTypeValid<EntityType>() && entityFactoryMap_.find(InTag.GetHash()) == entityFactoryMap_.end())
+  const uint64_t hash = InTag.GetHash();
+  if (IsEntityTypeValid<EntityType>() && entityFactoryMap_.find(hash) == entityFactoryMap_.end())
   {
-    uint64_t hash = InTag.GetHash();
     entityFactoryMap_.insert({hash, [hash]()
     {
       std::shared_ptr<Entity> newEntity = std::make_shared<EntityType>();
@@ -141,5 +184,28 @@ template <typename EntityType>
 bool EntityManager::IsEntityTypeValid() const
 {
   const bool isDerived = std::is_base_of_v<Entity, EntityType>;
+  return isDerived;
+}
+
+template <typename EntityComponentType>
+void EntityManager::RegisterEntityComponentTemplate(const NetTag InTag)
+{
+  const uint64_t hash = InTag.GetHash();
+  if (entityComponentFactoryMap_.find(hash) == entityComponentFactoryMap_.end())
+  {
+    entityComponentFactoryMap_.insert({hash, [hash]()
+    {
+      std::shared_ptr<EntityComponent> newEntityComponent = std::make_shared<EntityComponentType>();
+      newEntityComponent->typeTagHash_ = hash;
+      return newEntityComponent;
+    }
+    });
+  }
+}
+
+template <typename EntityComponentType>
+bool EntityManager::IsEntityComponentTypeValid() const
+{
+  const bool isDerived = std::is_base_of_v<EntityComponent, EntityComponentType>;
   return isDerived;
 }

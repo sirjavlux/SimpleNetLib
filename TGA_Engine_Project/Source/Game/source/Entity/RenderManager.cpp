@@ -2,6 +2,8 @@
 
 #include "RenderManager.h"
 
+#include "EntityManager.h"
+#include "Packet/PacketManager.h"
 #include "tge/drawers/SpriteDrawer.h"
 #include "tge/graphics/GraphicsEngine.h"
 

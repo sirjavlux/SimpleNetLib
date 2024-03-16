@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "EntityComponent.hpp"
+#include "EntityComponent.h"
 #include "Utility/NetTag.h"
 
 struct RenderData
@@ -54,7 +54,7 @@ public:
   Tga::Sprite2DInstanceData& GetSpriteInstanceData() { return spriteInstance_; }
   Tga::SpriteSharedData& GetSpriteSharedData() { return sharedData_; }
 
-  void SetSpriteTexture(const char*  InTexturePath);
+  void SetSpriteTexture(const char* InTexturePath);
 
   const NetTag& GetTextureId() const { return textureIdentifier_; }
 
@@ -62,16 +62,22 @@ public:
 
   void SetRenderSortingPriority(const uint8_t InSortingPriority) { sortingPriority_ = InSortingPriority; }
 
-  void SetSpriteSize(const Tga::Vector2f InSpriteSize) { spriteSize_ = InSpriteSize; }
+  void SetSpriteSize(const Tga::Vector2i& InSpriteSize) { spriteSize_ = InSpriteSize; }
   void SetSpriteSizeMultiplier(const Tga::Vector2f InSpriteSizeMultiplier) { spriteSizeMultiplier_ = InSpriteSizeMultiplier; }
 
   void SetColor(const Tga::Color& InColor);
+
+  const std::string& GetTexturePath() const { return texturePath_; }
+
+  void OnSendReplication(DataReplicationPacketComponent& OutComponent) override;
+  void OnReadReplication(const DataReplicationPacketComponent& InComponent) override;
   
 private:
+  std::string texturePath_;
   Tga::Sprite2DInstanceData spriteInstance_ = {};
   Tga::SpriteSharedData sharedData_ = {};
   uint8_t sortingPriority_ = 0;
   NetTag textureIdentifier_;
-  Tga::Vector2f spriteSize_ = { 16.f, 16.f };
+  Tga::Vector2i spriteSize_ = { 16, 16 };
   Tga::Vector2f spriteSizeMultiplier_ = { 1.f, 1.f };
 };

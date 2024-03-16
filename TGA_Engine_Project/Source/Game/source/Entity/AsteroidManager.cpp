@@ -1,22 +1,52 @@
 ﻿#include "AsteroidManager.h"
 
 #include "EntityManager.h"
+#include "RenderManager.h"
 #include "../Definitions.hpp"
+#include "Collision/CircleCollider.hpp"
+#include "Entities/AsteroidEntity.h"
+#include "EntityComponents/ColliderComponent.h"
 
 void AsteroidManager::Initialize()
 {
 	asteroidGenerationData_.push_back(GenerationData{ 1.f, "Sprites/GameBG/Star0.png", 0.04 });
+
+	if (Net::PacketManager::Get()->IsServer())
+	{
+		constexpr int asteroidsToSpawn = 100; // TODO: Needs to optimize in order to
+		for (int i = 0; i < asteroidsToSpawn; ++i)
+		{
+			SpawnRandomAsteroidInMap();
+		}
+	}
+}
+
+Entity* AsteroidManager::SpawnAsteroidAtPosition(const Tga::Vector2f& InPosition)
+{
+	if (!Net::PacketManager::Get()->IsServer())
+	{
+		return nullptr;
+	}
 	
+	const GenerationData generationData = GetRandomGenerationData(asteroidGenerationData_);
+	const NetTag asteroidEntityTag = NetTag("asteroid");
+
+	// TODO: Calculate a travel direction
+	
+	AsteroidEntity* entitySpawned = dynamic_cast<AsteroidEntity*>(EntityManager::Get()->SpawnEntityServer(asteroidEntityTag, InPosition));
+	entitySpawned->SetGenerationData(generationData);
+	
+	return entitySpawned;
 }
 
 void AsteroidManager::SpawnRandomAsteroidInMap()
 {
-	GenerationData generationData = GetRandomGenerationData(asteroidGenerationData_);
+	SpawnAsteroidAtPosition(GetRandomPositionInMap());
 }
 
 void AsteroidManager::SpawnRandomAsteroidFromMapBorder()
 {
-	
+	SpawnAsteroidAtPosition(GetRandomPositionFromMapBorder());
 }
 
 Tga::Vector2f AsteroidManager::GetRandomPositionInMap()

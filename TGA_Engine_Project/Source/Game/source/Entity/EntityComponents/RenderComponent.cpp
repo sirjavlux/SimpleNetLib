@@ -7,7 +7,7 @@
 
 #include "../EntityManager.h"
 #include "../RenderManager.h"
-#include "../Entities/Entity.hpp"
+#include "..\Entities\Entity.h"
 
 #include "Packet/PacketManager.h"
 
@@ -31,7 +31,6 @@ void RenderComponent::Init()
     // Default sprite
     if (sharedData_.myTexture == nullptr)
     {
-      SetSpriteTexture("Sprites/mygga.png");
       spriteSize_ = { 64, 64 };
     }
     
@@ -47,7 +46,7 @@ void RenderComponent::Init()
 
 void RenderComponent::Update(float InDeltaTime)
 {
-  if (Net::PacketManager::Get()->IsServer())
+  if (Net::PacketManager::Get()->IsServer() || texturePath_.empty())
   {
     return;
   }
@@ -65,7 +64,7 @@ void RenderComponent::Update(float InDeltaTime)
   }
   
   spriteInstance_.myPosition = (owner_->GetPosition() - possessedEntityPos) * resolution.y + resolution / 2.f;
-  spriteInstance_.mySize = spriteSize_ * spriteSizeMultiplier_;
+  spriteInstance_.mySize = Tga::Vector2f{ static_cast<float>(spriteSize_.x), static_cast<float>(spriteSize_.y) } * spriteSizeMultiplier_;
   spriteInstance_.myRotation = std::atan2(owner_->GetDirection().y, owner_->GetDirection().x);
     
   // Cull sprite if outside window bounds
@@ -82,11 +81,16 @@ void RenderComponent::Update(float InDeltaTime)
 
 void RenderComponent::SetSpriteTexture(const char* InTexturePath)
 {
-  const auto& engine = *Tga::Engine::GetInstance();
-  const std::wstring wideStr = StringUtility::StringToWideString(InTexturePath);
-  sharedData_.myTexture = engine.GetTextureManager().GetTexture(wideStr.c_str());
+  texturePath_ = InTexturePath;
 
-  spriteSize_ = sharedData_.myTexture->CalculateTextureSize();
+  if (!Net::PacketManager::Get()->IsServer())
+  {
+    const auto& engine = *Tga::Engine::GetInstance();
+    const std::wstring wideStr = StringUtility::StringToWideString(InTexturePath);
+    sharedData_.myTexture = engine.GetTextureManager().GetTexture(wideStr.c_str());
+
+    spriteSize_ = sharedData_.myTexture->CalculateTextureSize();
+  }
   
   textureIdentifier_ = NetTag(InTexturePath);
 }
@@ -99,4 +103,30 @@ RenderData RenderComponent::GetRenderData() const
 void RenderComponent::SetColor(const Tga::Color& InColor)
 {
   spriteInstance_.myColor = InColor;
+}
+
+void RenderComponent::OnSendReplication(DataReplicationPacketComponent& OutComponent)
+{
+  OutComponent.variableDataObject.SerializeStringMemberVariable(*this, texturePath_);
+  
+  // Needs to be serialized in same order as deserialized
+  OutComponent.variableDataObject.SerializeMemberVariable(*this, spriteSize_);
+  OutComponent.variableDataObject.SerializeMemberVariable(*this, spriteSizeMultiplier_);
+  OutComponent.variableDataObject.SerializeMemberVariable(*this, sortingPriority_);
+}
+
+void RenderComponent::OnReadReplication(const DataReplicationPacketComponent& InComponent)
+{
+  // Update texture if new
+  const std::string oldTexturePath = texturePath_;
+  InComponent.variableDataObject.DeSerializeStringMemberVariable(*this, texturePath_);
+  if (texturePath_ != oldTexturePath)
+  {
+    SetSpriteTexture(texturePath_.c_str());
+  }
+
+  // Needs to be serialized in same order as deserialized
+  InComponent.variableDataObject.DeSerializeMemberVariable(*this, spriteSize_);
+  InComponent.variableDataObject.DeSerializeMemberVariable(*this, spriteSizeMultiplier_);
+  InComponent.variableDataObject.DeSerializeMemberVariable(*this, sortingPriority_);
 }

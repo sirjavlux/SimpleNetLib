@@ -4,25 +4,35 @@
 #include "../Definitions.hpp"
 #include "../Entity/EntityManager.h"
 #include "../Entity/Collision/CircleCollider.hpp"
+#include "../Entity/EntityComponents/ColliderComponent.h"
+#include "../Entity/EntityComponents/CombatComponent.h"
+#include "../Locator/Locator.h"
 
 void BulletEntity::Init()
 {
-	if (!Net::PacketManager::Get()->IsServer())
-	{
-		RenderComponent* renderComponent = AddComponent<RenderComponent>().lock().get();
-		renderComponent->SetSpriteTexture("Sprites/SpaceShip/Bullet.png");
-		renderComponent->SetSpriteSizeMultiplier({ 3.f, 2.f });
-		renderComponent->SetRenderSortingPriority(10);
-	}
+	
+}
+
+void BulletEntity::InitComponents()
+{
+	RenderComponent* renderComponent = EntityManager::Get()->AddComponentToEntityOfType<RenderComponent>(id_, NetTag("RenderComponent").GetHash());
+	renderComponent->SetSpriteTexture("Sprites/SpaceShip/Bullet.png");
+	renderComponent->SetSpriteSizeMultiplier({ 3.f, 2.f });
+	renderComponent->SetRenderSortingPriority(10);
 	
 	SetShouldReplicatePosition(true);
 
-	ColliderComponent* colliderComponent = AddComponent<ColliderComponent>().lock().get();
+	ColliderComponent* colliderComponent = EntityManager::Get()->AddComponentToEntityOfType<ColliderComponent>(id_, NetTag("ColliderComponent").GetHash());
 	std::shared_ptr<CircleCollider> circleCollider = std::make_shared<CircleCollider>();
 	circleCollider->radius = 0.02f;
 	colliderComponent->SetCollider(circleCollider);
 	colliderComponent->SetCollisionFilter(ECollisionFilter::Player);
 	colliderComponent->SetColliderCollisionType(ECollisionFilter::Projectile);
+
+	CombatComponent* combatComponent = EntityManager::Get()->AddComponentToEntityOfType<CombatComponent>(id_, NetTag("CombatComponent").GetHash());
+	combatComponent->SetMaxHealth(1.f);
+	combatComponent->HealToFullHealth();
+	combatComponent->SetCollisionDamage(12.f);
 }
 
 void BulletEntity::Update(float InDeltaTime)

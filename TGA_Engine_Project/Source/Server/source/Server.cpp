@@ -5,6 +5,7 @@
 #include "SimpleNetLib.h"
 
 #include "json.hpp"
+#include "source/Entity/RenderManager.h"
 
 using json = nlohmann::json;
 
@@ -27,6 +28,8 @@ void Server::Init()
     const u_short port = static_cast<u_short>(data["Port"].get<int>());
     
     Net::SimpleNetLibCore::Initialize();
+
+    RenderManager::Initialize();
     
     Net::SimpleNetLibCore::Get()->SetUpServer(serverAddress.c_str(), port);
 }

@@ -4,6 +4,10 @@
 #include "RenderCamera.h"
 #include "EntityComponents/RenderComponent.h"
 
+namespace Net
+{
+class PacketComponent;
+}
 class RenderManager
 {
 public:
@@ -16,13 +20,9 @@ public:
 
 	void Render();
 	void AddRenderCall(RenderComponent& InRenderComponent);
-
-	RenderCamera& GetCamera() { return camera_; }
 	
 private:
 	std::map<RenderData, std::vector<Tga::Sprite2DInstanceData>> renderCallsThisFrame_;
-
-	RenderCamera camera_;
 	
 	static RenderManager* instance_;
 };

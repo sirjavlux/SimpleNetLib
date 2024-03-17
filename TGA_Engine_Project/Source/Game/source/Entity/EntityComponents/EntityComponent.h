@@ -11,6 +11,8 @@ class Entity;
 class EntityComponent
 {
 public:
+  EntityComponent();
+  
   void SetOwner(Entity& InOwner) { owner_ = &InOwner; }
   const Entity* GetOwner() const { return owner_; }
   Entity* GetOwner() { return owner_; }

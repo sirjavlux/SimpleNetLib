@@ -1,8 +1,8 @@
 ﻿#pragma once
 
-#include <ws2def.h>
 #include <cstddef>
 #include <functional>
+#include <ws2def.h>
 #include "Utility/NetUtility.hpp"
 
 namespace std

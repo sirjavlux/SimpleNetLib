@@ -10,9 +10,12 @@ class AsteroidEntity : public Entity
 public:
 	void Init() override;
 	void InitComponents() override;
+
+	void OnSpawnHasBeenReceived() override;
 	
 	void Update(float InDeltaTime) override;
-
+	void FixedUpdate() override;
+	
 	void OnTriggerEntered(const ColliderComponent& InCollider);
 	void OnEntityDeath(uint16_t InEnemy);
 	
@@ -20,4 +23,6 @@ public:
 	
 private:
 	GenerationData generationData_;
+
+	float travelSpeed = 0.f;
 };

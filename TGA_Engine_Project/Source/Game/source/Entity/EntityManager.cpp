@@ -593,6 +593,7 @@ void EntityManager::OnEntitySpawnHasBeenReceived(const sockaddr_storage& InAddre
       // New spawned entity
       entity->bHasBeenReceived_ = true;
       entity->InitComponents();
+      entity->OnSpawnHasBeenReceived();
     }
     
     if (entity->typeTagHash_ == NetTag("player.ship").GetHash())

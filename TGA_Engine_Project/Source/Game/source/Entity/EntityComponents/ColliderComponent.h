@@ -38,7 +38,7 @@ class ColliderComponent : public EntityComponent
 {
 public:
 	void Init() override; // TODO: Add collider to collision manager somehow
-  
+	
 	void FixedUpdate() override;
 
 	void Remove() { bIsMarkedForRemoval_ = true; }
@@ -70,13 +70,15 @@ public:
 
 	void OnSendReplication(DataReplicationPacketComponent& OutComponent) override;
 	void OnReadReplication(const DataReplicationPacketComponent& InComponent) override;
+
+	bool ShouldUpdateCollisionGrid() const { return bShouldUpdateCollisionGrid_; }
 	
 	DynamicMulticastDelegate<const ColliderComponent&> triggerEnterDelegate;
 	DynamicMulticastDelegate<const ColliderComponent&> triggerExitDelegate;
 	DynamicMulticastDelegate<const ColliderComponent&> collisionDelegate;
 	
 private:
-	
+	bool bShouldUpdateCollisionGrid_ = false;
 	Tga::Vector2f positionLastFrame_;
 	
 	bool bIsMarkedForRemoval_ = false;
@@ -90,4 +92,6 @@ private:
 
 	ECollisionFilter colliderType_ = ECollisionFilter::None;
 	ECollisionFilter collisionFilter_ = ECollisionFilter::None;
+
+	friend class CollisionGrid;
 };

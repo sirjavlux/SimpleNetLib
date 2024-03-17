@@ -9,6 +9,8 @@ class EntityComponent;
 class Entity
 {
 public:
+	Entity();
+	
 	void NativeOnDestruction();
 
 	void UpdateComponents(float InDeltaTime);
@@ -51,12 +53,19 @@ public:
 	
 	void SetIsOnlyVisual(const bool InShouldOnlyBeVisual) { bIsOnlyVisual_ = InShouldOnlyBeVisual; }
 	bool IsOnlyVisual() const { return bIsOnlyVisual_; }
+
+	void SetShouldUseCustomReplicationData(const bool ShouldUse) { bShouldUseCustomReplicationData_ = ShouldUse; }
+	void SetShouldUseCustomMovementReplicationData(const bool ShouldUse) { bShouldUseCustomMovementReplicationData_ = ShouldUse; }
+	PacketComponentAssociatedData& GetCustomAssociatedDataReplication() { return customAssociatedDataReplication_; }
+	PacketComponentAssociatedData& GetCustomAssociatedDataMovementReplication() { return customAssociatedDataMovementReplication_; }
 	
 protected:
 	virtual void OnDestruction() {}
 	
 	virtual void Init() = 0;
 	virtual void InitComponents() = 0;
+
+	virtual void OnSpawnHasBeenReceived() {}
 	
 	virtual void UpdateSmoothMovement(const float InDeltaTime)
 	{
@@ -75,6 +84,11 @@ protected:
 	
 	void UpdateReplication();
 
+	bool bShouldUseCustomReplicationData_ = true;
+	bool bShouldUseCustomMovementReplicationData_ = true;
+	PacketComponentAssociatedData customAssociatedDataReplication_;
+	PacketComponentAssociatedData customAssociatedDataMovementReplication_;
+	
 	DataReplicationPacketComponent replicationPacketComponent_;
 	
 	uint16_t componentIdIter_ = 0;

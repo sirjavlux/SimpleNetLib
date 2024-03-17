@@ -44,13 +44,28 @@ void ColliderComponent::FixedUpdate()
 	}
 	
 	collidersCollidedWithLastUpdate_.clear();
-	positionLastFrame_ = owner_->GetPosition();
+
+	const Tga::Vector2f newWorldPosition = owner_->GetPosition();
+	if (!(positionLastFrame_ == newWorldPosition))
+	{
+		Tga::Vector2i newGridPos;
+		Tga::Vector2i oldGridPos;
+		CollisionGrid::GetGridPositionFromWorldPosition(newWorldPosition, newGridPos);
+		CollisionGrid::GetGridPositionFromWorldPosition(positionLastFrame_, oldGridPos);
+		if (!(newGridPos == oldGridPos))
+		{
+			bShouldUpdateCollisionGrid_ = true;
+		}
+	}
+	
+	positionLastFrame_ = newWorldPosition;
 }
 
 void ColliderComponent::SetCollider(const std::shared_ptr<Collider>& InCollider)
 {
 	collider_ = InCollider;
 	collider_->owner = owner_;
+	bShouldUpdateCollisionGrid_ = true;
 }
 
 void ColliderComponent::OnTriggerEnter(const ColliderComponent& InColliderComponent)

@@ -41,9 +41,31 @@ void AsteroidEntity::InitComponents()
   combatComponent->entityDeathDelegate.AddDynamic<AsteroidEntity>(this, &AsteroidEntity::OnEntityDeath);
 }
 
-void AsteroidEntity::Update(float InDeltaTime)
+void AsteroidEntity::OnSpawnHasBeenReceived()
+{
+  // Generate random travel direction
+  std::default_random_engine& randEngine = EntityManager::Get()->GetRandomEngine();
+  std::uniform_real_distribution distribution(-1.0f, 1.0f);
+  
+  direction_.x = distribution(randEngine);
+  direction_.y = distribution(randEngine);
+  direction_.Normalize();
+
+  // Generate Travel Speed
+  std::uniform_real_distribution distributionSpeed(0.001f, 0.04f);
+  travelSpeed = distributionSpeed(randEngine);
+}
+
+void AsteroidEntity::Update(const float InDeltaTime)
 {
   
+}
+void AsteroidEntity::FixedUpdate()
+{
+  if (Net::PacketManager::Get()->IsServer())
+  {
+    targetPosition_ += direction_ * travelSpeed * FIXED_UPDATE_DELTA_TIME;
+  }
 }
 
 void AsteroidEntity::OnTriggerEntered(const ColliderComponent& InCollider)

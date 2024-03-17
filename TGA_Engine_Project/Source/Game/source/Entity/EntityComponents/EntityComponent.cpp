@@ -2,6 +2,11 @@
 
 #include "../Entities/Entity.h"
 
+EntityComponent::EntityComponent()
+{
+	
+}
+
 void EntityComponent::UpdateReplication()
 {
 	// Wait with replication until has been received
@@ -9,7 +14,7 @@ void EntityComponent::UpdateReplication()
 	{
 		return;
 	}
-
+	
 	UpdateReplicationPacketComponent();
 	
 	if (oldReplicationPacketComponent_.variableDataObject != replicationPacketComponent_.variableDataObject)

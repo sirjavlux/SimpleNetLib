@@ -12,12 +12,12 @@ void AsteroidManager::Initialize()
 	asteroidGenerationData_.push_back(GenerationData{ 2.f, "Sprites/Asteroid/Asteroid0.png", 0.03f });
 	asteroidGenerationData_.push_back(GenerationData{ 14.f, "Sprites/Asteroid/Asteroid1.png", 0.02f });
 	asteroidGenerationData_.push_back(GenerationData{ 20.f, "Sprites/Asteroid/Asteroid2.png", 0.012f });
-	asteroidGenerationData_.push_back(GenerationData{ 3.f, "Sprites/Asteroid/Asteroid3.png", 0.025f });
+	asteroidGenerationData_.push_back(GenerationData{ 5.f, "Sprites/Asteroid/Asteroid3.png", 0.025f });
 	
 
 	if (Net::PacketManager::Get()->IsServer())
 	{
-		constexpr int asteroidsToSpawn = 200; // TODO: Needs to optimize in order to
+		constexpr int asteroidsToSpawn = 1000;
 		for (int i = 0; i < asteroidsToSpawn; ++i)
 		{
 			SpawnRandomAsteroidInMap();

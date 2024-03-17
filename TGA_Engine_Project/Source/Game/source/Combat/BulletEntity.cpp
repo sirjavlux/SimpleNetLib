@@ -10,7 +10,15 @@
 
 void BulletEntity::Init()
 {
+	bShouldUseCustomReplicationData_ = false;
+
+	std::vector<std::pair<float, float>> packetLodFrequencies;
+	packetLodFrequencies.emplace_back(1.0f, FIXED_UPDATE_DELTA_TIME);
+	packetLodFrequencies.emplace_back(1.5f, 0.3f);
 	
+	customAssociatedDataMovementReplication_.packetFrequencySeconds = FIXED_UPDATE_DELTA_TIME;
+	customAssociatedDataMovementReplication_.packetLodFrequencies = packetLodFrequencies;
+	customAssociatedDataMovementReplication_.distanceToCullPacketComponentAt = 2.f;
 }
 
 void BulletEntity::InitComponents()

@@ -54,6 +54,11 @@ void PacketManager::End()
     }
 }
 
+uint8_t PacketManager::GetRelativeTick() const
+{
+    return static_cast<uint8_t>(updateIterator_ % static_cast<int>(FIXED_UPDATES_PER_SECOND));
+}
+
 void PacketManager::Update()
 {
     if (!SimpleNetLibCore::Get()->GetNetHandler()->IsRunning())

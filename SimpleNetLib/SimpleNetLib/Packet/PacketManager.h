@@ -34,14 +34,14 @@ public:
     bool SendPacketComponentToParent(const ComponentType& InPacketComponent);
     
     template<typename ComponentType>
-    bool SendPacketComponent(const ComponentType& InPacketComponent, const sockaddr_storage& InTarget);
+    bool SendPacketComponent(const ComponentType& InPacketComponent, const sockaddr_storage& InTarget, const PacketComponentAssociatedData* InCustomAssociatedData = nullptr);
 
     // Keep in mind, this can be a bit expensive due to no lod or culling
     template<typename ComponentType>
     bool SendPacketComponentMulticast(const ComponentType& InPacketComponent);
     
     template<typename ComponentType>
-    bool SendPacketComponentMulticastWithLod(const ComponentType& InPacketComponent, const NetUtility::NetVector3& InPosition);
+    bool SendPacketComponentMulticastWithLod(const ComponentType& InPacketComponent, const NetUtility::NetVector3& InPosition, const PacketComponentAssociatedData* InCustomAssociatedData = nullptr);
 
     ENetworkHandleType GetManagerType() const { return managerType_; }
     
@@ -50,6 +50,10 @@ public:
     float GetDeltaTime() const { return lastDeltaTime_; }
 
     bool IsServer() const { return managerType_ == ENetworkHandleType::Server; }
+
+    uint8_t GetRelativeTick() const;
+
+    int GetUpdateIterator() const { return updateIterator_; }
     
 private:
     void Update();
@@ -103,7 +107,7 @@ bool PacketManager::SendPacketComponentToParent(const ComponentType& InPacketCom
 }
 
 template <typename ComponentType>
-bool PacketManager::SendPacketComponent(const ComponentType& InPacketComponent, const sockaddr_storage& InTarget)
+bool PacketManager::SendPacketComponent(const ComponentType& InPacketComponent, const sockaddr_storage& InTarget, const PacketComponentAssociatedData* InCustomAssociatedData)
 {
     lastTimePacketSent_ = std::chrono::steady_clock::now(); // Reset server ping timer
     
@@ -115,7 +119,7 @@ bool PacketManager::SendPacketComponent(const ComponentType& InPacketComponent, 
     
     PacketTargetData& packetTargetData = packetTargetDataMap_.at(InTarget);
 
-    packetTargetData.AddPacketComponentToSend(std::make_shared<ComponentType>(InPacketComponent));
+    packetTargetData.AddPacketComponentToSend(std::make_shared<ComponentType>(InPacketComponent), InCustomAssociatedData);
     
     return true;
 }
@@ -137,7 +141,7 @@ bool PacketManager::SendPacketComponentMulticast(const ComponentType& InPacketCo
 }
 
 template <typename ComponentType>
-bool PacketManager::SendPacketComponentMulticastWithLod(const ComponentType& InPacketComponent, const NetUtility::NetVector3& InPosition)
+bool PacketManager::SendPacketComponentMulticastWithLod(const ComponentType& InPacketComponent, const NetUtility::NetVector3& InPosition, const PacketComponentAssociatedData* InCustomAssociatedData)
 {
     // Can't multicast upstream from client to server
     if (SimpleNetLibCore::Get()->GetNetHandler()->IsServer())
@@ -164,7 +168,7 @@ bool PacketManager::SendPacketComponentMulticastWithLod(const ComponentType& InP
             PacketTargetData& packetTargetData = packetTargetDataMap_.at(storageAddress);
             
             // Send packet with the correct lod frequency
-            packetTargetData.AddPacketComponentToSendWithLod(std::make_shared<ComponentType>(InPacketComponent), distanceSqr);
+            packetTargetData.AddPacketComponentToSendWithLod(std::make_shared<ComponentType>(InPacketComponent), distanceSqr, InCustomAssociatedData);
         }
         return true;
     }

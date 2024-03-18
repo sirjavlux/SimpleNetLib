@@ -10,7 +10,7 @@
 struct CircleCollider;
 class ColliderComponent;
 
-#define COLLISION_GRID_SIZE 1.2
+#define COLLISION_GRID_SIZE 0.4
 
 namespace std
 {
@@ -91,6 +91,8 @@ public:
 	void UpdateCollisionGrid();
 	
 	void UpdateComponentGridCells(const ColliderComponent* InColliderComponentPtr, ColliderComponentGridData& InComponent);
+
+	// Indexes needs to be ordered from lowest - highest
 	void RemoveComponentsByIndexes(const std::unordered_map<Tga::Vector2i, std::vector<int>>& InComponentIndexes);
 	
 	const std::unordered_map<Tga::Vector2i, std::vector<std::weak_ptr<ColliderComponent>>>& GetColliderGridMap() const { return collisionGridMap_; }

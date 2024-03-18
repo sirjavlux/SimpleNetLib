@@ -110,9 +110,8 @@ void ControllerComponent::TeleportToPosition(const Tga::Vector2f& InPosition)
   // Send new packet
   UpdateEntityPositionComponent updateEntityPositionComponent;
   updateEntityPositionComponent.entityIdentifier = owner_->GetId();
-  updateEntityPositionComponent.bIsTeleport = true;
-  updateEntityPositionComponent.xPos = InPosition.x;
-  updateEntityPositionComponent.yPos = InPosition.y;
+  updateEntityPositionComponent.positionUpdateData.bIsTeleport = true;
+  updateEntityPositionComponent.positionUpdateData.SetPosition(InPosition);
   
   updateEntityPositionComponent.SetOverrideDefiningData(updateEntityPositionComponent.entityIdentifier);
 

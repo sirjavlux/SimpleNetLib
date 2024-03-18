@@ -74,27 +74,16 @@ void CollisionGrid::RemoveComponentsByIndexes(const std::unordered_map<Tga::Vect
 {
 	for (const auto& indexes : InComponentIndexes)
 	{
-		std::vector<int> sortedIndexes = indexes.second;
-		std::sort(sortedIndexes.begin(), sortedIndexes.end(), std::greater<int>());
+		const auto& cell = indexes.first;
+		auto& colliderComponents = collisionGridMap_[cell];
 
-		std::vector<std::weak_ptr<ColliderComponent>>& colliderComponents = collisionGridMap_[indexes.first];
-		for (const int& index : sortedIndexes)
+		int amountRemoved = 0;
+		for (const int index : indexes.second)
 		{
-			auto iterator = std::find_if(colliderComponents_.begin(), colliderComponents_.end(), [&](const ColliderComponentGridData& InColliderData) {
-				return InColliderData.component.lock().get() == colliderComponents[index].lock().get();
-			});
+			std::swap(colliderComponents[index - amountRemoved], colliderComponents.back());
+			colliderComponents.pop_back();
 
-			if (iterator != colliderComponents_.end())
-			{
-				colliderComponents_.erase(iterator);
-				colliderComponents.erase(colliderComponents.begin() + index);
-
-				// Erase cell if empty
-				if (colliderComponents.empty())
-				{
-					collisionGridMap_.erase(indexes.first);
-				}
-			}
+			++amountRemoved;
 		}
 	}
 }

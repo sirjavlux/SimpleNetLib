@@ -10,6 +10,7 @@ public:
 	UpdateEntityControllerPositionComponent();
 
 	uint16_t entityIdentifier = 0;
+	
 	PositionUpdateEntry positionUpdateEntry;
 };
 

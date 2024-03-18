@@ -1,8 +1,10 @@
 ﻿#pragma once
 
 #include "PacketComponentTypes.hpp"
+#include "PositionUpdateData.hpp"
 #include "Packet/PacketComponent.h"
 
+// TODO: Optimize this
 class SpawnBulletComponent : public Net::PacketComponent
 {
 public:
@@ -11,11 +13,7 @@ public:
 	uint16_t entityId;
 	uint16_t shooterEntityId;
 		
-	float xPos = 0.f;
-	float yPos = 0.f;
-	
-	float xDir = 0.f;
-    float yDir = 0.f;
+	PositionUpdateData positionUpdateData;
 };
 
 inline SpawnBulletComponent::SpawnBulletComponent()

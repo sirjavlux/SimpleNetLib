@@ -533,14 +533,14 @@ void EntityManager::OnPositionUpdateReceived(const sockaddr_storage& InAddress, 
   if (entities_.find(component->entityIdentifier) != entities_.end())
   {
     Entity* entity = entities_.at(component->entityIdentifier).get();
-    if (component->bIsTeleport)
+    if (component->positionUpdateData.bIsTeleport)
     {
-      entity->SetPosition({ component->xPos, component->yPos }, component->bIsTeleport);
+      entity->SetPosition(component->positionUpdateData.GetPosition(), component->positionUpdateData.bIsTeleport);
     } else
     {
-      entity->SetTargetPosition({ component->xPos, component->yPos });
+      entity->SetTargetPosition(component->positionUpdateData.GetPosition());
     }
-    entity->SetDirection({ std::cos(component->rotation), std::sin(component->rotation) });
+    entity->SetDirection(component->positionUpdateData.GetDirection());
   }
 }
 

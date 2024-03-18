@@ -119,10 +119,9 @@ void Entity::UpdateReplication()
 				&& Net::PacketManager::Get()->GetUpdateIterator() % Net::PacketTargetData::GetLodedFrequency(packetComponentSettings, distanceSqr) == 0)
 			{
 				UpdateEntityPositionComponent positionComponent;
-				positionComponent.bIsTeleport = false;
-				positionComponent.xPos = targetPosition_.x;
-				positionComponent.yPos = targetPosition_.y;
-				positionComponent.rotation = std::atan2(direction_.y, direction_.x);
+				positionComponent.positionUpdateData.bIsTeleport = false;
+				positionComponent.positionUpdateData.SetPosition(targetPosition_);
+				positionComponent.positionUpdateData.SetDirection(direction_);
 				positionComponent.entityIdentifier = GetId();
 				positionComponent.SetOverrideDefiningData(GetId());
 

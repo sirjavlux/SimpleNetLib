@@ -103,7 +103,7 @@ protected:
 	std::shared_ptr<EntityComponent> renderComponent_;
 
 	Tga::Vector2f targetPosition_ = {};
-	float targetPositionLerpSpeed_ = 8.f;
+	float targetPositionLerpSpeed_ = 5.f;
 
 	bool bShouldReplicatePosition_ = false;
 

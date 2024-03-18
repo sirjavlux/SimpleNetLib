@@ -11,6 +11,7 @@ Entity::Entity()
 	packetLodFrequencies.emplace_back(1.0f, 0.08f);
 	packetLodFrequencies.emplace_back(1.2f, 0.2f);
 	packetLodFrequencies.emplace_back(1.8f, 1.f);
+	packetLodFrequencies.emplace_back(3.0f, 3.f);
 	
 	customAssociatedDataMovementReplication_.packetFrequencySeconds = 0.08f;
 	customAssociatedDataMovementReplication_.packetLodFrequencies = packetLodFrequencies;

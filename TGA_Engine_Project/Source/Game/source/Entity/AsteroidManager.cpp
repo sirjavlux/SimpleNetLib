@@ -35,10 +35,12 @@ Entity* AsteroidManager::SpawnAsteroidAtPosition(const Tga::Vector2f& InPosition
 	const GenerationData generationData = GetRandomGenerationData(asteroidGenerationData_);
 	const NetTag asteroidEntityTag = NetTag("asteroid");
 
-	// TODO: Calculate a travel direction
-	
+	// Spawn
 	AsteroidEntity* entitySpawned = dynamic_cast<AsteroidEntity*>(EntityManager::Get()->SpawnEntityServer(asteroidEntityTag, InPosition));
-	entitySpawned->SetGenerationData(generationData);
+	if (entitySpawned)
+	{
+		entitySpawned->SetGenerationData(generationData);
+	}
 	
 	return entitySpawned;
 }
@@ -50,15 +52,37 @@ void AsteroidManager::SpawnRandomAsteroidInMap()
 
 void AsteroidManager::SpawnRandomAsteroidFromMapBorder()
 {
-	SpawnAsteroidAtPosition(GetRandomPositionFromMapBorder());
+	const Tga::Vector2f position = GetRandomPositionFromMapBorder();
+	Entity* entity = SpawnAsteroidAtPosition(position);
+	if (!entity)
+	{
+		return;
+	}
+	
+	// Generate random travel direction
+	std::default_random_engine& randEngine = EntityManager::Get()->GetRandomEngine();
+	std::uniform_real_distribution distributionX(-1.0f, 1.0f);
+	std::uniform_real_distribution distributionY(-1.0f, 1.0f);
+
+	Tga::Vector2f direction;
+	direction.x = distributionX(randEngine);
+	direction.y = distributionY(randEngine);
+
+	Tga::Vector2f directionToMapCenter = Tga::Vector2f{ 0.f, 0.f } - position;
+	directionToMapCenter.Normalize();
+
+	direction += directionToMapCenter;
+	direction.Normalize();
+
+	entity->SetDirection(direction);
 }
 
 Tga::Vector2f AsteroidManager::GetRandomPositionInMap()
 {
 	std::default_random_engine& randomEngine = EntityManager::Get()->GetRandomEngine();
   
-	std::uniform_real_distribution distributionX(-WORLD_BG_GENERATION_SIZE_X / 2.1f, WORLD_BG_GENERATION_SIZE_X / 2.1f);
-	std::uniform_real_distribution distributionY(-WORLD_BG_GENERATION_SIZE_Y / 2.1f, WORLD_BG_GENERATION_SIZE_Y / 2.1f);
+	std::uniform_real_distribution distributionX(-WORLD_BG_GENERATION_SIZE_X / 2.f, WORLD_BG_GENERATION_SIZE_X / 2.f);
+	std::uniform_real_distribution distributionY(-WORLD_BG_GENERATION_SIZE_Y / 2.f, WORLD_BG_GENERATION_SIZE_Y / 2.f);
 
 	const Tga::Vector2f newPosition = { distributionX(randomEngine), distributionY(randomEngine) };
 

@@ -14,7 +14,7 @@ public:
 	float xPos = 0.f;
 	float yPos = 0.f;
 
-	float rotation = 0.f;
+	float direction = 0.f;
 };
 
 inline SpawnEntityComponent::SpawnEntityComponent()

@@ -196,18 +196,23 @@ Entity* EntityManager::SpawnEntityServer(const NetTag& InEntityTypeTag, const Tg
   }
   
   Entity* newEntity = AddEntity(InEntityTypeTag.GetHash(), GenerateEntityIdentifier());
-  newEntity->SetPosition({InPosition.x, InPosition.y}, true);
+  if (newEntity != nullptr)
+  {
+    //std::cerr << "Spawned entity by tag " << InEntityTypeTag.ToStr() << " invalid!\n";
+    
+    newEntity->SetPosition({InPosition.x, InPosition.y}, true);
 
-  const float rotation = std::atan2(InDir.y, InDir.x);
-  newEntity->SetDirection({InDir.x, InDir.y});
+    const float direction = std::atan2(InDir.y, InDir.x);
+    newEntity->SetDirection({InDir.x, InDir.y});
   
-  SpawnEntityComponent spawnEntityComponent;
-  spawnEntityComponent.entityId = newEntity->GetId();
-  spawnEntityComponent.entityTypeHash = newEntity->GetTypeTagHash();
-  spawnEntityComponent.xPos = InPosition.x;
-  spawnEntityComponent.yPos = InPosition.y;
-  spawnEntityComponent.rotation = rotation;
-  Net::PacketManager::Get()->SendPacketComponentMulticast<SpawnEntityComponent>(spawnEntityComponent);
+    SpawnEntityComponent spawnEntityComponent;
+    spawnEntityComponent.entityId = newEntity->GetId();
+    spawnEntityComponent.entityTypeHash = newEntity->GetTypeTagHash();
+    spawnEntityComponent.xPos = InPosition.x;
+    spawnEntityComponent.yPos = InPosition.y;
+    spawnEntityComponent.direction = direction;
+    Net::PacketManager::Get()->SendPacketComponentMulticast<SpawnEntityComponent>(spawnEntityComponent);
+  }
   
   return newEntity;
 }
@@ -353,8 +358,8 @@ void EntityManager::OnEntitySpawnReceived(const sockaddr_storage& InAddress, con
   
   entitySpawned->SetPosition({ component->xPos, component->yPos }, true);
 
-  const float xDir = std::cos(component->rotation);
-  const float yDir = std::sin(component->rotation);
+  const float xDir = std::cos(component->direction);
+  const float yDir = std::sin(component->direction);
   entitySpawned->SetDirection({ xDir, yDir });
 
   // Send back has been spawned

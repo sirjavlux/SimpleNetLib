@@ -9,6 +9,7 @@
 #include "../../Combat/StatTracker.h"
 #include "../../Locator/Locator.h"
 #include "../EntityComponents/CombatComponent.h"
+#include "../../Definitions.hpp"
 
 void AsteroidEntity::Init()
 {
@@ -43,17 +44,20 @@ void AsteroidEntity::InitComponents()
 
 void AsteroidEntity::OnSpawnHasBeenReceived()
 {
-  // Generate random travel direction
-  std::default_random_engine& randEngine = EntityManager::Get()->GetRandomEngine();
-  std::uniform_real_distribution distribution(-1.0f, 1.0f);
+  if (direction_.LengthSqr() < 0.1f)
+  {
+    // Generate random travel direction
+    std::default_random_engine& randEngine = EntityManager::Get()->GetRandomEngine();
+    std::uniform_real_distribution distribution(-1.0f, 1.0f);
   
-  direction_.x = distribution(randEngine);
-  direction_.y = distribution(randEngine);
-  direction_.Normalize();
+    direction_.x = distribution(randEngine);
+    direction_.y = distribution(randEngine);
+    direction_.Normalize();
 
-  // Generate Travel Speed
-  std::uniform_real_distribution distributionSpeed(0.001f, 0.04f);
-  travelSpeed = distributionSpeed(randEngine);
+    // Generate Travel Speed
+    std::uniform_real_distribution distributionSpeed(0.001f, 0.04f);
+    travelSpeed = distributionSpeed(randEngine);
+  }
 }
 
 void AsteroidEntity::Update(const float InDeltaTime)
@@ -65,6 +69,16 @@ void AsteroidEntity::FixedUpdate()
   if (Net::PacketManager::Get()->IsServer())
   {
     targetPosition_ += direction_ * travelSpeed * FIXED_UPDATE_DELTA_TIME;
+
+    // Check world bounds, destroy entity if outside world bounds
+    if (targetPosition_.x > WORLD_SIZE_X / 1.6f
+      || targetPosition_.x < -WORLD_SIZE_X / 1.6f
+      || targetPosition_.y > WORLD_SIZE_Y / 1.6f
+      || targetPosition_.y < -WORLD_SIZE_Y / 1.6f)
+    {
+      EntityManager::Get()->MarkEntityForDestruction(GetId());
+      Locator::Get()->GetAsteroidManager()->SpawnRandomAsteroidFromMapBorder();
+    }
   }
 }
 

@@ -88,6 +88,12 @@ void CollisionGrid::RemoveComponentsByIndexes(const std::unordered_map<Tga::Vect
 			{
 				colliderComponents_.erase(iterator);
 				colliderComponents.erase(colliderComponents.begin() + index);
+
+				// Erase cell if empty
+				if (colliderComponents.empty())
+				{
+					collisionGridMap_.erase(indexes.first);
+				}
 			}
 		}
 	}
@@ -137,17 +143,25 @@ void CollisionGrid::UpdateComponentGridCells(std::weak_ptr<ColliderComponent> In
 	{
 		for (int y = OldMinMaxData.min.y; y <= OldMinMaxData.max.y; ++y)
 		{
+			const Tga::Vector2i gridCell = {x, y};
+			
 			const bool bWasNotIncludedInNewMinMaxData = x < NewMinMaxData.min.x || x > NewMinMaxData.max.x
 							|| y < NewMinMaxData.min.y || y > NewMinMaxData.max.y;
 			
 			// Remove cells no longer in use
 			if (!InIsNewComponent && bWasNotIncludedInNewMinMaxData)
 			{
-				std::vector<std::weak_ptr<ColliderComponent>>& components = collisionGridMap_.at({x, y});
+				std::vector<std::weak_ptr<ColliderComponent>>& components = collisionGridMap_.at(gridCell);
 				auto& iterator = std::find(components.begin(), components.end(), InColliderComponentPtr);
 				if (iterator != components.end())
 				{
 					components.erase(iterator);
+
+					// Erase cell if empty
+					if (components.empty())
+					{
+						collisionGridMap_.erase(gridCell);
+					}
 				}
 			}
 				

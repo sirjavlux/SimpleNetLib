@@ -35,13 +35,13 @@ project "Server"
 	verify_or_create_settings("Server")
 	
 	filter "configurations:Debug"
-		defines {"_DEBUG"}
+		defines {"_DEBUG", "_ITERATOR_DEBUG_LEVEL=2"}
 		runtime "Debug"
 		symbols "on"
 		files {"tools/**"}
 		includedirs {"tools/"}
 	filter "configurations:Release"
-		defines "_RELEASE"
+		defines {"_RELEASE", "_ITERATOR_DEBUG_LEVEL=0"}
 		runtime "Release"
 		optimize "on"
 		files {"tools/**"}

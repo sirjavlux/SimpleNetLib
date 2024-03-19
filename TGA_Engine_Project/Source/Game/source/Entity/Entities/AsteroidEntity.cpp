@@ -92,6 +92,6 @@ void AsteroidEntity::OnEntityDeath(uint16_t InEnemy)
   // For the moment just remove object from world
   if (EntityManager::Get()->IsServer())
   {
-    EntityManager::Get()->DestroyEntityServer(GetId());
+    EntityManager::Get()->MarkEntityForDestruction(GetId());
   }
 }

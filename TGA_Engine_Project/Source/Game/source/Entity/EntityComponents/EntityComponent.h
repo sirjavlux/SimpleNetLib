@@ -34,6 +34,8 @@ public:
   bool HasBeenReceivedByClient() const { return bHasBeenReceived_; }
 
 protected:
+  virtual void OnDestruction() {}
+  
   void UpdateReplication();
   void UpdateReplicationForTarget(const sockaddr_storage& InAddress);
 

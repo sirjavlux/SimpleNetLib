@@ -31,7 +31,7 @@ project "SimpleNetLib"
 	defines {"_CONSOLE"}
 	
     filter "configurations:Debug"
-        defines "_DEBUG"
+        defines { "_DEBUG", "_ITERATOR_DEBUG_LEVEL=2" }
         runtime "Debug"
         symbols "on"
 
@@ -39,7 +39,15 @@ project "SimpleNetLib"
         buildoptions { "/MDd" } -- Use Multi-threaded Debug DLL
 
     filter "configurations:Release"
-        defines "_RELEASE"
+        defines { "_RELEASE", "_ITERATOR_DEBUG_LEVEL=0" }
+        runtime "Release"
+        optimize "on"
+
+        flags { "MultiProcessorCompile" }
+        buildoptions { "/MD" } -- Use Multi-threaded DLL
+		
+	filter "configurations:Release"
+        defines { "_RETAIL" }
         runtime "Release"
         optimize "on"
 

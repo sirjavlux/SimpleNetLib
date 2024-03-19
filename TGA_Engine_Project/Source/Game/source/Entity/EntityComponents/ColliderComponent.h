@@ -40,9 +40,6 @@ public:
 	void Init() override; // TODO: Add collider to collision manager somehow
 	
 	void FixedUpdate() override;
-
-	void Remove() { bIsMarkedForRemoval_ = true; }
-	bool IsMarkedForRemoval() const { return bIsMarkedForRemoval_; }
 	
 	void SetCollider(const std::shared_ptr<Collider>& InCollider);
 
@@ -52,7 +49,7 @@ public:
 	
 	void OnTriggerEnter(const ColliderComponent& InColliderComponent);
 	void OnTriggerExit(const ColliderComponent& InColliderComponent);
-	void OnColliderCollision(std::weak_ptr<ColliderComponent> InColliderComponent);
+	void OnColliderCollision(ColliderComponent* InColliderComponent);
 
 	const Tga::Vector2f& GetPositionLastFrame() const { return positionLastFrame_; }
 
@@ -76,22 +73,23 @@ public:
 	DynamicMulticastDelegate<const ColliderComponent&> triggerEnterDelegate;
 	DynamicMulticastDelegate<const ColliderComponent&> triggerExitDelegate;
 	DynamicMulticastDelegate<const ColliderComponent&> collisionDelegate;
+
+protected:
+	void OnDestruction() override;
 	
 private:
 	bool bShouldUpdateCollisionGrid_ = false;
 	Tga::Vector2f positionLastFrame_;
-	
-	bool bIsMarkedForRemoval_ = false;
 
 	bool bIsTrigger_ = true;
 	
-	std::unordered_map<uint16_t, std::weak_ptr<ColliderComponent>> collidersEntered_;
-	std::unordered_map<uint16_t, std::weak_ptr<ColliderComponent>> collidersCollidedWithLastUpdate_;
+	std::unordered_map<uint16_t, ColliderComponent*> collidersEntered_;
+	std::unordered_map<uint16_t, ColliderComponent*> collidersCollidedWithLastUpdate_;
 	
 	std::shared_ptr<Collider> collider_;
 
 	ECollisionFilter colliderType_ = ECollisionFilter::None;
 	ECollisionFilter collisionFilter_ = ECollisionFilter::None;
-
+	
 	friend class CollisionGrid;
 };

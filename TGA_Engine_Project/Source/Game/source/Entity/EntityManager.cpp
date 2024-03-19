@@ -162,6 +162,13 @@ void EntityManager::UpdateEntities(const float InDeltaTime)
     DestroyEntityServer(id);
   }
   entitiesToDestroy_.clear();
+
+  // Destroy local entities marked for destruction
+  for (const uint16_t id : entitiesToDestroyLocal_)
+  {
+    entitiesLocal_.erase(id);
+  }
+  entitiesToDestroyLocal_.clear();
 }
 
 void EntityManager::RequestSpawnEntity(const NetTag& InEntityTypeTag) const
@@ -648,7 +655,8 @@ void EntityManager::OnClientDisconnect(const sockaddr_storage& InAddress, const 
     const uint16_t playerEntityId = netTargetEntityMap_.at(ipv4Address);
     
     Locator::Get()->GetStatTracker()->RemovePlayerStats(playerEntityId);
-    DestroyEntityServer(playerEntityId);
+    MarkEntityForDestruction(playerEntityId);
+    
     netTargetEntityMap_.erase(ipv4Address);
     
     if (entityNetTargetMap_.find(playerEntityId) != entityNetTargetMap_.end())

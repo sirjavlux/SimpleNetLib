@@ -81,7 +81,7 @@ void BulletEntity::OnEntityDeath(uint16_t InEnemy)
 {
 	if (EntityManager::Get()->IsServer())
 	{
-		EntityManager::Get()->DestroyEntityServer(GetId());
+		EntityManager::Get()->MarkEntityForDestruction(GetId());
 	} else
 	{
 		GetFirstComponent<RenderComponent>().lock()->SetIsVisible(false);

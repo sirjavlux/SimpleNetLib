@@ -9,13 +9,12 @@
 #include "tge/drawers/DebugDrawer.h"
 #include "../EntityManager.h"
 
-void CollisionGrid::AddColliderComponentToGrid(std::weak_ptr<ColliderComponent> InColliderComponent)
+void CollisionGrid::AddColliderComponentToGrid(ColliderComponent* InColliderComponent)
 {
-	const ColliderComponent* colliderComponent = InColliderComponent.lock().get();
-	if (colliderComponent != nullptr && std::find(colliderComponents_.begin(), colliderComponents_.end(), colliderComponent) == colliderComponents_.end())
+	if (InColliderComponent != nullptr && std::find(colliderComponents_.begin(), colliderComponents_.end(), InColliderComponent) == colliderComponents_.end())
 	{
 		ColliderComponentMinMaxGridPosition outGridMinMaxData;
-		GetColliderComponentMinMaxGridPosition(*colliderComponent, outGridMinMaxData);
+		GetColliderComponentMinMaxGridPosition(*InColliderComponent, outGridMinMaxData);
 
 		const ColliderComponentGridData colliderComponentGridData =
 		{
@@ -35,7 +34,7 @@ void CollisionGrid::UpdateCollisionGrid()
 	uint16_t iter = 0;
 	for (auto& colliderComponentGridData : colliderComponents_)
 	{
-		const auto component = colliderComponentGridData.component.lock().get();
+		const auto component = colliderComponentGridData.component;
 		if (!component)
 		{
 			indexesToRemove.push_back(iter);
@@ -88,6 +87,37 @@ void CollisionGrid::RemoveComponentsByIndexes(const std::unordered_map<Tga::Vect
 	}
 }
 
+void CollisionGrid::RemoveColliderComponent(const ColliderComponent* InComponent)
+{
+	auto& iterator = std::find(colliderComponents_.begin(), colliderComponents_.end(), InComponent);
+	if (iterator != colliderComponents_.end())
+	{
+		const ColliderComponentMinMaxGridPosition& gridPositions = iterator->gridPositions;
+		for (int x = gridPositions.min.x; x <= gridPositions.max.x; ++x)
+		{
+			for (int y = gridPositions.min.y; y <= gridPositions.max.y; ++y)
+			{
+				std::vector<ColliderComponent*>& vector = collisionGridMap_.at({x, y});
+
+				bool bFoundComponent = true;
+				while (bFoundComponent)
+				{
+					bFoundComponent = false;
+					
+					auto& vectorIterator = std::find(vector.begin(), vector.end(), InComponent);
+					if (vectorIterator != vector.end())
+					{
+						vector.erase(vectorIterator);
+						bFoundComponent = true;
+					}
+				}
+			}
+		}
+
+		colliderComponents_.erase(iterator);
+	}
+}
+
 void CollisionGrid::GetGridPositionFromWorldPosition(const Tga::Vector2f& InWorldPosition, Tga::Vector2i& OutGridPosition)
 {
 	OutGridPosition.x = static_cast<int>(InWorldPosition.x / COLLISION_GRID_SIZE);
@@ -124,10 +154,9 @@ void CollisionGrid::GetColliderComponentMinMaxGridPosition(const ColliderCompone
 	OutMinMax.max = OutMinMax.min;
 }
 
-void CollisionGrid::UpdateComponentGridCells(std::weak_ptr<ColliderComponent> InColliderComponent,
+void CollisionGrid::UpdateComponentGridCells(ColliderComponent* InColliderComponent,
 	const ColliderComponentMinMaxGridPosition& OldMinMaxData, const ColliderComponentMinMaxGridPosition& NewMinMaxData, const bool InIsNewComponent)
 {
-	const ColliderComponent* InColliderComponentPtr = InColliderComponent.lock().get();
 	for (int x = OldMinMaxData.min.x; x <= OldMinMaxData.max.x; ++x)
 	{
 		for (int y = OldMinMaxData.min.y; y <= OldMinMaxData.max.y; ++y)
@@ -140,8 +169,8 @@ void CollisionGrid::UpdateComponentGridCells(std::weak_ptr<ColliderComponent> In
 			// Remove cells no longer in use
 			if (!InIsNewComponent && bWasNotIncludedInNewMinMaxData)
 			{
-				std::vector<std::weak_ptr<ColliderComponent>>& components = collisionGridMap_.at(gridCell);
-				auto& iterator = std::find(components.begin(), components.end(), InColliderComponentPtr);
+				std::vector<ColliderComponent*>& components = collisionGridMap_.at(gridCell);
+				auto& iterator = std::find(components.begin(), components.end(), InColliderComponent);
 				if (iterator != components.end())
 				{
 					components.erase(iterator);
@@ -182,21 +211,26 @@ void CollisionManager::Initialize()
 	
 }
 
+void CollisionManager::RemoveColliderComponent(ColliderComponent* InComponent)
+{
+	collisionGrid_.RemoveColliderComponent(InComponent);
+}
+
 void CollisionManager::UpdateComponents()
 {
 	collisionGrid_.UpdateCollisionGrid();
 	
 	std::unordered_map<Tga::Vector2i, std::vector<int>> collidersToRemove;
 
-	const std::unordered_map<Tga::Vector2i, std::vector<std::weak_ptr<ColliderComponent>>>& collisionGridMap = collisionGrid_.GetColliderGridMap();
+	const std::unordered_map<Tga::Vector2i, std::vector<ColliderComponent*>>& collisionGridMap = collisionGrid_.GetColliderGridMap();
 	for (const auto& colliderContainer : collisionGridMap)
 	{
 		int index = 0;
-		for (const std::weak_ptr<ColliderComponent>& colliderComponentFirst : colliderContainer.second)
+		for (ColliderComponent* colliderComponentFirst : colliderContainer.second)
 		{
-			ColliderComponent* colliderComponentFirstPtr = colliderComponentFirst.lock().get();
+			ColliderComponent* colliderComponentFirstPtr = colliderComponentFirst;
 			++index;
-			if (!colliderComponentFirstPtr || colliderComponentFirstPtr->IsMarkedForRemoval())
+			if (!colliderComponentFirstPtr)
 			{
 				collidersToRemove[colliderContainer.first].push_back(index - 1); // Needs testing
 				continue;
@@ -207,10 +241,10 @@ void CollisionManager::UpdateComponents()
 				continue;
 			}
 		
-			for (const std::weak_ptr<ColliderComponent>& colliderComponentSecond : colliderContainer.second)
+			for (ColliderComponent* colliderComponentSecond : colliderContainer.second)
 			{
-				ColliderComponent* colliderComponentSecondPtr = colliderComponentSecond.lock().get();
-				if (!colliderComponentSecondPtr || colliderComponentSecondPtr->IsMarkedForRemoval() || colliderComponentSecondPtr->GetId() == colliderComponentFirstPtr->GetId())
+				ColliderComponent* colliderComponentSecondPtr = colliderComponentSecond;
+				if (!colliderComponentSecondPtr || colliderComponentSecondPtr->GetId() == colliderComponentFirstPtr->GetId())
 				{
 					continue;
 				}
@@ -240,7 +274,7 @@ void CollisionManager::UpdateComponents()
 	collisionGrid_.RemoveComponentsByIndexes(collidersToRemove);
 }
 
-void CollisionManager::AddColliderComponent(const std::weak_ptr<ColliderComponent>& InComponent)
+void CollisionManager::AddColliderComponent(ColliderComponent* InComponent)
 {
 	collisionGrid_.AddColliderComponentToGrid(InComponent);
 }
@@ -252,18 +286,17 @@ void CollisionManager::RenderColliderDebugLines()
 		return;
 	}
 
-	const std::unordered_map<Tga::Vector2i, std::vector<std::weak_ptr<ColliderComponent>>>& collisionGridMap = collisionGrid_.GetColliderGridMap();
+	const CollisionGridMap& collisionGridMap = collisionGrid_.GetColliderGridMap();
 	for (const auto& colliderContainer : collisionGridMap)
 	{
-		for (const std::weak_ptr<ColliderComponent>& colliderComponent : colliderContainer.second)
+		for (ColliderComponent* colliderComponent : colliderContainer.second)
 		{
-			ColliderComponent* colliderComponentPtr = colliderComponent.lock().get();
-			if (!colliderComponentPtr)
+			if (!colliderComponent)
 			{
 				continue;
 			}
 		
-			const Collider* collider = colliderComponentPtr->GetCollider();
+			const Collider* collider = colliderComponent->GetCollider();
 			if (!collider)
 				return;
 		
@@ -272,7 +305,7 @@ void CollisionManager::RenderColliderDebugLines()
 			case EColliderType::None:
 				break;
 			case EColliderType::Circle:
-				DrawCircleColliderDebugLines(*reinterpret_cast<const CircleCollider*>(collider), colliderComponentPtr->GetOwner()->GetPosition());
+				DrawCircleColliderDebugLines(*reinterpret_cast<const CircleCollider*>(collider), colliderComponent->GetOwner()->GetPosition());
 				break;
 			}
 		}

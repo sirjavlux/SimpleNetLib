@@ -7,13 +7,13 @@ public:
     ~Server();
 
     void Init();
-    bool IsRunning() const { return bIsRunning; }
+    bool IsRunning() const { return bIsRunning_; }
 
     void End();
 
     void Update();
     
 private:
-    bool bIsRunning = true;
+    bool bIsRunning_ = true;
     
 };

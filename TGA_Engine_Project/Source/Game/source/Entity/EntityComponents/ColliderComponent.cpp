@@ -13,7 +13,7 @@ void ColliderComponent::Init()
 	{
 		if (component.lock().get() && component.lock().get()->id_ == id_)
 		{
-			Locator::Get()->GetCollisionManager()->AddColliderComponent(component);
+			Locator::Get()->GetCollisionManager()->AddColliderComponent(component.lock().get());
 		}
 	}
 }
@@ -28,7 +28,7 @@ void ColliderComponent::FixedUpdate()
 		const uint16_t& colliderIndex = it->first;
 		if (collidersCollidedWithLastUpdate_.find(colliderIndex) == collidersCollidedWithLastUpdate_.end())
 		{
-			const ColliderComponent* colliderComponent = it->second.lock().get();
+			const ColliderComponent* colliderComponent = it->second;
 			if (colliderComponent != nullptr)
 			{
 				OnTriggerExit(*colliderComponent);
@@ -80,24 +80,23 @@ void ColliderComponent::OnTriggerExit(const ColliderComponent& InColliderCompone
 		triggerExitDelegate.Execute(InColliderComponent);
 }
 
-void ColliderComponent::OnColliderCollision(std::weak_ptr<ColliderComponent> InColliderComponent)
+void ColliderComponent::OnColliderCollision(ColliderComponent* InColliderComponent)
 {
-	const ColliderComponent* colliderComponent = InColliderComponent.lock().get();
-	if (colliderComponent == nullptr)
+	if (InColliderComponent == nullptr)
 	{
 		return;
 	}
 	
-	collisionDelegate.Execute(*colliderComponent);
+	collisionDelegate.Execute(*InColliderComponent);
 	
 	// Update Triggers Entered and add Collider to cached colliders this frame
-	if (collidersCollidedWithLastUpdate_.find(colliderComponent->GetId()) == collidersCollidedWithLastUpdate_.end())
+	if (collidersCollidedWithLastUpdate_.find(InColliderComponent->GetId()) == collidersCollidedWithLastUpdate_.end())
 	{
-		collidersCollidedWithLastUpdate_.insert({colliderComponent->GetId(), InColliderComponent});
-		if (collidersEntered_.find(colliderComponent->GetId()) == collidersEntered_.end())
+		collidersCollidedWithLastUpdate_.insert({InColliderComponent->GetId(), InColliderComponent});
+		if (collidersEntered_.find(InColliderComponent->GetId()) == collidersEntered_.end())
 		{
-			collidersEntered_.insert({colliderComponent->GetId(), InColliderComponent});
-			OnTriggerEnter(*colliderComponent);
+			collidersEntered_.insert({InColliderComponent->GetId(), InColliderComponent});
+			OnTriggerEnter(*InColliderComponent);
 		}
 	}
 }
@@ -155,4 +154,9 @@ void ColliderComponent::OnReadReplication(const DataReplicationPacketComponent& 
 	}
 		break;
 	}
+}
+
+void ColliderComponent::OnDestruction()
+{
+	Locator::Get()->GetCollisionManager()->RemoveColliderComponent(this);	
 }

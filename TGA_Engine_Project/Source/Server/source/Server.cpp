@@ -37,7 +37,7 @@ void Server::Init()
 void Server::End()
 {
     Net::SimpleNetLibCore::End();
-    bIsRunning = false;
+    bIsRunning_ = false;
 }
 
 void Server::Update()

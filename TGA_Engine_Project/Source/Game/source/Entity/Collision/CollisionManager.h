@@ -10,7 +10,7 @@
 struct CircleCollider;
 class ColliderComponent;
 
-#define COLLISION_GRID_SIZE 0.4
+#define COLLISION_GRID_SIZE 0.2
 
 namespace std
 {
@@ -41,12 +41,12 @@ struct ColliderComponentMinMaxGridPosition
 
 struct ColliderComponentGridData
 {
-	std::weak_ptr<ColliderComponent> component;
+	ColliderComponent* component;
 	ColliderComponentMinMaxGridPosition gridPositions;
 
 	bool operator==(const ColliderComponent* InComponent) const
 	{
-		return InComponent == component.lock().get();	
+		return InComponent == component;	
 	}
 
 	bool operator!=(const ColliderComponent* InComponent) const
@@ -56,7 +56,7 @@ struct ColliderComponentGridData
 	
 	bool operator==(const std::weak_ptr<ColliderComponent>& InComponent) const
 	{
-		return InComponent.lock().get() == component.lock().get();	
+		return InComponent.lock().get() == component;	
 	}
 
 	bool operator!=(const std::weak_ptr<ColliderComponent>& InComponent) const
@@ -66,7 +66,7 @@ struct ColliderComponentGridData
 	
 	bool operator==(const ColliderComponentGridData& InData) const
 	{
-		return InData.component.lock().get() == component.lock().get();	
+		return InData.component == component;	
 	}
 
 	bool operator!=(const ColliderComponentGridData& InData) const
@@ -80,13 +80,12 @@ inline bool operator==(const std::weak_ptr<ColliderComponent>& Lhs, const Collid
 	return Lhs.lock().get() == Rhs;
 }
 
-using CollisionGridMap = std::unordered_map<Tga::Vector2i, std::vector<std::weak_ptr<ColliderComponent>>>;
+using CollisionGridMap = std::unordered_map<Tga::Vector2i, std::vector<ColliderComponent*>>;
 
-// TODO:
 class CollisionGrid
 {
 public:
-	void AddColliderComponentToGrid(std::weak_ptr<ColliderComponent> InColliderComponent);
+	void AddColliderComponentToGrid(ColliderComponent* InColliderComponent);
 	
 	void UpdateCollisionGrid();
 	
@@ -94,14 +93,16 @@ public:
 
 	// Indexes needs to be ordered from lowest - highest
 	void RemoveComponentsByIndexes(const std::unordered_map<Tga::Vector2i, std::vector<int>>& InComponentIndexes);
+
+	void RemoveColliderComponent(const ColliderComponent* InComponent);
 	
-	const std::unordered_map<Tga::Vector2i, std::vector<std::weak_ptr<ColliderComponent>>>& GetColliderGridMap() const { return collisionGridMap_; }
+	const CollisionGridMap& GetColliderGridMap() const { return collisionGridMap_; }
 
 	static void GetGridPositionFromWorldPosition(const Tga::Vector2f& InWorldPosition, Tga::Vector2i& OutGridPosition);
 	static void GetColliderComponentMinMaxGridPosition(const ColliderComponent& InColliderComponent, ColliderComponentMinMaxGridPosition& OutMinMax);
 	
 private:
-	void UpdateComponentGridCells(std::weak_ptr<ColliderComponent> InColliderComponent,
+	void UpdateComponentGridCells(ColliderComponent* InColliderComponent,
 		const ColliderComponentMinMaxGridPosition& OldMinMaxData, const ColliderComponentMinMaxGridPosition& NewMinMaxData, bool InIsNewComponent = false);
 	
 	std::vector<ColliderComponentGridData> colliderComponents_;
@@ -114,9 +115,11 @@ class CollisionManager
 public:
 	void Initialize();
 
+	void RemoveColliderComponent(ColliderComponent* InComponent);
+	
 	void UpdateComponents();
 	
-	void AddColliderComponent(const std::weak_ptr<ColliderComponent>& InComponent);
+	void AddColliderComponent(ColliderComponent* InComponent);
 
 	void RenderColliderDebugLines();
 

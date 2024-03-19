@@ -92,18 +92,20 @@ public:
     }
   }
 
-  std::default_random_engine& GetRandomEngine() {return random_Engine_; }
+  void MarkEntityForDestructionLocal(const uint16_t InIdentifier)
+  {
+      entitiesToDestroyLocal_.push_back(InIdentifier);
+  }
 
-  // This is a server sided function
-  void DestroyEntityServer(uint16_t InIdentifier);
+  std::default_random_engine& GetRandomEngine() {return random_Engine_; }
 
   template<typename EntityComponentType>
   EntityComponentType* AddComponentToEntityOfType(uint16_t InEntityIdentifier, uint64_t InComponentTypeHash, uint16_t InComponentIdentifier = 0);
   EntityComponent* AddComponentToEntity(uint16_t InEntityIdentifier, uint64_t InComponentTypeHash, uint16_t InComponentIdentifier = 0);
   
 private:
-
-  void InitializeEntity(Entity* entity);
+  // This is a server sided function
+  void DestroyEntityServer(uint16_t InIdentifier);
   
   void RegisterEntityComponents();
   
@@ -127,6 +129,7 @@ private:
   void SubscribeToPacketComponents();
 
   std::vector<uint16_t> entitiesToDestroy_;
+  std::vector<uint16_t> entitiesToDestroyLocal_;
   
   std::unordered_map<uint16_t, std::shared_ptr<Entity>> entities_;
   std::unordered_map<uint16_t, std::shared_ptr<Entity>> entitiesLocal_;

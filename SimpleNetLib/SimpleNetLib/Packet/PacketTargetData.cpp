@@ -62,7 +62,7 @@ uint8_t Net::PacketTargetData::FromPacketComponentSendFrequencySecondsToTicks(co
 uint8_t Net::PacketTargetData::GetLodedFrequency(const PacketComponentAssociatedData* InAssociatedData, const float InDistanceSqr)
 {
   float frequencyToSendAt = InAssociatedData->packetFrequencySeconds;
-  const std::vector<std::pair<float, float>> lodFrequencies = InAssociatedData->packetLodFrequencies;
+  const std::vector<std::pair<float, float>>& lodFrequencies = InAssociatedData->packetLodFrequencies;
   
   size_t iter = 0;
   for (const std::pair<float, float>& frequencyData : lodFrequencies)

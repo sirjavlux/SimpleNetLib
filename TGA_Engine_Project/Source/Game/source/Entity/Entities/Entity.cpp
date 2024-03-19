@@ -21,6 +21,10 @@ Entity::Entity()
 void Entity::NativeOnDestruction()
 {
 	OnDestruction();
+	for (auto& component : componentsMap_)
+	{
+		component.second->OnDestruction();
+	}
 }
 
 void Entity::UpdateComponents(const float InDeltaTime)

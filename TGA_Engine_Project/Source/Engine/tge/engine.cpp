@@ -75,10 +75,8 @@ Engine::Engine( const EngineConfiguration& aWindowConfiguration)
 
 	myErrorManager = std::make_unique<ErrorManager>();
 	myErrorManager->AddLogListener(aWindowConfiguration.myLogFunction, aWindowConfiguration.myErrorFunction);
-
-#ifndef _RETAIL
+	
 	myImguiInterFace = std::make_unique<ImGuiInterface>();
-#endif // !_RETAIL
 }
 
 
@@ -175,9 +173,7 @@ bool Engine::InternalStart()
 	{
 		myDebugDrawer->Init();
 	}
-#ifndef _RETAIL
 	myImguiInterFace->Init();
-#endif // !_RETAIL
 
 	myStartOfTime = std::chrono::steady_clock::now();
 
@@ -436,9 +432,7 @@ bool Engine::BeginFrame()
 			return false;
 		}
 	}
-#ifndef _RETAIL
 	myImguiInterFace->PreFrame();
-#endif // !_RETAIL
     myFileWatcher->FlushChanges();
 	
 	myDx11->BeginFrame(myWindowConfiguration.myClearColor);
@@ -452,9 +446,7 @@ bool Engine::BeginFrame()
 
 void Engine::EndFrame( void )
 {
-#ifndef _RETAIL
 	myImguiInterFace->Render();
-#endif // !_RETAIL
 
 	myTimer.Tick([&]()
 	{

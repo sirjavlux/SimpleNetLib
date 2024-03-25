@@ -46,10 +46,10 @@ project "SimpleNetLib"
         flags { "MultiProcessorCompile" }
         buildoptions { "/MD" } -- Use Multi-threaded DLL
 		
-	filter "configurations:Release"
-        defines { "_RETAIL" }
-        runtime "Release"
-        optimize "on"
+	filter "configurations:Retail"
+		defines { "_RETAIL", "_ITERATOR_DEBUG_LEVEL=0" }
+		runtime "Release"
+		optimize "on"
 
         flags { "MultiProcessorCompile" }
         buildoptions { "/MD" } -- Use Multi-threaded DLL

@@ -24,9 +24,7 @@ namespace Tga
     class FileWatcher;
     class DX11;
 
-#ifndef _RETAIL
     class ImGuiInterface;
-#endif // !_RETAIL
 }
 
 #define TGA_DEFAULT_CRYSTAL_BLUE { 3.0f / 255.0f, 153.0f / 255.0f, 176.0f / 255.0f, 1.0f }
@@ -233,9 +231,7 @@ namespace Tga
 		DX::StepTimer myTimer;
 
 		bool myShouldExit; // Only used when using beginframe and endframe
-
-#ifndef _RETAIL
+    	
         std::unique_ptr<ImGuiInterface> myImguiInterFace = nullptr;
-#endif // !_RETAIL
     };
 }

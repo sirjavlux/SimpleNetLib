@@ -1,5 +1,7 @@
 #pragma once
+
 #include "Packet/PacketDefinitions.hpp"
+#include "source/Definitions.hpp"
 #include "source/GameWorld.h"
 
 class Client

@@ -16,7 +16,7 @@ public:
 	void OnSendReplication(DataReplicationPacketComponent& OutComponent) override;
 	void OnReadReplication(const DataReplicationPacketComponent& InComponent) override;
 
-	void Damage(uint16_t InEnemyId, float InDamage);
+	void Damage(const Entity* InEntity, float InDamage);
 
 	void SetCollisionDamage(const float InNewCollisionDamage) { collisionDamage_ = InNewCollisionDamage; }
 	float GetCollisionDamage() const { return collisionDamage_; }
@@ -30,11 +30,15 @@ public:
 
 	void SetIsImmortal(const bool InShouldBeImmortal) { bIsImmortal_ = InShouldBeImmortal; }
 	bool IsImmortal() const { return bIsImmortal_; }
+
+	void AddEntityTypeToAffectStats(const uint64_t InHash) { combatStatAffectingEntityTags_.push_back(InHash); }
 	
 	DynamicMulticastDelegate<uint16_t> entityDeathDelegate;
 	DynamicMulticastDelegate<uint16_t, float> entityTakeDamageDelegate;
 	
 private:
+	std::vector<uint64_t> combatStatAffectingEntityTags_;
+	
 	float maxHealth_ = 100.f;
 	float collisionDamage_ = 0.f;
 

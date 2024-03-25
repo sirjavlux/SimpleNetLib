@@ -4,6 +4,7 @@
 
 #include "SimpleNetLib.h"
 #include "Events/EventSystem.h"
+#include "source/Definitions.hpp"
 #include "source/Entity/RenderManager.h"
 #include "Utility/StringUtility.hpp"
 

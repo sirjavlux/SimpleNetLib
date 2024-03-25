@@ -15,5 +15,6 @@ struct Collider
 	
 	EColliderType type;
 	Tga::Vector2f localPosition;
+	Tga::Vector2f oldPosition;
 	Entity* owner;
 };

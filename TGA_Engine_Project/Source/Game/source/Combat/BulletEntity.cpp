@@ -41,8 +41,10 @@ void BulletEntity::InitComponents()
 	combatComponent->SetMaxHealth(1.f);
 	combatComponent->HealToFullHealth();
 	combatComponent->SetCollisionDamage(12.f);
-
+	
 	combatComponent->entityDeathDelegate.AddDynamic<BulletEntity>(this, &BulletEntity::OnEntityDeath);
+
+	SetParentEntity(shooterId_);
 }
 
 void BulletEntity::Update(float InDeltaTime)
@@ -69,12 +71,22 @@ void BulletEntity::FixedUpdate()
 
 void BulletEntity::OnReadReplication(const DataReplicationPacketComponent& InComponent)
 {
+	const uint16_t oldShooterId = shooterId_;
 	InComponent.variableDataObject.DeSerializeMemberVariable(*this, shooterId_);
+	if (oldShooterId != shooterId_)
+	{
+		SetParentEntity(shooterId_);
+	}
 }
 
 void BulletEntity::OnSendReplication(DataReplicationPacketComponent& OutComponent)
 {
+	const uint16_t oldShooterId = shooterId_;
 	OutComponent.variableDataObject.SerializeMemberVariable(*this, shooterId_);
+	if (oldShooterId != shooterId_)
+	{
+		SetParentEntity(shooterId_);
+	}
 }
 
 void BulletEntity::OnEntityDeath(uint16_t InEnemy)

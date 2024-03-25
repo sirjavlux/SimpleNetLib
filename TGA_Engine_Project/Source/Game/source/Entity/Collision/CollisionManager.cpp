@@ -235,7 +235,7 @@ void CollisionManager::UpdateComponents()
 				collidersToRemove[colliderContainer.first].push_back(index - 1); // Needs testing
 				continue;
 			}
-			const Collider* firstCollider = colliderComponentFirstPtr->GetCollider();
+			Collider* firstCollider = colliderComponentFirstPtr->GetCollider();
 			if (!firstCollider)
 			{
 				continue;
@@ -248,7 +248,7 @@ void CollisionManager::UpdateComponents()
 				{
 					continue;
 				}
-				const Collider* secondCollider = colliderComponentSecondPtr->GetCollider();
+				Collider* secondCollider = colliderComponentSecondPtr->GetCollider();
 				if (!secondCollider)
 				{
 					continue;

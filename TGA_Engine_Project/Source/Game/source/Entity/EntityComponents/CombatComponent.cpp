@@ -1,5 +1,6 @@
 ﻿#include "CombatComponent.h"
 
+#include "../EntityManager.h"
 #include "../../Combat/BulletEntity.h"
 #include "../../Locator/Locator.h"
 #include "../Entities/Entity.h"
@@ -24,7 +25,8 @@ void CombatComponent::FixedUpdate()
 void CombatComponent::OnTriggerEntered(const ColliderComponent& InColliderComponent)
 {
 	const CombatComponent* combatComponent = InColliderComponent.GetOwner()->GetFirstComponent<CombatComponent>().lock().get();
-	if (combatComponent == nullptr || combatComponent->GetCollisionDamage() < 1)
+	const Entity* enemyParent = EntityManager::Get()->GetEntityById(combatComponent->GetOwner()->GetParentEntity());
+	if (enemyParent == nullptr || combatComponent == nullptr || combatComponent->GetCollisionDamage() < 1)
 	{
 		return;
 	}
@@ -55,7 +57,7 @@ void CombatComponent::OnTriggerEntered(const ColliderComponent& InColliderCompon
 	// If client send client sided events
 	if (!Net::PacketManager::Get()->IsServer())
 	{
-		float currentHealth = Locator::Get()->GetStatTracker()->GetStat(GetId(), NetTag("health")) - collisionDamage;
+		float currentHealth = Locator::Get()->GetStatTracker()->GetStat(owner_->GetId(), NetTag("stat.health")) - collisionDamage;
 		currentHealth = currentHealth < 0 ? 0 : currentHealth;
 		
 		entityTakeDamageDelegate.Execute(enemyId, collisionDamage);
@@ -67,7 +69,7 @@ void CombatComponent::OnTriggerEntered(const ColliderComponent& InColliderCompon
 	}
 
 	// Server sided
-	Damage(enemyId, collisionDamage);
+	Damage(enemyParent, collisionDamage);
 }
 
 void CombatComponent::OnSendReplication(DataReplicationPacketComponent& OutComponent)
@@ -84,28 +86,32 @@ void CombatComponent::OnReadReplication(const DataReplicationPacketComponent& In
 	InComponent.variableDataObject.DeSerializeMemberVariable(*this, bIsImmortal_);
 }
 
-void CombatComponent::Damage(const uint16_t InEnemyId, const float InDamage)
+void CombatComponent::Damage(const Entity* InEntity, const float InDamage)
 {
-	float currentHealth = Locator::Get()->GetStatTracker()->GetStat(GetId(), NetTag("health")) - InDamage;
+	float currentHealth = Locator::Get()->GetStatTracker()->GetStat(owner_->GetId(), NetTag("stat.health")) - InDamage;
 	currentHealth = currentHealth < 0 ? 0 : currentHealth;
-	Locator::Get()->GetStatTracker()->SetStat(GetId(), NetTag("health"), currentHealth);
+	Locator::Get()->GetStatTracker()->SetStat(owner_->GetId(), NetTag("stat.health"), currentHealth);
 
-	entityTakeDamageDelegate.Execute(InEnemyId, InDamage);
+	const uint16_t entityId = InEntity->GetId();
+	entityTakeDamageDelegate.Execute(entityId, InDamage);
 	if (currentHealth <= 0)
 	{
-		const float newKillAmount = Locator::Get()->GetStatTracker()->GetStat(InEnemyId, NetTag("kills")) + 1;
-		Locator::Get()->GetStatTracker()->SetStat(InEnemyId, NetTag("kills"), newKillAmount);
+		if (InEntity != nullptr && std::find(combatStatAffectingEntityTags_.begin(), combatStatAffectingEntityTags_.end(), InEntity->GetTypeTagHash()) != combatStatAffectingEntityTags_.end())
+		{
+			const float newKillAmount = Locator::Get()->GetStatTracker()->GetStat(entityId, NetTag("stat.kills")) + 1;
+			Locator::Get()->GetStatTracker()->SetStat(entityId, NetTag("stat.kills"), newKillAmount);
+		}
 
-		const float newDeathAmount = Locator::Get()->GetStatTracker()->GetStat(GetId(), NetTag("deaths")) + 1;
-		Locator::Get()->GetStatTracker()->SetStat(GetId(), NetTag("deaths"), newDeathAmount);
+		const float newDeathAmount = Locator::Get()->GetStatTracker()->GetStat(owner_->GetId(), NetTag("stat.deaths")) + 1;
+   		Locator::Get()->GetStatTracker()->SetStat(owner_->GetId(), NetTag("stat.deaths"), newDeathAmount);
 		
-		entityDeathDelegate.Execute(InEnemyId);
+		entityDeathDelegate.Execute(entityId);
 	}
 }
 
 void CombatComponent::HealToFullHealth()
 {
-	Locator::Get()->GetStatTracker()->SetStat(GetId(), NetTag("health"), maxHealth_);
+	Locator::Get()->GetStatTracker()->SetStat(owner_->GetId(), NetTag("stat.health"), maxHealth_);
 }
 
 void CombatComponent::SetHealth(const float InHealth)
@@ -113,7 +119,7 @@ void CombatComponent::SetHealth(const float InHealth)
 	float newHealth = InHealth > maxHealth_ ? maxHealth_ : InHealth;
 	newHealth = newHealth < 0 ? 0 : newHealth;
 	
-	Locator::Get()->GetStatTracker()->SetStat(GetId(), NetTag("health"), newHealth);
+	Locator::Get()->GetStatTracker()->SetStat(owner_->GetId(), NetTag("stat.health"), newHealth);
 
 	if (newHealth <= 0)
 	{
@@ -123,5 +129,5 @@ void CombatComponent::SetHealth(const float InHealth)
 
 float CombatComponent::GetHealth() const
 {
-	return Locator::Get()->GetStatTracker()->GetStat(GetId(), NetTag("health"));
+	return Locator::Get()->GetStatTracker()->GetStat(owner_->GetId(), NetTag("stat.health"));
 }

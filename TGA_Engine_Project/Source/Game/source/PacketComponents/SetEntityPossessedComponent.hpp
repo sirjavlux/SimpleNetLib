@@ -2,6 +2,7 @@
 
 #include "PacketComponentTypes.hpp"
 #include "Packet/PacketComponent.h"
+#include "../Definitions.hpp"
 
 class SetEntityPossessedComponent : public Net::PacketComponent
 {

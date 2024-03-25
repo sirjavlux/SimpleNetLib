@@ -107,10 +107,10 @@ void EntityManager::UpdateEntities(const float InDeltaTime)
       {
         continue;
       }
-      
+
+      entity->NativeFixedUpdate();
       entity->FixedUpdate();
       entity->FixedUpdateComponents();
-      entity->NativeFixedUpdate();
     }
     for (auto& entityData : entitiesLocal_)
     {
@@ -119,10 +119,10 @@ void EntityManager::UpdateEntities(const float InDeltaTime)
       {
         continue;
       }
-      
+
+      entity->NativeFixedUpdate();
       entity->FixedUpdate();
       entity->FixedUpdateComponents();
-      entity->NativeFixedUpdate();
     }
     
     updateLag_ -= FIXED_UPDATE_DELTA_TIME;
@@ -254,7 +254,6 @@ void EntityManager::DestroyEntityServer(const uint16_t InIdentifier)
 EntityComponent* EntityManager::AddComponentToEntity(const uint16_t InEntityIdentifier, const uint64_t InComponentTypeHash, const uint16_t InComponentIdentifier)
 {
   Entity* entity = GetEntityById(InEntityIdentifier);
-  
   bool bIsEntityLocal = false;
 
   // Check if local entity can be found
@@ -262,6 +261,12 @@ EntityComponent* EntityManager::AddComponentToEntity(const uint16_t InEntityIden
   {
     entity = GetLocalEntityById(InEntityIdentifier);
     bIsEntityLocal = true;
+  }
+
+  // Something went wrong, return nullptr
+  if (entity == nullptr)
+  {
+    return nullptr;
   }
 
   // Return existing component if already added
@@ -409,6 +414,7 @@ void EntityManager::OnReadReplication(const sockaddr_storage& InAddress, const N
     // Entity Replication
     else
     {
+      componentCpy.variableDataObject.DeSerializeMemberVariable<Entity, uint16_t>(*entity, entity->parentEntity_);
       entity->OnReadReplication(componentCpy);
     }
   }
@@ -817,9 +823,9 @@ void EntityManager::RegisterPacketComponents()
   Net::SimpleNetLibCore::Get()->GetPacketComponentRegistry()->RegisterPacketComponent<InputComponent, EntityManager>(associatedDataEveryTick, &EntityManager::OnInputReceived, this);
 
   std::vector<std::pair<float, float>> packetLodFrequencies;
-  packetLodFrequencies.push_back({ 1.f, 0.05f });
-  packetLodFrequencies.push_back({ 2.f, 0.15f });
-  packetLodFrequencies.push_back({ 4.f, 0.4f });
+  packetLodFrequencies.emplace_back(1.f, 0.05f);
+  packetLodFrequencies.emplace_back(2.f, 0.15f);
+  packetLodFrequencies.emplace_back(4.f, 0.4f);
   const PacketComponentAssociatedData associatedEntityPositionData = PacketComponentAssociatedData
   {
     true,

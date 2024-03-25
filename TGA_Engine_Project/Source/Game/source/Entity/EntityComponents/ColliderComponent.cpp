@@ -65,6 +65,7 @@ void ColliderComponent::SetCollider(const std::shared_ptr<Collider>& InCollider)
 {
 	collider_ = InCollider;
 	collider_->owner = owner_;
+	collider_->oldPosition = owner_->GetPosition();
 	bShouldUpdateCollisionGrid_ = true;
 }
 

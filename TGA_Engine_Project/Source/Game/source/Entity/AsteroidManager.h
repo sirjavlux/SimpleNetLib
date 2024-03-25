@@ -20,8 +20,8 @@ public:
 
 	Entity* SpawnAsteroidAtPosition(const Tga::Vector2f& InPosition);
 	
-	void SpawnRandomAsteroidInMap(); // TODO:
-	void SpawnRandomAsteroidFromMapBorder(); // TODO:
+	void SpawnRandomAsteroidInMap();
+	void SpawnRandomAsteroidFromMapBorder();
 
 private:
 	static Tga::Vector2f GetRandomPositionInMap();

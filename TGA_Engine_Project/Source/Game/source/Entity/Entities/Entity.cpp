@@ -83,7 +83,8 @@ void Entity::UpdateReplication()
 	if (bShouldUseCustomReplicationData_)
 	{
 		frequency = Net::PacketTargetData::FromPacketComponentSendFrequencySecondsToTicks(customAssociatedDataReplication_.packetFrequencySeconds);
-	} else
+	}
+	else
 	{
 		const uint16_t componentIdentifier = replicationPacketComponent_.GetIdentifier();
 		const PacketComponentAssociatedData* packetComponentSettings = Net::SimpleNetLibCore::Get()->GetPacketComponentRegistry()->FetchPacketComponentAssociatedData(componentIdentifier);
@@ -94,6 +95,7 @@ void Entity::UpdateReplication()
 	{
 		replicationPacketComponent_.Reset();
 		replicationPacketComponent_.identifierDataFirst = id_;
+		replicationPacketComponent_.variableDataObject.SerializeMemberVariable<Entity, uint16_t>(*this, parentEntity_);
 		OnSendReplication(replicationPacketComponent_);
 		replicationPacketComponent_.UpdateSize();
 		if (replicationPacketComponent_.GetSize() > REPLICATION_COMPONENT_SIZE_EMPTY + VARIABLE_DATA_OBJECT_DEFAULT_SIZE)
@@ -107,8 +109,7 @@ void Entity::UpdateReplication()
 			component.second->UpdateReplication();
 		}
 	}
-
-	// TODO: Something is wrong with the culling here, if culled, the player can still see the object remaining, standing still. Possible solution, disable rendering
+	
 	// Replicate position if enabled
 	if (bShouldReplicatePosition_)
 	{

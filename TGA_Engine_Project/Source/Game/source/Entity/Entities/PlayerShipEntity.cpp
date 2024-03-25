@@ -44,6 +44,8 @@ void PlayerShipEntity::InitComponents()
   combatComponent->SetMaxHealth(100.f);
   combatComponent->HealToFullHealth();
   combatComponent->SetCollisionDamage(40.f);
+
+  combatComponent->AddEntityTypeToAffectStats(NetTag("player.ship").GetHash());
   
   combatComponent->entityDeathDelegate.AddDynamic<PlayerShipEntity>(this, &PlayerShipEntity::OnEntityDeath);
 }

@@ -58,6 +58,9 @@ public:
 	void SetShouldUseCustomMovementReplicationData(const bool ShouldUse) { bShouldUseCustomMovementReplicationData_ = ShouldUse; }
 	PacketComponentAssociatedData& GetCustomAssociatedDataReplication() { return customAssociatedDataReplication_; }
 	PacketComponentAssociatedData& GetCustomAssociatedDataMovementReplication() { return customAssociatedDataMovementReplication_; }
+
+	uint16_t GetParentEntity() const { return parentEntity_ == 0 ? id_ : parentEntity_; }
+	void SetParentEntity(const uint16_t InEntity) { parentEntity_ = InEntity; }
 	
 protected:
 	virtual void OnDestruction() {}
@@ -99,6 +102,8 @@ protected:
 
 	uint64_t typeTagHash_;
 
+	uint16_t parentEntity_ = 0;
+	
 	std::unordered_map<uint16_t, std::shared_ptr<EntityComponent>> componentsMap_;
 	std::shared_ptr<EntityComponent> renderComponent_;
 

@@ -5,10 +5,12 @@
 #include "Packet/PacketManager.h"
 #include "Packet/CorePacketComponents/DataReplicationPacketComponent.hpp"
 
+#include "..\Entities\Replicable.h"
+
 class DataReplicationPacketComponent;
 class Entity;
 
-class EntityComponent
+class EntityComponent : public Replicable
 {
 public:
   EntityComponent();
@@ -21,35 +23,18 @@ public:
   
   virtual void Update(float /*InDeltaTime*/) {}
   virtual void FixedUpdate() {}
-
-  // Server Sided
-  virtual void OnSendReplication(DataReplicationPacketComponent& OutComponent) {}
-  // Client Sided
-  virtual void OnReadReplication(const DataReplicationPacketComponent& InComponent) {} 
   
   uint16_t GetId() const { return id_; }
 
   const uint64_t& GetTypeHash() const { return typeTagHash_; }
 
-  bool HasBeenReceivedByClient() const { return bHasBeenReceived_; }
-
 protected:
   virtual void OnDestruction() {}
-  
-  void UpdateReplication();
-  void UpdateReplicationForTarget(const sockaddr_storage& InAddress);
-
-  void UpdateReplicationPacketComponent();
-  
-  DataReplicationPacketComponent replicationPacketComponent_;
-  DataReplicationPacketComponent oldReplicationPacketComponent_;
   
   Entity* owner_ = nullptr;
   
   uint16_t id_;
   uint64_t typeTagHash_;
-
-  bool bHasBeenReceived_ = false;
   
   friend class Entity;
   friend class EntityManager;

@@ -285,29 +285,27 @@ void CollisionManager::RenderColliderDebugLines()
 	{
 		return;
 	}
-
-	const CollisionGridMap& collisionGridMap = collisionGrid_.GetColliderGridMap();
-	for (const auto& colliderContainer : collisionGridMap)
+	
+	const std::vector<ColliderComponentGridData>& colliderComponents = collisionGrid_.GetColliderComponents();
+	for (const auto& collide : colliderComponents)
 	{
-		for (ColliderComponent* colliderComponent : colliderContainer.second)
+		ColliderComponent* colliderComponent = collide.component;
+		if (!colliderComponent)
 		{
-			if (!colliderComponent)
-			{
-				continue;
-			}
+			continue;
+		}
 		
-			const Collider* collider = colliderComponent->GetCollider();
-			if (!collider)
-				return;
+		const Collider* collider = colliderComponent->GetCollider();
+		if (!collider)
+			return;
 		
-			switch(collider->type)
-			{
-			case EColliderType::None:
-				break;
-			case EColliderType::Circle:
-				DrawCircleColliderDebugLines(*reinterpret_cast<const CircleCollider*>(collider), colliderComponent->GetOwner()->GetPosition());
-				break;
-			}
+		switch(collider->type)
+		{
+		case EColliderType::None:
+			break;
+		case EColliderType::Circle:
+			DrawCircleColliderDebugLines(*reinterpret_cast<const CircleCollider*>(collider), colliderComponent->GetOwner()->GetPosition());
+			break;
 		}
 	}
 }

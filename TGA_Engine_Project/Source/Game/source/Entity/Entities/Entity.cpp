@@ -47,7 +47,7 @@ void Entity::NativeFixedUpdate()
 {
 	if (!bIsLocalEntity_ && Net::PacketManager::Get()->IsServer())
 	{
-		UpdateReplication();
+		UpdateReplicationEntity();
 	}
 }
 
@@ -70,10 +70,10 @@ std::weak_ptr<EntityComponent> Entity::GetComponentById(const uint16_t InIdentif
 	return {};
 }
 
-void Entity::UpdateReplication()
+void Entity::UpdateReplicationEntity()
 {
 	// Wait with replication until has been received
-	if (!bHasBeenReceived_)
+	if (!HasBeenReceivedByClient())
 	{
 		return;
 	}
@@ -93,20 +93,13 @@ void Entity::UpdateReplication()
 	
 	if (Net::PacketManager::Get()->GetUpdateIterator() % frequency == 0)
 	{
-		replicationPacketComponent_.Reset();
-		replicationPacketComponent_.identifierDataFirst = id_;
-		replicationPacketComponent_.variableDataObject.SerializeMemberVariable<Entity, uint16_t>(*this, parentEntity_);
-		OnSendReplication(replicationPacketComponent_);
-		replicationPacketComponent_.UpdateSize();
-		if (replicationPacketComponent_.GetSize() > REPLICATION_COMPONENT_SIZE_EMPTY + VARIABLE_DATA_OBJECT_DEFAULT_SIZE)
-		{
-			Net::PacketManager::Get()->SendPacketComponentMulticast<DataReplicationPacketComponent>(replicationPacketComponent_);
-		}
+		GetVariableDataObject().SerializeMemberVariable(*this, parentEntity_);
+		UpdateReplication(id_, 0);
 
 		// Update Custom Replication for Components
 		for (auto& component : componentsMap_)
 		{
-			component.second->UpdateReplication();
+			component.second->UpdateReplication(id_, component.second->id_);
 		}
 	}
 	

@@ -414,7 +414,7 @@ void EntityManager::OnReadReplication(const sockaddr_storage& InAddress, const N
     // Entity Replication
     else
     {
-      componentCpy.variableDataObject.DeSerializeMemberVariable<Entity, uint16_t>(*entity, entity->parentEntity_);
+      componentCpy.variableDataObject.DeSerializeMemberVariable(*entity, entity->parentEntity_);
       entity->OnReadReplication(componentCpy);
     }
   }
@@ -647,7 +647,7 @@ void EntityManager::OnEntityComponentAddHasBeenReceived(const sockaddr_storage& 
     if (entityComponent != nullptr)
     {
       entityComponent->bHasBeenReceived_ = true;
-      entityComponent->UpdateReplicationForTarget(InAddress);
+      entityComponent->UpdateReplicationForTarget(InAddress, entityComponent->owner_->id_, entityComponent->id_);
     }
   }
 }

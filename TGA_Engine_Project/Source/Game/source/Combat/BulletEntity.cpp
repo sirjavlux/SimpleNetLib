@@ -25,14 +25,14 @@ void BulletEntity::InitComponents()
 {
 	RenderComponent* renderComponent = EntityManager::Get()->AddComponentToEntityOfType<RenderComponent>(id_, NetTag("RenderComponent").GetHash());
 	renderComponent->SetSpriteTexture("Sprites/SpaceShip/Bullet.png");
-	renderComponent->SetSpriteSizeMultiplier({ 3.f, 2.f });
+	renderComponent->SetSpriteSizeMultiplier({ 3.f, 1.f });
 	renderComponent->SetRenderSortingPriority(10);
 	
 	SetShouldReplicatePosition(true);
 
 	ColliderComponent* colliderComponent = EntityManager::Get()->AddComponentToEntityOfType<ColliderComponent>(id_, NetTag("ColliderComponent").GetHash());
 	std::shared_ptr<CircleCollider> circleCollider = std::make_shared<CircleCollider>();
-	circleCollider->radius = 0.02f;
+	circleCollider->radius = 0.01f;
 	colliderComponent->SetCollider(circleCollider);
 	colliderComponent->SetCollisionFilter(ECollisionFilter::Player | ECollisionFilter::WorldDestructible);
 	colliderComponent->SetColliderCollisionType(ECollisionFilter::Projectile);
@@ -94,7 +94,8 @@ void BulletEntity::OnEntityDeath(uint16_t InEnemy)
 	if (EntityManager::Get()->IsServer())
 	{
 		EntityManager::Get()->MarkEntityForDestruction(GetId());
-	} else
+	}
+	else
 	{
 		GetFirstComponent<RenderComponent>().lock()->SetIsVisible(false);
 	}

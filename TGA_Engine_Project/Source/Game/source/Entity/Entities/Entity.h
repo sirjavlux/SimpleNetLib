@@ -1,4 +1,5 @@
 #pragma once
+#include "Replicable.h"
 #include "stdafx.h"
 
 #include "../EntityComponents/RenderComponent.h"
@@ -6,7 +7,7 @@
 
 class EntityComponent;
 
-class Entity
+class Entity : public Replicable
 {
 public:
 	Entity();
@@ -38,13 +39,6 @@ public:
 
 	Tga::Vector2f GetDirection() const { return direction_; }
 	void SetDirection(const Tga::Vector2f InDirection) { direction_ = InDirection.GetNormalized(); }
-
-	// Server Sided
-	virtual void OnSendReplication(DataReplicationPacketComponent& OutComponent) {}
-	// Client Sided
-	virtual void OnReadReplication(const DataReplicationPacketComponent& InComponent) {} 
-
-	bool HasBeenReceivedByClient() const { return bHasBeenReceived_; }
 
 	bool IsEntityLocal() const { return bIsLocalEntity_; }
 
@@ -85,7 +79,7 @@ protected:
 	virtual void Update(float InDeltaTime) {}
 	virtual void FixedUpdate() {}
 	
-	void UpdateReplication();
+	void UpdateReplicationEntity();
 
 	bool bShouldUseCustomReplicationData_ = true;
 	bool bShouldUseCustomMovementReplicationData_ = true;
@@ -111,8 +105,7 @@ protected:
 	float targetPositionLerpSpeed_ = 5.f;
 
 	bool bShouldReplicatePosition_ = false;
-
-	bool bHasBeenReceived_ = false;
+	
 	bool bIsLocalEntity_ = false;
 	bool bIsStatic_ = false;
 	bool bIsOnlyVisual_ = false;

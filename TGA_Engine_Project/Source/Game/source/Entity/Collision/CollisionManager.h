@@ -97,7 +97,8 @@ public:
 	void RemoveColliderComponent(const ColliderComponent* InComponent);
 	
 	const CollisionGridMap& GetColliderGridMap() const { return collisionGridMap_; }
-
+	const std::vector<ColliderComponentGridData>& GetColliderComponents() const { return colliderComponents_; }
+	
 	static void GetGridPositionFromWorldPosition(const Tga::Vector2f& InWorldPosition, Tga::Vector2i& OutGridPosition);
 	static void GetColliderComponentMinMaxGridPosition(const ColliderComponent& InColliderComponent, ColliderComponentMinMaxGridPosition& OutMinMax);
 	

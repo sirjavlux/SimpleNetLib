@@ -1,18 +1,24 @@
 ﻿#include "HUD.h"
 
 #include <iomanip>
-#include <sstream>
 
 #include "../Combat/StatTracker.h"
 #include "../Entity/EntityManager.h"
 #include "../Entity/Entities/PlayerShipEntity.h"
 #include "../Locator/Locator.h"
 #include "../Definitions.hpp"
-#include "tge/text/text.h"
+
+HUD::~HUD()
+{
+	delete statText_;
+}
 
 void HUD::Init()
 {
-	
+	if (!Net::PacketManager::Get()->IsServer())
+	{
+		statText_ = new Tga::Text(L"Text/arial.ttf", Tga::FontSize_18);
+	}
 }
 
 void HUD::Update()
@@ -46,45 +52,44 @@ void HUD::Render()
 	
 	const float xOffset = static_cast<float>(intResolution.x) / 2;
 	const float yOffset = static_cast<float>(intResolution.y) / 2;
-
-	Tga::Text statText(L"Text/arial.ttf", Tga::FontSize_18);
+	
 	Tga::Vector2f position = anchorPoint;
 	for (const ScoreData& data : statScoreData_)
 	{
 		// Username
-		statText.SetText(data.username);
-		statText.SetPosition(Tga::Vector2f{ position.x * static_cast<float>(intResolution.x),
+		statText_->SetText(data.username);
+		statText_->SetPosition(Tga::Vector2f{ position.x * static_cast<float>(intResolution.x),
 			position.y * static_cast<float>(intResolution.x) } + Tga::Vector2f{ xOffset, yOffset });
 		if (data.bIsSelf)
 		{
-			statText.SetColor(Tga::Color(0.4f, 0.4f, 1));
+			statText_->SetColor(Tga::Color(0.4f, 0.4f, 1));
 		} else
 		{
-			statText.SetColor(Tga::Color(1, 1, 1));
+			statText_->SetColor(Tga::Color(1, 1, 1));
 		}
-		statText.Render();
+		statText_->Render();
 
 		// Kills
-		statText.SetText(std::to_string(data.kills));
-		const float killsTextSize = statText.GetWidth();
-		statText.SetPosition(Tga::Vector2f{ (position.x + 0.1f) * static_cast<float>(intResolution.x),
+		statText_->SetText(std::to_string(data.kills));
+		const float killsTextSize = statText_->GetWidth();
+		statText_->SetPosition(Tga::Vector2f{ (position.x + 0.1f) * static_cast<float>(intResolution.x),
 			position.y * static_cast<float>(intResolution.x) } + Tga::Vector2f{ xOffset, yOffset });
-		statText.SetColor(Tga::Color(0, 1, 0));
-		statText.Render();
+		statText_->SetColor(Tga::Color(0, 1, 0));
+		statText_->Render();
 
 		// Middle spacing
-		statText.SetText(":");
-		statText.SetPosition(Tga::Vector2f{ (position.x + 0.103f) * static_cast<float>(intResolution.x) + killsTextSize,
+		statText_->SetText(":");
+		statText_->SetPosition(Tga::Vector2f{ (position.x + 0.103f) * static_cast<float>(intResolution.x) + killsTextSize,
 			position.y * static_cast<float>(intResolution.x) } + Tga::Vector2f{ xOffset, yOffset });
-		statText.SetColor(Tga::Color(1, 1, 1));
-		statText.Render();
+		statText_->SetColor(Tga::Color(1, 1, 1));
+		statText_->Render();
 		
 		// Deaths
-		statText.SetText(std::to_string(data.deaths));
-		statText.SetPosition(Tga::Vector2f{ (position.x + 0.11f) * static_cast<float>(intResolution.x) + killsTextSize,
+		statText_->SetText(std::to_string(data.deaths));
+		statText_->SetPosition(Tga::Vector2f{ (position.x + 0.11f) * static_cast<float>(intResolution.x) + killsTextSize,
 			position.y * static_cast<float>(intResolution.x) } + Tga::Vector2f{ xOffset, yOffset });
-		statText.SetColor(Tga::Color(1, 0, 0));
-		statText.Render();
+		statText_->SetColor(Tga::Color(1, 0, 0));
+		statText_->Render();
 		
 		position.y += yIncrementPerText;
 	}

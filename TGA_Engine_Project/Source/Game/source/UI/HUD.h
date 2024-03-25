@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "NetIncludes.h"
+#include "tge/text/text.h"
 
 #include <string>
 
@@ -17,6 +18,8 @@ struct ScoreData
 class HUD
 {
 public:
+	~HUD();
+	
 	void Init();
 
 	void Update();
@@ -27,4 +30,6 @@ public:
 
 private:
 	std::vector<ScoreData> statScoreData_;
+
+	Tga::Text* statText_ = nullptr;
 };

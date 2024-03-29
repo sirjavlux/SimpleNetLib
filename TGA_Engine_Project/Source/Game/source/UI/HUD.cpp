@@ -103,7 +103,7 @@ ScoreData HUD::FetchScoreTextFromNetTarget(const sockaddr_in& InAddress)
 	if (possessionMap.find(InAddress) != possessionMap.end())
 	{
 		const PlayerShipEntity* player = dynamic_cast<PlayerShipEntity*>(EntityManager::Get()->GetEntityById(possessionMap.at(InAddress)));
-		if (player != nullptr)
+		if (player != nullptr && EntityManager::Get()->GetPossessedEntity() != nullptr)
 		{
 			result.bIsSelf = EntityManager::Get()->GetPossessedEntity()->GetId() == player->GetId();
 			

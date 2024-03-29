@@ -62,6 +62,7 @@ void Packet::GetComponents(std::vector<const PacketComponent*>& OutComponents) c
     int iterator = 0;
     ExtractComponent(OutComponents, iterator);
 }
+
 void Packet::Reset()
 {
     packetIdentifier_ = GenerateIdentifier();

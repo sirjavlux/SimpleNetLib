@@ -5,12 +5,11 @@
 struct PacketFrequencyData
 {
 	uint8_t frequency = 30;
-	float ackFrequencyMultiplier = 1.f;
 	EPacketHandlingType handlingType;
   
 	bool operator==(const PacketFrequencyData& InOther) const
 	{
-		return frequency == InOther.frequency && handlingType == InOther.handlingType && ackFrequencyMultiplier == InOther.ackFrequencyMultiplier;
+		return frequency == InOther.frequency && handlingType == InOther.handlingType;
 	}
     
 	bool operator<(const PacketFrequencyData& InOther) const
@@ -38,7 +37,6 @@ template<> struct hash<PacketFrequencyData>
 		std::size_t hashResult = 0;
 		hash_combine(hashResult, InData.frequency);
 		hash_combine(hashResult, InData.handlingType);
-		hash_combine(hashResult, InData.ackFrequencyMultiplier);
 		return hashResult;
 	}
 };
@@ -46,11 +44,10 @@ template<> struct hash<PacketFrequencyData>
 
 struct PacketComponentAssociatedData
 {
-	bool shouldOverrideOldWaitingComponent = false;
+	bool shouldOverrideMatchingExistingComponent = false;
 
-	// Send delay in seconds/60 fps fixed
-	float packetFrequencySeconds = 0.5f;
-	float packetFrequencyAckResendMultiplier = 2.f;
+	// Send delay in ticks
+	uint8_t packetFrequency = 30;
 	
 	EPacketHandlingType handlingType;
 
@@ -59,7 +56,7 @@ struct PacketComponentAssociatedData
 	float distanceToCullPacketComponentAt = -1.f;
 	
 	// first -> distance : second -> frequency
-	std::vector<std::pair<float, float>> packetLodFrequencies;
+	std::vector<std::pair<float, uint8_t>> packetLodFrequencies;
 
 	// Total size of component object
 	uint16_t componentObjectTotalSize = 0;

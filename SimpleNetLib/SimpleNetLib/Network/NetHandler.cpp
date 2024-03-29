@@ -33,8 +33,7 @@ void NetHandler::Initialize()
         const PacketComponentAssociatedData associatedData = PacketComponentAssociatedData
         {
             false,
-            0.3f,
-            4.f,
+            18,
             EPacketHandlingType::Ack
         };
         SimpleNetLibCore::Get()->GetPacketComponentRegistry()->RegisterPacketComponent<ServerDisconnectPacketComponent, NetHandler>
@@ -48,8 +47,7 @@ void NetHandler::Initialize()
         const PacketComponentAssociatedData associatedData = PacketComponentAssociatedData
         {
             false,
-            1.f,
-            1.f,
+            30,
             EPacketHandlingType::Ack
         };
         SimpleNetLibCore::Get()->GetPacketComponentRegistry()->RegisterPacketComponent<ServerPingPacketComponent>(associatedData);
@@ -58,8 +56,7 @@ void NetHandler::Initialize()
         const PacketComponentAssociatedData associatedData = PacketComponentAssociatedData
         {
             false,
-            FIXED_UPDATE_DELTA_TIME,
-            0.1f,
+            1,
             EPacketHandlingType::Ack
         };
         SimpleNetLibCore::Get()->GetPacketComponentRegistry()->RegisterPacketComponent<DataReplicationPacketComponent>(associatedData);
@@ -68,8 +65,7 @@ void NetHandler::Initialize()
         const PacketComponentAssociatedData associatedData = PacketComponentAssociatedData
         {
             false,
-            0.05f,
-            1.f,
+            6,
             EPacketHandlingType::None
         };
         SimpleNetLibCore::Get()->GetPacketComponentRegistry()->RegisterPacketComponent<ReturnAckComponent>(associatedData);
@@ -130,6 +126,8 @@ void NetHandler::SendPacketToTarget(const sockaddr_storage& InTarget, const Pack
     {
         std::cout << "Error: " << WSAGetLastError() << '\n';
     }
+
+    //std::cout << InPacket.GetIdentifier() << " : " << (InPacket.GetPacketType() == EPacketHandlingType::Ack ? "Ack" : "Not Ack") << " : " << "Sent Packet!\n"; // Temporary Debug
 }
 
 const NetTarget* NetHandler::RetrieveChildConnectionNetTargetInstance(const sockaddr_storage& InAddress) const
@@ -409,7 +407,7 @@ void NetHandler::ProcessPackets()
         {
             continue;
         }
-        
+
         //std::cout << packet.GetIdentifier() << " : " << (packet.GetPacketType() == EPacketHandlingType::Ack ? "Ack" : "Not Ack") << " : " << "Got Packet!\n"; // Temporary Debug
         
         // Handle Components

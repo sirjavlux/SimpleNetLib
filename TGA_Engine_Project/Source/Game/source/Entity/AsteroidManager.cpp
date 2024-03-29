@@ -5,7 +5,6 @@
 #include "../Definitions.hpp"
 #include "Collision/CircleCollider.hpp"
 #include "Entities/AsteroidEntity.h"
-#include "EntityComponents/ColliderComponent.h"
 
 void AsteroidManager::Initialize()
 {

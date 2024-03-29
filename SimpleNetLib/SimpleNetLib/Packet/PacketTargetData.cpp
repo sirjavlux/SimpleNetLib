@@ -15,10 +15,9 @@ void Net::PacketTargetData::AddPacketComponentToSend(const std::shared_ptr<Packe
     return;
   }
 
-  const float frequencyToSendAt = InCustomAssociatedData != nullptr ? InCustomAssociatedData->packetFrequencySeconds : packetComponentSettings->packetFrequencySeconds;
+  const uint8_t frequencyToSendAt = InCustomAssociatedData != nullptr ? InCustomAssociatedData->packetFrequency : packetComponentSettings->packetFrequency;
 
-  const PacketFrequencyData frequencyData = { FromPacketComponentSendFrequencySecondsToTicks(frequencyToSendAt),
-    packetComponentSettings->packetFrequencyAckResendMultiplier, packetComponentSettings->handlingType }; 
+  const PacketFrequencyData frequencyData = { frequencyToSendAt, packetComponentSettings->handlingType }; 
   
   AddPacketComponentToSend(InComponent, frequencyData, packetComponentSettings);
 }
@@ -30,8 +29,7 @@ void Net::PacketTargetData::AddPacketComponentToSendWithLod(const std::shared_pt
 
   const uint8_t frequency = GetLodedFrequency(InCustomAssociatedData != nullptr ? InCustomAssociatedData : packetComponentSettings, InDistanceSqr);
 
-  const PacketFrequencyData frequencyData = { frequency,
-    packetComponentSettings->packetFrequencyAckResendMultiplier, packetComponentSettings->handlingType };
+  const PacketFrequencyData frequencyData = { frequency, packetComponentSettings->handlingType };
   
   AddPacketComponentToSend(InComponent, frequencyData, packetComponentSettings);
 }
@@ -43,14 +41,35 @@ void Net::PacketTargetData::AddAckPacketIfContainingData(const PacketFrequencyDa
     return;
   }
   
-  ackPacketsNotReturned_.insert({ Packet.GetIdentifier(), { PacketFrequencyData, Packet } });
+  if (ackPacketsNotReturned_.find(PacketFrequencyData) == ackPacketsNotReturned_.end())
+  {
+    ackPacketsNotReturned_.insert({ PacketFrequencyData, {} });
+  }
+  
+  PacketResendData& sendData = ackPacketsNotReturned_.at(PacketFrequencyData);
+  sendData.AddPacket(Packet);
+
+  ackPacketsFrequencyMap_.insert({ Packet.GetIdentifier(), PacketFrequencyData });
   
   //std::cout << "Added ack packet " << Packet.GetIdentifier() << "\n"; // Temporary debug
 }
 
 void Net::PacketTargetData::RemoveReturnedPacket(const uint32_t InIdentifier)
 {
-  ackPacketsNotReturned_.erase(InIdentifier);
+  const auto& iteratorFrequency = ackPacketsFrequencyMap_.find(InIdentifier);
+  if (iteratorFrequency != ackPacketsFrequencyMap_.end())
+  {
+    const auto& iteratorPacketData = ackPacketsNotReturned_.find(iteratorFrequency->second);
+    if (iteratorPacketData != ackPacketsNotReturned_.end())
+    {
+      PacketResendData& resendData = iteratorPacketData->second;
+      resendData.RemovePacket(InIdentifier);
+
+      //std::cout << "Removed ack packet " << InIdentifier << "\n"; // Temporary debug
+    }
+
+    ackPacketsFrequencyMap_.erase(InIdentifier);
+  }
 }
 
 uint8_t Net::PacketTargetData::FromPacketComponentSendFrequencySecondsToTicks(const float InFrequencySeconds)
@@ -61,11 +80,11 @@ uint8_t Net::PacketTargetData::FromPacketComponentSendFrequencySecondsToTicks(co
 
 uint8_t Net::PacketTargetData::GetLodedFrequency(const PacketComponentAssociatedData* InAssociatedData, const float InDistanceSqr)
 {
-  float frequencyToSendAt = InAssociatedData->packetFrequencySeconds;
-  const std::vector<std::pair<float, float>>& lodFrequencies = InAssociatedData->packetLodFrequencies;
+  uint8_t frequencyToSendAt = InAssociatedData->packetFrequency;
+  const std::vector<std::pair<float, uint8_t>>& lodFrequencies = InAssociatedData->packetLodFrequencies;
   
   size_t iter = 0;
-  for (const std::pair<float, float>& frequencyData : lodFrequencies)
+  for (const std::pair<float, uint8_t>& frequencyData : lodFrequencies)
   {
     ++iter;
     if (InDistanceSqr > std::powf(frequencyData.first, 2.f)
@@ -76,63 +95,70 @@ uint8_t Net::PacketTargetData::GetLodedFrequency(const PacketComponentAssociated
     }
   }
 
-  return FromPacketComponentSendFrequencySecondsToTicks(frequencyToSendAt);
+  return frequencyToSendAt;
 }
 
 void Net::PacketTargetData::AddPacketComponentToSend(const std::shared_ptr<PacketComponent>& InComponent,
                                                      const PacketFrequencyData& InFrequencyData, const PacketComponentAssociatedData* InPacketComponentSettings)
 {
-  const uint8_t relativeTick = PacketManager::Get()->GetRelativeTick();
-  PacketFrequencyData newFrequency = InFrequencyData;
-  newFrequency.frequency += relativeTick;
-  
   if (packetComponentsToSendAtCertainFrequency_.find(InFrequencyData) == packetComponentsToSendAtCertainFrequency_.end())
   {
     packetComponentsToSendAtCertainFrequency_.insert({ InFrequencyData, {} });
   }
   
   PacketToSendData& sendData = packetComponentsToSendAtCertainFrequency_.at(InFrequencyData);
-  if (newFrequency.handlingType != EPacketHandlingType::Ack && !sendData.HasSpaceForComponent(InComponent))
+  if (InFrequencyData.handlingType != EPacketHandlingType::Ack)
   {
-    if (!InPacketComponentSettings->shouldOverrideOldWaitingComponent || !sendData.TryOverrideExistingComponent(InComponent, *InPacketComponentSettings))
+    if (InPacketComponentSettings->shouldOverrideMatchingExistingComponent && sendData.TryOverrideExistingComponent(InComponent, *InPacketComponentSettings))
     {
-      // Try sending next tick if full
-      newFrequency.frequency += 1;
-      newFrequency.frequency -= relativeTick;
-      
-      AddPacketComponentToSend(InComponent, newFrequency, InPacketComponentSettings);
+      return;
     }
   }
-  else
+  
+  sendData.AddComponent(InComponent, *InPacketComponentSettings);
+}
+
+void PacketResendData::AddPacket(const Net::Packet& InPacket)
+{
+  packets_.insert({ InPacket.GetIdentifier(), InPacket });
+}
+
+void PacketResendData::RemovePacket(const uint32_t InIdentifier)
+{
+  packets_.erase(InIdentifier);
+  packetIterator_ -= 1;
+  acksToResend_ -= 1;
+}
+
+void PacketResendData::ResendPackets(const sockaddr_storage& InTarget)
+{
+  auto packetIterator = packets_.begin();
+  
+  const int end = packetIterator_ + PACKETS_MAX_SEND_PER_TICK > acksToResend_ ? acksToResend_ : packetIterator_ + PACKETS_MAX_SEND_PER_TICK;
+  const int start = packetIterator_;
+
+  if (start < 0)
+    return;
+  
+  std::advance(packetIterator, start);
+  
+  for (int i = start; i < end; ++i)
   {
-    sendData.AddComponent(InComponent, *InPacketComponentSettings);
+    Net::SimpleNetLibCore::Get()->GetNetHandler()->SendPacketToTarget(InTarget, packetIterator->second);
+    std::advance(packetIterator, 1);
   }
 }
 
 void PacketToSendData::AddComponent(const std::shared_ptr<Net::PacketComponent>& InComponent, const PacketComponentAssociatedData& InAssociatedData)
 {
-  if (InAssociatedData.shouldOverrideOldWaitingComponent && TryOverrideExistingComponent(InComponent, InAssociatedData))
-  {
-    return;
-  }
-
-  currentMemorySize_ += InComponent->GetSize();
   components_.push_back(InComponent);
 }
 
-void PacketToSendData::RemoveComponents(const int InIndex, const int InAmount)
+void PacketToSendData::RemoveComponents(const int InAmount)
 {
   for (int i = 0; i < InAmount; ++i)
   {
-    if (static_cast<int>(components_.size()) > InIndex)
-    {
-      currentMemorySize_ -= components_.at(InIndex)->GetSize();
-      RemoveComponent(InIndex);
-    }
-    else
-    {
-      return;
-    }
+    RemoveComponent(0);
   }
 }
 
@@ -140,14 +166,9 @@ void PacketToSendData::RemoveComponent(const int InIndex)
 {
   if (static_cast<int>(components_.size()) > InIndex)
   {
-    currentMemorySize_ -= components_.at(InIndex)->GetSize();
     components_.erase(components_.begin() + InIndex);
+    --componentsToSend_;
   }
-}
-
-bool PacketToSendData::HasSpaceForComponent(const std::shared_ptr<Net::PacketComponent>& InComponent) const
-{
-  return currentMemorySize_ + InComponent->GetSize() <= NET_PACKET_COMPONENT_DATA_SIZE_TOTAL;
 }
 
 bool PacketToSendData::TryOverrideExistingComponent(const std::shared_ptr<Net::PacketComponent>& InComponent, const PacketComponentAssociatedData& InAssociatedData)
@@ -162,10 +183,6 @@ bool PacketToSendData::TryOverrideExistingComponent(const std::shared_ptr<Net::P
       
     if (InComponent->ShouldOverrideComponent(*component))
     {
-      // Subtract and add in case of variable size components
-      currentMemorySize_ -= component->GetSize();
-      currentMemorySize_ += InComponent->GetSize();
-        
       component = InComponent;
       return true;
     }

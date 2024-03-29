@@ -377,7 +377,7 @@ void EntityManager::OnEntitySpawnReceived(const sockaddr_storage& InAddress, con
   // Send back has been spawned
   ClientHasReceivedSpawnEntityComponent entityHasBeenSpawnedComponent;
   entityHasBeenSpawnedComponent.entityId = component->entityId;
-  Net::PacketManager::Get()->SendPacketComponent<ClientHasReceivedSpawnEntityComponent>(entityHasBeenSpawnedComponent, InAddress);
+  Net::PacketManager::Get()->SendPacketComponentToParent<ClientHasReceivedSpawnEntityComponent>(entityHasBeenSpawnedComponent);
   
   //std::cout << "Spawn entity received! " << entitySpawned->GetTypeTagHash() << " : " <<  component->entityId << "\n";
 }
@@ -591,6 +591,8 @@ void EntityManager::OnEntitySpawnHasBeenReceived(const sockaddr_storage& InAddre
 {
   const ClientHasReceivedSpawnEntityComponent* component = reinterpret_cast<const ClientHasReceivedSpawnEntityComponent*>(&InComponent);
 
+  //std::cout << "Spawn has been received! " << component->entityId << "\n";
+  
   Entity* entity = GetEntityById(component->entityId);
   if (entity != nullptr)
   {
@@ -604,6 +606,7 @@ void EntityManager::OnEntitySpawnHasBeenReceived(const sockaddr_storage& InAddre
         packetComponent.typeHash = entityComponent.second->typeTagHash_;
         packetComponent.entityComponentId = entityComponent.second->id_;
         Net::PacketManager::Get()->SendPacketComponent<AddComponentToEntityComponent>(packetComponent, InAddress);
+        //std::cout << "Sending component " << packetComponent.entityComponentId << "\n";
       }
     }
     else
@@ -633,6 +636,7 @@ void EntityManager::OnAddEntityComponentReceived(const sockaddr_storage& InAddre
 {
   const AddComponentToEntityComponent* component = reinterpret_cast<const AddComponentToEntityComponent*>(&InComponent);
 
+  //std::cout << "Add entity component received! " << component->entityComponentId << " : " <<  component->entityId << "\n";
   AddComponentToEntity(component->entityId, component->typeHash, component->entityComponentId);
 }
 
@@ -640,6 +644,8 @@ void EntityManager::OnEntityComponentAddHasBeenReceived(const sockaddr_storage& 
 {
   const ClientHasReceivedAddComponentToEntityComponent* component = reinterpret_cast<const ClientHasReceivedAddComponentToEntityComponent*>(&InComponent);
 
+  //std::cout << "Add component has been received! " << component->entityComponentId << " : " <<  component->entityId << "\n";
+  
   Entity* entity = GetEntityById(component->entityId);
   if (entity != nullptr)
   {
@@ -798,8 +804,7 @@ void EntityManager::RegisterPacketComponents()
   const PacketComponentAssociatedData associatedDataAckComps = PacketComponentAssociatedData
   {
     false,
-    FIXED_UPDATE_DELTA_TIME,
-    1.f,
+    2,
     EPacketHandlingType::Ack
   };
   
@@ -816,21 +821,19 @@ void EntityManager::RegisterPacketComponents()
   const PacketComponentAssociatedData associatedDataEveryTick = PacketComponentAssociatedData
   {
     false,
-    FIXED_UPDATE_DELTA_TIME,
-    1.f,
+    1,
     EPacketHandlingType::None,
   };
   Net::SimpleNetLibCore::Get()->GetPacketComponentRegistry()->RegisterPacketComponent<InputComponent, EntityManager>(associatedDataEveryTick, &EntityManager::OnInputReceived, this);
 
-  std::vector<std::pair<float, float>> packetLodFrequencies;
-  packetLodFrequencies.emplace_back(1.f, 0.05f);
-  packetLodFrequencies.emplace_back(2.f, 0.15f);
-  packetLodFrequencies.emplace_back(4.f, 0.4f);
+  std::vector<std::pair<float, uint8_t>> packetLodFrequencies;
+  packetLodFrequencies.emplace_back(1.f, 3);
+  packetLodFrequencies.emplace_back(2.f, 12);
+  packetLodFrequencies.emplace_back(4.f, 26);
   const PacketComponentAssociatedData associatedEntityPositionData = PacketComponentAssociatedData
   {
     true,
-    FIXED_UPDATE_DELTA_TIME,
-    1.f,
+    1,
     EPacketHandlingType::None,
     6.f,
     packetLodFrequencies

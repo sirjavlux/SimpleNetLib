@@ -36,6 +36,9 @@ public:
     template<typename ComponentType>
     bool SendPacketComponent(const ComponentType& InPacketComponent, const sockaddr_storage& InTarget, const PacketComponentAssociatedData* InCustomAssociatedData = nullptr);
 
+    template<typename ComponentType>
+    bool SendPacketComponentWithLod(const ComponentType& InPacketComponent, const NetUtility::NetVector3& InPosition, const sockaddr_storage& InTarget, const PacketComponentAssociatedData* InCustomAssociatedData = nullptr);
+
     // Keep in mind, this can be a bit expensive due to no lod or culling
     template<typename ComponentType>
     bool SendPacketComponentMulticast(const ComponentType& InPacketComponent);
@@ -61,14 +64,15 @@ private:
     void HandleComponent(const sockaddr_storage& InComponentSender, const PacketComponent& InPacketComponent);
     
     void FixedUpdate();
-    void UpdatePacketsWaitingForReturnAck(const sockaddr_storage& InTarget, const PacketTargetData& InTargetData) const;
+    void UpdatePacketsWaitingForReturnAck(const sockaddr_storage& InTarget, PacketTargetData& InTargetData) const;
     void UpdatePacketsToSend(const sockaddr_storage& InTarget, PacketTargetData& InTargetData) const;
+    
     std::chrono::steady_clock::time_point lastUpdateTime_;
     double updateLag_ = 0.0;
 
     std::chrono::steady_clock::time_point lastUpdateFinishedTime_;
     
-    bool DoesUpdateIterMatchPacketFrequency(const PacketFrequencyData& InPacketFrequencyData, bool InIsPacketResend) const;
+    bool DoesUpdateIterMatchPacketFrequency(const PacketFrequencyData& InPacketFrequencyData) const;
     
     static void OnNetTargetConnected(const sockaddr_storage& InTarget);
     static void OnNetTargetDisconnection(const sockaddr_storage& InTarget, uint8_t InDisconnectType);
@@ -121,6 +125,42 @@ bool PacketManager::SendPacketComponent(const ComponentType& InPacketComponent, 
 
     packetTargetData.AddPacketComponentToSend(std::make_shared<ComponentType>(InPacketComponent), InCustomAssociatedData);
     
+    return true;
+}
+
+template <typename ComponentType>
+bool PacketManager::SendPacketComponentWithLod(const ComponentType& InPacketComponent, const NetUtility::NetVector3& InPosition, const sockaddr_storage& InTarget, const PacketComponentAssociatedData* InCustomAssociatedData)
+{
+    const std::unordered_map<sockaddr_in, NetTarget>& connections = SimpleNetLibCore::Get()->GetNetHandler()->GetNetConnectionHandler().GetConnections();
+    const sockaddr_in ipv4Address = NetUtility::RetrieveIPv4AddressFromStorage(InTarget);
+
+    if (connections.find(ipv4Address) == connections.end())
+    {
+        return false;
+    }
+    
+    const NetTarget& connection = connections.at(ipv4Address);
+    
+    // Check associated data validity
+    const PacketComponentAssociatedData* associatedData = SimpleNetLibCore::Get()->GetPacketComponentRegistry()->FetchPacketComponentAssociatedData(InPacketComponent.GetIdentifier());
+    if (!associatedData)
+    {
+        return false;
+    }
+            
+    // Preliminary culling check
+    const float distanceSqr = InPosition.DistanceSqr(connection.netCullingPosition);
+    if (associatedData->distanceToCullPacketComponentAt > -1
+        && distanceSqr > std::powf(associatedData->distanceToCullPacketComponentAt, 2.f))
+    {
+        return false; // Continue if culling distance is exceeded
+    }
+    
+    PacketTargetData& packetTargetData = packetTargetDataMap_.at(InTarget);
+            
+    // Send packet with the correct lod frequency
+    packetTargetData.AddPacketComponentToSendWithLod(std::make_shared<ComponentType>(InPacketComponent), distanceSqr, InCustomAssociatedData);
+
     return true;
 }
 

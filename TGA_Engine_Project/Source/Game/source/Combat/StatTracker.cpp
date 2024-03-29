@@ -13,8 +13,7 @@ void StatTracker::Initialize()
 	const PacketComponentAssociatedData associatedDataAckComps = PacketComponentAssociatedData
 	{
 	false,
-	FIXED_UPDATE_DELTA_TIME,
-	0.1f,
+	4,
 	EPacketHandlingType::Ack
 	};
 	

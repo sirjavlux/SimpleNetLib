@@ -120,17 +120,17 @@ void PacketManager::FixedUpdate()
     }
 }
 
-void PacketManager::UpdatePacketsWaitingForReturnAck(const sockaddr_storage& InTarget, const PacketTargetData& InTargetData) const
+void PacketManager::UpdatePacketsWaitingForReturnAck(const sockaddr_storage& InTarget, PacketTargetData& InTargetData) const
 {
-    const std::unordered_map<uint32_t, std::pair<PacketFrequencyData, Packet>>& packetsNotReturned = InTargetData.GetPacketsNotReturned();
-    for (const auto& packetDataPair : packetsNotReturned)
+    std::unordered_map<PacketFrequencyData, PacketResendData>& packetsNotReturned = InTargetData.GetPacketsNotReturned();
+    for (auto& packetDataPair : packetsNotReturned)
     {
-        const PacketFrequencyData& frequencyData = packetDataPair.second.first;
-        if (DoesUpdateIterMatchPacketFrequency(frequencyData, true))
+        const PacketFrequencyData& frequencyData = packetDataPair.first;
+        if (DoesUpdateIterMatchPacketFrequency(frequencyData))
         {
-            const Packet& packet = packetDataPair.second.second;
-            SimpleNetLibCore::Get()->GetNetHandler()->SendPacketToTarget(InTarget, packet);
+            packetDataPair.second.UpdateComponentAmountToSend();
         }
+        packetDataPair.second.ResendPackets(InTarget);
     }
 }
 
@@ -141,8 +141,17 @@ void PacketManager::UpdatePacketsToSend(const sockaddr_storage& InTarget, Packet
     for (auto packetIter = packetComponents.begin(); packetIter != packetComponents.end(); ++packetIter)
     {
         const PacketFrequencyData& frequencyData = packetIter->first;
-        if (DoesUpdateIterMatchPacketFrequency(frequencyData, false))
+        
+        packetIter->second.UpdateComponentAmountToSend(frequencyData);
+        
+        for (int i = 0; i < PACKETS_MAX_SEND_PER_TICK; ++i)
         {
+            const int maxAmountToSend = packetIter->second.AmountOfComponentsToSend();
+            if (maxAmountToSend < 1)
+            {
+                break;
+            }
+            
             const EPacketHandlingType handlingType = frequencyData.handlingType;
             Packet packet = Packet(handlingType);
             
@@ -153,25 +162,23 @@ void PacketManager::UpdatePacketsToSend(const sockaddr_storage& InTarget, Packet
             int componentsAdded = 0;
             if (!components.empty())
             {
-                for (auto it = components.rbegin(); it != components.rend(); ++it)
+                for (componentsAdded = 0; componentsAdded < maxAmountToSend; ++componentsAdded)
                 {
-                    const EAddComponentResult result = packet.AddComponent(**it);
-                    if (result != EAddComponentResult::Success)
+                    if (const EAddComponentResult result = packet.AddComponent(*components[componentsAdded]);
+                        result != EAddComponentResult::Success)
                     {
                         break;
                     }
-
-                    ++componentsAdded;
                 }
             }
-
+            
             // Update checksum
             packet.CalculateAndUpdateCheckSum();
             
             // Remove added components
             if (componentsAdded > 0)
             {
-                packetSendData.RemoveComponents(static_cast<int>(components.size()) - componentsAdded, componentsAdded);
+                packetSendData.RemoveComponents(componentsAdded);
             }
 
             // Add to ack container if of Ack type
@@ -196,7 +203,7 @@ void PacketManager::UpdatePacketsToSend(const sockaddr_storage& InTarget, Packet
     }
 }
 
-bool PacketManager::DoesUpdateIterMatchPacketFrequency(const PacketFrequencyData& InPacketFrequencyData, const bool InIsPacketResend) const
+bool PacketManager::DoesUpdateIterMatchPacketFrequency(const PacketFrequencyData& InPacketFrequencyData) const
 {
     if (InPacketFrequencyData.frequency == 0)
     {
@@ -204,10 +211,6 @@ bool PacketManager::DoesUpdateIterMatchPacketFrequency(const PacketFrequencyData
     }
 
     int modifiedFrequency = InPacketFrequencyData.frequency;
-    if (InIsPacketResend)
-    {
-       modifiedFrequency = static_cast<int>(static_cast<float>(modifiedFrequency) * InPacketFrequencyData.ackFrequencyMultiplier);
-    }
     modifiedFrequency = modifiedFrequency <= 0 ? 1 : modifiedFrequency;
     
     const int updateIterator = std::abs(updateIterator_);

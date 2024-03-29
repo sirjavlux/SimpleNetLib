@@ -11,6 +11,9 @@ struct GenerationData
 	std::string path;
 	
 	float colliderSize = 0.01f;
+
+	float sizeMultiplier = 1.f;
+	uint8_t sortPriority = 0;
 };
 
 class AsteroidManager

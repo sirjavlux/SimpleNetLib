@@ -76,11 +76,31 @@ void GameWorld::GenerateStars() const
 	std::uniform_real_distribution distributionY(-WORLD_BG_GENERATION_SIZE_Y / 2.f, WORLD_BG_GENERATION_SIZE_Y / 2.f);
 	
 	std::vector<GenerationData> spritePowerMap;
-	spritePowerMap.emplace_back(GenerationData{1.f, "Sprites/GameBG/Star0.png"});
-	spritePowerMap.emplace_back(GenerationData{6.f, "Sprites/GameBG/Star1.png"});
-	spritePowerMap.emplace_back(GenerationData{1.f, "Sprites/GameBG/Star2.png"});
-	spritePowerMap.emplace_back(GenerationData{10.f, "Sprites/GameBG/Star3.png"});
-	spritePowerMap.emplace_back(GenerationData{20.f, "Sprites/GameBG/Star4.png"});
+
+	// Planets
+	constexpr float planetSizeMultiplier = 4.f;
+	constexpr float planetSpawnChance = 0.0035f;
+	spritePowerMap.emplace_back(GenerationData{planetSpawnChance, "Sprites/Planets/BlackHole.png", 0.f, 6, 1 });
+	spritePowerMap.emplace_back(GenerationData{planetSpawnChance, "Sprites/Planets/DryDarkPlanet.png", 0.f, planetSizeMultiplier, 2 });
+	spritePowerMap.emplace_back(GenerationData{planetSpawnChance, "Sprites/Planets/Galaxy0.png", 0.f, planetSizeMultiplier, 2 });
+	spritePowerMap.emplace_back(GenerationData{planetSpawnChance, "Sprites/Planets/Galaxy1.png", 0.f, planetSizeMultiplier, 2 });
+	spritePowerMap.emplace_back(GenerationData{planetSpawnChance, "Sprites/Planets/Galaxy2.png", 0.f, planetSizeMultiplier, 2 });
+	spritePowerMap.emplace_back(GenerationData{planetSpawnChance, "Sprites/Planets/GasGiant.png", 0.f, planetSizeMultiplier, 2 });
+	spritePowerMap.emplace_back(GenerationData{planetSpawnChance, "Sprites/Planets/GasGiantRing.png", 0.f, planetSizeMultiplier, 2 });
+	spritePowerMap.emplace_back(GenerationData{planetSpawnChance, "Sprites/Planets/IcePlanet.png", 0.f, planetSizeMultiplier, 2 });
+	spritePowerMap.emplace_back(GenerationData{planetSpawnChance, "Sprites/Planets/LavaPlanet.png", 0.f, planetSizeMultiplier, 2 });
+	spritePowerMap.emplace_back(GenerationData{planetSpawnChance, "Sprites/Planets/Moon.png", 0.f, planetSizeMultiplier, 2 });
+	spritePowerMap.emplace_back(GenerationData{planetSpawnChance, "Sprites/Planets/RedPlanet.png", 0.f, planetSizeMultiplier, 2 });
+	spritePowerMap.emplace_back(GenerationData{planetSpawnChance, "Sprites/Planets/Star.png", 0.f, planetSizeMultiplier, 2 });
+	spritePowerMap.emplace_back(GenerationData{planetSpawnChance, "Sprites/Planets/WaterPlanet.png", 0.f, planetSizeMultiplier, 2 });
+	spritePowerMap.emplace_back(GenerationData{planetSpawnChance, "Sprites/Planets/WetPlanet.png", 0.f, planetSizeMultiplier, 2 });
+
+	// Stars far away
+	spritePowerMap.emplace_back(GenerationData{1.f, "Sprites/GameBG/Star0.png", 0.f, 2.f, 0 });
+	spritePowerMap.emplace_back(GenerationData{6.f, "Sprites/GameBG/Star1.png", 0.f, 2.f, 0 });
+	spritePowerMap.emplace_back(GenerationData{1.f, "Sprites/GameBG/Star2.png", 0.f, 2.f, 0 });
+	spritePowerMap.emplace_back(GenerationData{10.f, "Sprites/GameBG/Star3.png", 0.f, 2.f, 0 });
+	spritePowerMap.emplace_back(GenerationData{20.f, "Sprites/GameBG/Star4.png", 0.f, 2.f, 0 });
 	
 	for (int i = 0; i < starsToSpawn; ++i)
 	{
@@ -89,13 +109,15 @@ void GameWorld::GenerateStars() const
 
 		Entity* entity = EntityManager::Get()->SpawnEntityLocal(NetTag("sprite"), { randomXValue, randomYValue });
 		RenderComponent* renderComponent = entity->GetFirstComponent<RenderComponent>().lock().get();
-		renderComponent->SetSpriteSizeMultiplier(2.f);
-		
+
 		entity->SetIsStatic(true);
 		entity->SetIsOnlyVisual(true);
 		
 		// Select Sprite
 		const GenerationData generationData = GetRandomGenerationData(spritePowerMap);
 		renderComponent->SetSpriteTexture(generationData.path.c_str());
+
+		renderComponent->SetSpriteSizeMultiplier(generationData.sizeMultiplier);
+		renderComponent->SetRenderSortingPriority(generationData.sortPriority);
 	}
 }

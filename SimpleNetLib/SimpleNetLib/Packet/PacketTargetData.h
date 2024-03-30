@@ -40,16 +40,23 @@ struct PacketToSendData
 	
 	void UpdateComponentAmountToSend(const PacketFrequencyData& InFrequency)
 	{
-		componentsToSend_ = static_cast<int>(components_.size() / InFrequency.frequency);
-		if (componentsToSend_ < 1 && !components_.empty())
-			componentsToSend_ = 1;
+		componentsToSendPerFrame_ = static_cast<int>(components_.size() / InFrequency.frequency);
+		if (componentsToSendPerFrame_ < 1 && !components_.empty())
+		{
+			componentsToSendPerFrame_ = 1;
+		}
+		componentsToSendTotal_ = static_cast<int>(components_.size());
+		componentsToSendIterator_ = 0;
 	}
 	
-	int AmountOfComponentsToSend() const { return componentsToSend_; }
+	int AmountOfComponentsLeftToSend() const { return componentsToSendTotal_ - componentsToSendIterator_; }
+	int AmountOfComponentsToSendThisFrame() const { return componentsToSendPerFrame_; }
 	
 private:
     std::vector<std::shared_ptr<Net::PacketComponent>> components_;
-	int componentsToSend_ = 0;
+	int componentsToSendIterator_ = 0;
+	int componentsToSendTotal_ = 0;
+	int componentsToSendPerFrame_ = 0;
 };
 
 namespace Net

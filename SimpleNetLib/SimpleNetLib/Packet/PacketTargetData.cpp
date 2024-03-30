@@ -167,7 +167,7 @@ void PacketToSendData::RemoveComponent(const int InIndex)
   if (static_cast<int>(components_.size()) > InIndex)
   {
     components_.erase(components_.begin() + InIndex);
-    --componentsToSend_;
+    ++componentsToSendIterator_;
   }
 }
 

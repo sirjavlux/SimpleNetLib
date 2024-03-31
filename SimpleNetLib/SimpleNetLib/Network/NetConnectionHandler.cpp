@@ -53,7 +53,7 @@ bool NetConnectionHandler::HasPacketBeenReceived(const sockaddr_storage& InAddre
     const NetTarget* netTarget = GetNetTarget(InAddress);
     if (netTarget)
     {
-        bResult = netTarget->sequenceNumberBitmap.IsReceived(InIdentifier);
+        bResult = netTarget->sequenceNumberBitmap.IsSet(InIdentifier);
     }
     
     return bResult;
@@ -64,7 +64,7 @@ void NetConnectionHandler::SetPacketMarketAsReceived(const sockaddr_storage& InA
     NetTarget* netTarget = RetrieveNetTarget(InAddress);
     if (netTarget)
     {
-        netTarget->sequenceNumberBitmap.MarkReceived(InIdentifier);
+        netTarget->sequenceNumberBitmap.MarkSet(InIdentifier);
     }
 }
 

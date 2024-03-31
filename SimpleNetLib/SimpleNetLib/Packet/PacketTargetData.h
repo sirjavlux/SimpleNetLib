@@ -26,15 +26,14 @@ private:
 
 struct PacketToSendData
 {
-    const std::vector<std::shared_ptr<Net::PacketComponent>>& GetComponents() const
+    const std::map<uint32_t, std::shared_ptr<Net::PacketComponent>>& GetComponents() const
     {
       return components_;
     }
 
     void AddComponent(const std::shared_ptr<Net::PacketComponent>& InComponent, const PacketComponentAssociatedData& InAssociatedData);
-  
-    void RemoveComponents(int InAmount);
-    void RemoveComponent(int InIndex);
+
+	void RemoveComponentBySendDataId(uint32_t InSendDataId);
 	
 	bool TryOverrideExistingComponent(const std::shared_ptr<Net::PacketComponent>& InComponent, const PacketComponentAssociatedData& InAssociatedData);
 	
@@ -45,18 +44,22 @@ struct PacketToSendData
 		{
 			componentsToSendPerFrame_ = 1;
 		}
-		componentsToSendTotal_ = static_cast<int>(components_.size());
-		componentsToSendIterator_ = 0;
 	}
 	
-	int AmountOfComponentsLeftToSend() const { return componentsToSendTotal_ - componentsToSendIterator_; }
-	int AmountOfComponentsToSendThisFrame() const { return componentsToSendPerFrame_; }
+	int AmountOfComponentsToSendPerFrame() const { return componentsToSendPerFrame_; }
 	
 private:
-    std::vector<std::shared_ptr<Net::PacketComponent>> components_;
-	int componentsToSendIterator_ = 0;
-	int componentsToSendTotal_ = 0;
 	int componentsToSendPerFrame_ = 0;
+
+	uint32_t componentSendDataIdIter_ = 0;
+	
+	// All Components
+    //std::vector<std::shared_ptr<Net::PacketComponent>> components_;
+	// Packet Component SendData ID : Packet Component
+	std::map<uint32_t, std::shared_ptr<Net::PacketComponent>> components_;
+	
+	// Override Data : Packet Component SendData ID
+	std::unordered_map<uint16_t, uint32_t> overrideComponents_;
 };
 
 namespace Net

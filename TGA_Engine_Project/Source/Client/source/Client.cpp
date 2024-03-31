@@ -1,5 +1,7 @@
 #include "Client.h"
 
+#include <sstream>
+
 #include "tge/Engine.h"
 
 #include "SimpleNetLib.h"
@@ -39,6 +41,12 @@ void Client::Init()
     gameWorld_ = new GameWorld();
     gameWorld_->Init();
     gameWorld_->InitClient();
+
+    Net::NetHandler* netHandler = Net::SimpleNetLibCore::Get()->GetNetHandler();
+    netHandler->EnablePacketTracking(true);
+
+    ImGuiIO& imguiIo = ImGui::GetIO();
+    imguiIo.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 }
 
 void Client::End()
@@ -72,7 +80,7 @@ void Client::Update(const float InDeltaTime)
     
     if (!Net::SimpleNetLibCore::Get()->GetNetHandler()->IsRunning())
     {
-        if (ImGui::Begin("Connection Window", &bIsOpen_))
+        if (ImGui::Begin("TheWindow", &bIsOpen_, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings))
         {
             ImGui::InputText("Server Address", &addressBuffer_[0], 24);
             ImGui::InputText("Server Port", &portBuffer_[0], 6);
@@ -89,5 +97,26 @@ void Client::Update(const float InDeltaTime)
             
             ImGui::End();
         }
+    }
+
+    const Net::NetHandler* netHandler = Net::SimpleNetLibCore::Get()->GetNetHandler();
+    const std::unordered_map<uint16_t, int>& packetComponentsReceived = netHandler->GetPacketComponentsReceivedCounter();
+    
+    // Packet tracking
+    if (ImGui::Begin("TheWindow", &bIsOpen_, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings))
+    {
+        ImGui::Text("Packet Components received by type");
+
+        ImGui::Indent(2);
+        for (const auto& componentsReceived : packetComponentsReceived)
+        {
+            std::stringstream streamID;
+            streamID << "ID: " << componentsReceived.first;
+            std::stringstream stream;
+            stream << "Count: " << componentsReceived.second;
+            ImGui::LabelText(streamID.str().c_str(), stream.str().c_str());
+        }
+            
+        ImGui::End();
     }
 }

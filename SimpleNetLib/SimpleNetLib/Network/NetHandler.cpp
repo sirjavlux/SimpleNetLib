@@ -441,6 +441,14 @@ void NetHandler::ProcessPackets()
         // Handle Components
         for (const PacketComponent* component : outComponents)
         {
+            // Tracking packets
+            if (bShouldTrackPackets_ && !IsServer())
+            {
+                int& count = packetComponentsReceivedCounterByType_[component->GetIdentifier()];
+                ++count;
+            }
+
+            // Handle and delete
             PacketManager::Get()->HandleComponent(senderAddress, *component);
             delete[] reinterpret_cast<const uint8_t*>(component);
         }

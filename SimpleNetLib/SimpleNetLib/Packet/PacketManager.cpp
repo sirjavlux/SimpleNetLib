@@ -141,61 +141,71 @@ void PacketManager::UpdatePacketsToSend(const sockaddr_storage& InTarget, Packet
     for (auto packetIter = packetComponents.begin(); packetIter != packetComponents.end(); ++packetIter)
     {
         const PacketFrequencyData& frequencyData = packetIter->first;
-        
-        packetIter->second.UpdateComponentAmountToSend(frequencyData);
-        
-        const int componentsLeftToSendThisCycle = packetIter->second.AmountOfComponentsLeftToSend();
-        if (componentsLeftToSendThisCycle < 1)
-        {
-            break;
-        }
 
-        int componentsLeftToSendThisFrame = packetIter->second.AmountOfComponentsToSendThisFrame();
-        componentsLeftToSendThisFrame = componentsLeftToSendThisFrame > componentsLeftToSendThisCycle ? componentsLeftToSendThisCycle : componentsLeftToSendThisFrame;
-            
-        const EPacketHandlingType handlingType = frequencyData.handlingType;
-        Packet packet = Packet(handlingType);
-            
-        PacketToSendData& packetSendData = packetIter->second;
-        const std::vector<std::shared_ptr<PacketComponent>>& components = packetSendData.GetComponents();
-            
-        // Add Components to new Packet
-        int componentsAdded = 0;
-        if (!components.empty())
+        if (DoesUpdateIterMatchPacketFrequency(frequencyData))
         {
-            for (componentsAdded = 0; componentsAdded < componentsLeftToSendThisFrame; ++componentsAdded)
+            packetIter->second.UpdateComponentAmountToSend(frequencyData);
+        }
+        
+        int componentsLeftToSendThisFrame = packetIter->second.AmountOfComponentsToSendPerFrame();
+
+        // Keep sending until components to send this frame is empty
+        while (componentsLeftToSendThisFrame > 0)
+        {
+            const EPacketHandlingType handlingType = frequencyData.handlingType;
+            Packet packet = Packet(handlingType);
+            
+            PacketToSendData& packetSendData = packetIter->second;
+            const std::map<uint32_t, std::shared_ptr<PacketComponent>>& components = packetSendData.GetComponents();
+            
+            if (componentsLeftToSendThisFrame > static_cast<int>(components.size()))
             {
-                if (const EAddComponentResult result = packet.AddComponent(*components[componentsAdded]);
-                    result != EAddComponentResult::Success)
+                componentsLeftToSendThisFrame = static_cast<int>(components.size());
+            }
+            
+            // Add Components to new Packet
+            int componentsAdded = 0;
+            if (!components.empty())
+            {
+                auto iterator = components.begin();
+                for (componentsAdded = 0; componentsAdded < componentsLeftToSendThisFrame; ++componentsAdded)
                 {
-                    break;
+                    if (const EAddComponentResult result = packet.AddComponent(*iterator->second);
+                        result != EAddComponentResult::Success)
+                    {
+                        break;
+                    }
+                    std::advance(iterator, 1);
                 }
             }
-        }
-            
-        // Update checksum
-        packet.CalculateAndUpdateCheckSum();
-            
-        // Remove added components
-        if (componentsAdded > 0)
-        {
-            packetSendData.RemoveComponents(componentsAdded);
-        }
 
-        // Add to ack container if of Ack type
-        if (handlingType == EPacketHandlingType::Ack)
-        {
-            InTargetData.AddAckPacketIfContainingData(frequencyData, packet);
-        }
+            componentsLeftToSendThisFrame -= componentsAdded;
             
-        if (components.empty())
-        {
-            toRemove.push_back(frequencyData);
-        }
+            // Update checksum
+            packet.CalculateAndUpdateCheckSum();
+            
+            // Remove added components
+            for (int i = 0; i < componentsAdded; ++i)
+            {
+                const uint32_t id = packetSendData.GetComponents().begin()->first;
+                packetSendData.RemoveComponentBySendDataId(id);
+            }
+
+            // Add to ack container if of Ack type
+            if (handlingType == EPacketHandlingType::Ack)
+            {
+                InTargetData.AddAckPacketIfContainingData(frequencyData, packet);
+            }
+            
+            if (components.empty())
+            {
+                toRemove.push_back(frequencyData);
+            }
                 
-        SimpleNetLibCore::Get()->GetNetHandler()->SendPacketToTarget(InTarget, packet);
+            SimpleNetLibCore::Get()->GetNetHandler()->SendPacketToTarget(InTarget, packet);
+        }
     }
-
+    
     // Remove empty frequency containers
     for (const PacketFrequencyData& dataToRemove : toRemove)
     {

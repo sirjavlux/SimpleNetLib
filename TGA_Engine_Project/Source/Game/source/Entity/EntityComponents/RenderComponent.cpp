@@ -93,6 +93,14 @@ void RenderComponent::SetSpriteTexture(const char* InTexturePath)
   }
   
   textureIdentifier_ = NetTag(InTexturePath);
+
+  // TODO: Temporary debug
+  if (!owner_->IsEntityLocal() && !Net::PacketManager::Get()->IsServer())
+  {
+    static int count = 0;
+    std::cout << "Textures set: " << count << "\n";
+    ++count;
+  }
 }
 
 RenderData RenderComponent::GetRenderData() const

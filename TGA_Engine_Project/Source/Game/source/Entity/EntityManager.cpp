@@ -449,9 +449,24 @@ void EntityManager::OnConnectionReceived(const sockaddr_storage& InAddress, cons
     Net::SimpleNetLibCore::Get()->GetNetHandler()->KickNetTarget(InAddress, static_cast<uint8_t>(EDisconnectType::UsernameTaken));
     return;
   }
-  
-  // Spawn existing entities // TODO: Might need to update this to not be as intense, sending data pieces culled by range
+
+  // Spawn player controllable entity
+  const NetTag playerTypeTag = NetTag("player.ship");
+  const Tga::Vector2f startPosition = GenerateRandomSpawnPos();
+  PlayerShipEntity* entitySpawned = dynamic_cast<PlayerShipEntity*>(SpawnEntityServer(playerTypeTag, startPosition));
+  SetPossessedEntityByNetTarget(NetUtility::RetrieveIPv4AddressFromStorage(InAddress), entitySpawned->GetId());
+  entitySpawned->SetUsername(username);
+
+  // Sort by distance
+  std::map<float, Entity*> entitiesByDistance;
   for (const auto& entity : entities_)
+  {
+    Entity* entityPtr = entity.second.get();
+    entitiesByDistance.insert({ Tga::Vector2f::DistanceSqr(entityPtr->position_, startPosition), entityPtr });
+  }
+  
+  // Spawn existing entities
+  for (const auto& entity : entitiesByDistance)
   {
     SpawnEntityComponent spawnEntityComponent;
     spawnEntityComponent.entityId = entity.second->GetId();
@@ -460,21 +475,6 @@ void EntityManager::OnConnectionReceived(const sockaddr_storage& InAddress, cons
     spawnEntityComponent.yPos = entity.second->GetPosition().y;
     Net::PacketManager::Get()->SendPacketComponent<SpawnEntityComponent>(spawnEntityComponent, InAddress);
   }
-  
-  // Spawn player controllable entity
-  const NetTag playerTypeTag = NetTag("player.ship");
-  const Tga::Vector2f startPosition = GenerateRandomSpawnPos();
-  PlayerShipEntity* entitySpawned = dynamic_cast<PlayerShipEntity*>(SpawnEntityServer(playerTypeTag, startPosition));
-  SetPossessedEntityByNetTarget(NetUtility::RetrieveIPv4AddressFromStorage(InAddress), entitySpawned->GetId());
-  entitySpawned->SetUsername(username);
-
-  /*
-  SetEntityPossessedComponent setEntityPossessed;
-  setEntityPossessed.entityIdentifier = entitySpawned->GetId();
-  setEntityPossessed.bShouldPossess = true;
-  std::memcpy(setEntityPossessed.usernameBuffer, usernameBuffer, USERNAME_MAX_LENGTH);
-  Net::PacketManager::Get()->SendPacketComponent<SetEntityPossessedComponent>(setEntityPossessed, InAddress);
-  */
   
   Locator::Get()->GetStatTracker()->UpdateAllStatsForPlayer(InAddress);
 }

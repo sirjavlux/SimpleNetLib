@@ -2,7 +2,7 @@
 
 #include <chrono>
 
-#include "SequenceNumberBitmap.hpp"
+#include "NumberBitmap.hpp"
 #include "../Utility/NetVector3.h"
 #include "../Utility/NetOperatorOverloads.hpp"
 
@@ -37,7 +37,7 @@ struct NetTarget
         return !(*this == InNetTarget);
     }
     
-    SequenceNumberBitmap sequenceNumberBitmap;
+    NumberBitmap sequenceNumberBitmap;
 
     NetUtility::NetVector3 netCullingPosition;
     

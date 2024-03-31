@@ -63,6 +63,9 @@ public:
     void OnKickedFromServerReceived(const sockaddr_storage& InAddress, const PacketComponent& InComponent);
     
     const sockaddr_in& GetAddress() const { return address_; }
+
+    const std::unordered_map<uint16_t, int>& GetPacketComponentsReceivedCounter() const { return packetComponentsReceivedCounterByType_; }
+    void EnablePacketTracking(const bool InShouldTrack) { bShouldTrackPackets_ = InShouldTrack; }
     
 private:
     void Update();
@@ -102,6 +105,10 @@ private:
     std::vector<PacketProcessData> packetDataToProcess_;
     
     std::chrono::steady_clock::time_point serverConnectionTimePoint_;
+
+    // TODO: Do more elaborate tracking/profiling
+    bool bShouldTrackPackets_ = false;
+    std::unordered_map<uint16_t, int> packetComponentsReceivedCounterByType_;
     
     bool bHasParentServer_ = false;
     bool bIsServer_ = false;

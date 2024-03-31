@@ -44,6 +44,7 @@ void Replicable::UpdateReplicationForTarget(const sockaddr_storage& InAddress, c
 	
 	if (replicationPacketComponent_.GetSize() > REPLICATION_COMPONENT_SIZE_EMPTY + VARIABLE_DATA_OBJECT_DEFAULT_SIZE)
 	{
+		oldReplicationPacketComponent_ = replicationPacketComponent_; // Replace old cached data
 		Net::PacketManager::Get()->SendPacketComponent<DataReplicationPacketComponent>(replicationPacketComponent_, InAddress);
 	}
 

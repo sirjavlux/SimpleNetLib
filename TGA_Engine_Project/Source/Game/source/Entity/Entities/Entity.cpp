@@ -8,10 +8,10 @@ Entity::Entity()
 	customAssociatedDataReplication_.packetFrequency = 18;
 
 	std::vector<std::pair<float, uint8_t>> packetLodFrequencies;
-	packetLodFrequencies.emplace_back(1.0f, 3);
-	packetLodFrequencies.emplace_back(1.2f, 18);
-	packetLodFrequencies.emplace_back(1.8f, 60);
-	packetLodFrequencies.emplace_back(3.0f, 180);
+	packetLodFrequencies.emplace_back(1.0f, 4);
+	packetLodFrequencies.emplace_back(1.2f, 32);
+	packetLodFrequencies.emplace_back(1.8f, 128);
+	packetLodFrequencies.emplace_back(3.0f, 256);
 	
 	customAssociatedDataMovementReplication_.packetFrequency = 3;
 	customAssociatedDataMovementReplication_.packetLodFrequencies = packetLodFrequencies;
@@ -77,29 +77,13 @@ void Entity::UpdateReplicationEntity()
 		return;
 	}
 	
-	// Custom replication
-	uint8_t frequency;
-	if (bShouldUseCustomReplicationData_)
-	{
-		frequency = customAssociatedDataReplication_.packetFrequency;
-	}
-	else
-	{
-		const uint16_t componentIdentifier = replicationPacketComponent_.GetIdentifier();
-		const PacketComponentAssociatedData* packetComponentSettings = Net::SimpleNetLibCore::Get()->GetPacketComponentRegistry()->FetchPacketComponentAssociatedData(componentIdentifier);
-		frequency = packetComponentSettings->packetFrequency;
-	}
-	
-	if (Net::PacketManager::Get()->GetUpdateIterator() % frequency == 0)
-	{
-		GetVariableDataObject().SerializeMemberVariable(*this, parentEntity_);
-		UpdateReplication(id_, 0);
+	GetVariableDataObject().SerializeMemberVariable(*this, parentEntity_);
+	UpdateReplication(id_, 0);
 
-		// Update Custom Replication for Components
-		for (auto& component : componentsMap_)
-		{
-			component.second->UpdateReplication(id_, component.second->id_);
-		}
+	// Update Custom Replication for Components
+	for (const auto& component : componentsMap_)
+	{
+		component.second->UpdateReplication(id_, component.second->id_);
 	}
 	
 	// Replicate position if enabled
@@ -108,23 +92,19 @@ void Entity::UpdateReplicationEntity()
 		const std::unordered_map<sockaddr_in, Net::NetTarget>& connections = Net::SimpleNetLibCore::Get()->GetNetHandler()->GetNetConnectionHandler().GetConnections();
 		for (const auto& connection : connections)
 		{
-			const float distanceSqr = NetUtility::NetVector3{ targetPosition_.x, targetPosition_.y, 0.f }.DistanceSqr(connection.second.netCullingPosition);
 			const PacketComponentAssociatedData* packetComponentSettings = bShouldUseCustomMovementReplicationData_ ? &customAssociatedDataMovementReplication_
 				: Net::SimpleNetLibCore::Get()->GetPacketComponentRegistry()->FetchPacketComponentAssociatedData(replicationPacketComponent_.GetIdentifier());
-
-			const uint8_t loddedFrequency = Net::PacketTargetData::GetLodedFrequency(packetComponentSettings, distanceSqr);
-			if (!(packetComponentSettings->distanceToCullPacketComponentAt > 0 && packetComponentSettings->distanceToCullPacketComponentAt < distanceSqr)
-				&& Net::PacketManager::Get()->GetUpdateIterator() % loddedFrequency == 0)
-			{
-				UpdateEntityPositionComponent positionComponent;
-				positionComponent.positionUpdateData.bIsTeleport = false;
-				positionComponent.positionUpdateData.SetPosition(targetPosition_);
-				positionComponent.positionUpdateData.SetDirection(direction_);
-				positionComponent.entityIdentifier = GetId();
-				positionComponent.SetOverrideDefiningData(GetId());
-
-				Net::PacketManager::Get()->SendPacketComponentWithLod<UpdateEntityPositionComponent>(positionComponent, { targetPosition_.x, targetPosition_.y, 0.f }, NetUtility::RetrieveStorageFromIPv4Address(connection.first), packetComponentSettings);
-			}
+			
+			UpdateEntityPositionComponent positionComponent;
+			positionComponent.positionUpdateData.bIsTeleport = false;
+			positionComponent.positionUpdateData.SetPosition(targetPosition_);
+			positionComponent.positionUpdateData.SetDirection(direction_);
+			positionComponent.entityIdentifier = GetId();
+			positionComponent.SetOverrideDefiningData(GetId());
+			
+			Net::PacketManager::Get()->SendPacketComponentWithLod<UpdateEntityPositionComponent>(positionComponent,
+				{ targetPosition_.x, targetPosition_.y, 0.f },
+				NetUtility::RetrieveStorageFromIPv4Address(connection.first), packetComponentSettings);
 		}
 	}
 }

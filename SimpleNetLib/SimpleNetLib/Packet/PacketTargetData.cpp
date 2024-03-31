@@ -50,8 +50,6 @@ void Net::PacketTargetData::AddAckPacketIfContainingData(const PacketFrequencyDa
   sendData.AddPacket(Packet);
 
   ackPacketsFrequencyMap_.insert({ Packet.GetIdentifier(), PacketFrequencyData });
-  
-  //std::cout << "Added ack packet " << Packet.GetIdentifier() << "\n"; // Temporary debug
 }
 
 void Net::PacketTargetData::RemoveReturnedPacket(const uint32_t InIdentifier)
@@ -64,8 +62,6 @@ void Net::PacketTargetData::RemoveReturnedPacket(const uint32_t InIdentifier)
     {
       PacketResendData& resendData = iteratorPacketData->second;
       resendData.RemovePacket(InIdentifier);
-
-      //std::cout << "Removed ack packet " << InIdentifier << "\n"; // Temporary debug
     }
 
     ackPacketsFrequencyMap_.erase(InIdentifier);
@@ -151,41 +147,42 @@ void PacketResendData::ResendPackets(const sockaddr_storage& InTarget)
 
 void PacketToSendData::AddComponent(const std::shared_ptr<Net::PacketComponent>& InComponent, const PacketComponentAssociatedData& InAssociatedData)
 {
-  components_.push_back(InComponent);
-}
-
-void PacketToSendData::RemoveComponents(const int InAmount)
-{
-  for (int i = 0; i < InAmount; ++i)
+  const Net::PacketComponent* component = InComponent.get();
+  const uint16_t overrideData = component->GetOverrideDefiningData();
+  const uint32_t id = ++componentSendDataIdIter_;
+  
+  components_[id] = InComponent;
+  if (overrideData > 0)
   {
-    RemoveComponent(0);
+    overrideComponents_[overrideData] = id;
   }
 }
 
-void PacketToSendData::RemoveComponent(const int InIndex)
+void PacketToSendData::RemoveComponentBySendDataId(const uint32_t InSendDataId)
 {
-  if (static_cast<int>(components_.size()) > InIndex)
+  if (components_.find(InSendDataId) == components_.end())
   {
-    components_.erase(components_.begin() + InIndex);
-    ++componentsToSendIterator_;
+    return;
   }
+  
+  const Net::PacketComponent* component = components_.at(InSendDataId).get();
+  if (const uint16_t overrideData = component->GetOverrideDefiningData(); overrideData > 0)
+  {
+    overrideComponents_.erase(overrideData);
+  }
+
+  components_.erase(InSendDataId);
 }
 
 bool PacketToSendData::TryOverrideExistingComponent(const std::shared_ptr<Net::PacketComponent>& InComponent, const PacketComponentAssociatedData& InAssociatedData)
 {
-  const uint16_t componentIdentifier = InComponent->GetIdentifier();
-  for (auto& component : components_)
+  const uint16_t overrideData = InComponent->GetOverrideDefiningData();
+  
+  if (overrideComponents_.find(overrideData) != overrideComponents_.end())
   {
-    if (component->GetIdentifier() != componentIdentifier)
-    {
-      continue;
-    }
-      
-    if (InComponent->ShouldOverrideComponent(*component))
-    {
-      component = InComponent;
-      return true;
-    }
+    const uint32_t sendDataId = overrideComponents_.at(overrideData);
+    components_.at(sendDataId) = InComponent;
+    return true;
   }
   return false;
 }

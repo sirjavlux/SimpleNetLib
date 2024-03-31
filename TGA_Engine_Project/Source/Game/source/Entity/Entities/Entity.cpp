@@ -5,7 +5,7 @@
 
 Entity::Entity()
 {
-	customAssociatedDataReplication_.packetFrequency = 18;
+	customAssociatedDataReplication_.packetFrequency = 8;
 
 	std::vector<std::pair<float, uint8_t>> packetLodFrequencies;
 	packetLodFrequencies.emplace_back(1.0f, 4);
@@ -76,14 +76,18 @@ void Entity::UpdateReplicationEntity()
 	{
 		return;
 	}
-	
-	GetVariableDataObject().SerializeMemberVariable(*this, parentEntity_);
-	UpdateReplication(id_, 0);
 
-	// Update Custom Replication for Components
-	for (const auto& component : componentsMap_)
+	// Update Replication Data TODO: Preferably all objects shouldn't be replicated at once
+	if (Net::PacketManager::Get()->GetUpdateIterator() % customAssociatedDataReplication_.packetFrequency == 0)
 	{
-		component.second->UpdateReplication(id_, component.second->id_);
+		GetVariableDataObject().SerializeMemberVariable(*this, parentEntity_);
+		UpdateReplication(id_, 0);
+
+		// Update Custom Replication for Components
+		for (const auto& component : componentsMap_)
+		{
+			component.second->UpdateReplication(id_, component.second->id_);
+		}
 	}
 	
 	// Replicate position if enabled
@@ -92,19 +96,29 @@ void Entity::UpdateReplicationEntity()
 		const std::unordered_map<sockaddr_in, Net::NetTarget>& connections = Net::SimpleNetLibCore::Get()->GetNetHandler()->GetNetConnectionHandler().GetConnections();
 		for (const auto& connection : connections)
 		{
+			const float distanceSqr = NetUtility::NetVector3{ targetPosition_.x, targetPosition_.y, 0.f }.DistanceSqr(connection.second.netCullingPosition);
+			
 			const PacketComponentAssociatedData* packetComponentSettings = bShouldUseCustomMovementReplicationData_ ? &customAssociatedDataMovementReplication_
 				: Net::SimpleNetLibCore::Get()->GetPacketComponentRegistry()->FetchPacketComponentAssociatedData(replicationPacketComponent_.GetIdentifier());
+
+			const uint8_t loddedFrequency = Net::PacketTargetData::GetLodedFrequency(packetComponentSettings, distanceSqr);
+			if (loddedFrequency == 0)
+				continue;
 			
-			UpdateEntityPositionComponent positionComponent;
-			positionComponent.positionUpdateData.bIsTeleport = false;
-			positionComponent.positionUpdateData.SetPosition(targetPosition_);
-			positionComponent.positionUpdateData.SetDirection(direction_);
-			positionComponent.entityIdentifier = GetId();
-			positionComponent.SetOverrideDefiningData(GetId());
-			
-			Net::PacketManager::Get()->SendPacketComponentWithLod<UpdateEntityPositionComponent>(positionComponent,
-				{ targetPosition_.x, targetPosition_.y, 0.f },
-				NetUtility::RetrieveStorageFromIPv4Address(connection.first), packetComponentSettings);
+			if (!(packetComponentSettings->distanceToCullPacketComponentAt > 0 && packetComponentSettings->distanceToCullPacketComponentAt < distanceSqr)
+				&& Net::PacketManager::Get()->GetUpdateIterator() % loddedFrequency == 0)
+			{
+				UpdateEntityPositionComponent positionComponent;
+				positionComponent.positionUpdateData.bIsTeleport = false;
+				positionComponent.positionUpdateData.SetPosition(targetPosition_);
+				positionComponent.positionUpdateData.SetDirection(direction_);
+				positionComponent.entityIdentifier = GetId();
+				positionComponent.SetOverrideDefiningData(GetId());
+
+				Net::PacketManager::Get()->SendPacketComponentWithLod<UpdateEntityPositionComponent>
+					(positionComponent, { targetPosition_.x, targetPosition_.y, 0.f },
+					NetUtility::RetrieveStorageFromIPv4Address(connection.first), packetComponentSettings);
+			}
 		}
 	}
 }

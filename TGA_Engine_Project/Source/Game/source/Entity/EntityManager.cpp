@@ -108,6 +108,11 @@ void EntityManager::UpdateEntities(const float InDeltaTime)
         continue;
       }
 
+      if (!entity->bHasBeenReceived_ && IsServer())
+      {
+        continue;
+      }
+      
       entity->NativeFixedUpdate();
       entity->FixedUpdate();
       entity->FixedUpdateComponents();
@@ -120,6 +125,11 @@ void EntityManager::UpdateEntities(const float InDeltaTime)
         continue;
       }
 
+      if (!entity->bHasBeenReceived_ && IsServer())
+      {
+        continue;
+      }
+      
       entity->NativeFixedUpdate();
       entity->FixedUpdate();
       entity->FixedUpdateComponents();
@@ -132,6 +142,11 @@ void EntityManager::UpdateEntities(const float InDeltaTime)
   for (auto& entityData : entities_)
   {
     Entity* entity = entityData.second.get();
+    if (!entity->bHasBeenReceived_ && IsServer())
+    {
+      continue;
+    }
+    
     if (entity->bIsOnlyVisual_)
     {
       entity->renderComponent_->Update(0.f);
@@ -145,6 +160,11 @@ void EntityManager::UpdateEntities(const float InDeltaTime)
   for (auto& entityData : entitiesLocal_)
   {
     Entity* entity = entityData.second.get();
+    if (!entity->bHasBeenReceived_ && IsServer())
+    {
+      continue;
+    }
+    
     if (entity->bIsOnlyVisual_)
     {
       entity->renderComponent_->Update(0.f);

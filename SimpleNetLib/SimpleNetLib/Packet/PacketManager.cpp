@@ -54,11 +54,6 @@ void PacketManager::End()
     }
 }
 
-uint8_t PacketManager::GetRelativeTick() const
-{
-    return static_cast<uint8_t>(updateIterator_ % static_cast<int>(FIXED_UPDATES_PER_SECOND));
-}
-
 void PacketManager::Update()
 {
     if (!SimpleNetLibCore::Get()->GetNetHandler()->IsRunning())
@@ -128,7 +123,7 @@ void PacketManager::UpdatePacketsWaitingForReturnAck(const sockaddr_storage& InT
         const PacketFrequencyData& frequencyData = packetDataPair.first;
         if (DoesUpdateIterMatchPacketFrequency(frequencyData))
         {
-            packetDataPair.second.UpdateComponentAmountToSend();
+            packetDataPair.second.UpdateComponentAmountToSend(frequencyData);
         }
         packetDataPair.second.ResendPackets(InTarget);
     }

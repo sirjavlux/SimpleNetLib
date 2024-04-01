@@ -12,13 +12,14 @@ void BulletEntity::Init()
 {
 	bShouldUseCustomReplicationData_ = false;
 
-	std::vector<std::pair<float, uint8_t>> packetLodFrequencies;
+	std::vector<std::pair<float, uint16_t>> packetLodFrequencies;
 	packetLodFrequencies.emplace_back(1.0f, 1);
-	packetLodFrequencies.emplace_back(1.5f, 20);
+	//packetLodFrequencies.emplace_back(std::powf(1.5f, 2.f), 4);
+	//packetLodFrequencies.emplace_back(std::powf(2.f, 2.f), 8);
+	//packetLodFrequencies.emplace_back(std::powf(2.5f, 2.f), 30);
 	
 	customAssociatedDataMovementReplication_.packetFrequency = 1;
 	customAssociatedDataMovementReplication_.packetLodFrequencies = packetLodFrequencies;
-	customAssociatedDataMovementReplication_.distanceToCullPacketComponentAt = 2.f;
 }
 
 void BulletEntity::InitComponents()

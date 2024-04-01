@@ -4,7 +4,7 @@
 
 struct PacketFrequencyData
 {
-	uint8_t frequency = 30;
+	uint16_t frequency = 30;
 	EPacketHandlingType handlingType;
   
 	bool operator==(const PacketFrequencyData& InOther) const
@@ -47,7 +47,7 @@ struct PacketComponentAssociatedData
 	bool shouldOverrideMatchingExistingComponent = false;
 
 	// Send delay in ticks
-	uint8_t packetFrequency = 30;
+	uint16_t packetFrequency = 30;
 	
 	EPacketHandlingType handlingType;
 
@@ -56,7 +56,7 @@ struct PacketComponentAssociatedData
 	float distanceToCullPacketComponentAt = -1.f;
 	
 	// first -> distance : second -> frequency
-	std::vector<std::pair<float, uint8_t>> packetLodFrequencies;
+	std::vector<std::pair<float, uint16_t>> packetLodFrequencies;
 
 	// Total size of component object
 	uint16_t componentObjectTotalSize = 0;

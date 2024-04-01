@@ -7,14 +7,17 @@ Entity::Entity()
 {
 	customAssociatedDataReplication_.packetFrequency = 8;
 
-	std::vector<std::pair<float, uint8_t>> packetLodFrequencies;
+	std::vector<std::pair<float, uint16_t>> packetLodFrequencies;
 	packetLodFrequencies.emplace_back(1.0f, 4);
-	packetLodFrequencies.emplace_back(1.2f, 32);
-	packetLodFrequencies.emplace_back(1.8f, 128);
-	packetLodFrequencies.emplace_back(3.0f, 256);
+	packetLodFrequencies.emplace_back(std::powf(1.2f, 2.f), 8);
+	packetLodFrequencies.emplace_back(std::powf(1.8f, 2.f), 30);
+	packetLodFrequencies.emplace_back(std::powf(2.4f, 2.f), 180);
+	packetLodFrequencies.emplace_back(std::powf(3.2f, 2.f), 360);
+	packetLodFrequencies.emplace_back(std::powf(3.4f, 2.f), 1800);
 	
 	customAssociatedDataMovementReplication_.packetFrequency = 3;
 	customAssociatedDataMovementReplication_.packetLodFrequencies = packetLodFrequencies;
+	customAssociatedDataMovementReplication_.distanceToCullPacketComponentAt = std::powf(3.f, 2.f);
 }
 
 void Entity::NativeOnDestruction()
@@ -101,7 +104,7 @@ void Entity::UpdateReplicationEntity()
 			const PacketComponentAssociatedData* packetComponentSettings = bShouldUseCustomMovementReplicationData_ ? &customAssociatedDataMovementReplication_
 				: Net::SimpleNetLibCore::Get()->GetPacketComponentRegistry()->FetchPacketComponentAssociatedData(replicationPacketComponent_.GetIdentifier());
 
-			const uint8_t loddedFrequency = Net::PacketTargetData::GetLodedFrequency(packetComponentSettings, distanceSqr);
+			const uint16_t loddedFrequency = Net::PacketTargetData::GetLodedFrequency(packetComponentSettings, distanceSqr);
 			if (loddedFrequency == 0)
 				continue;
 			

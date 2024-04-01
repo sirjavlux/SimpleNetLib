@@ -54,8 +54,6 @@ public:
 
     bool IsServer() const { return managerType_ == ENetworkHandleType::Server; }
 
-    uint8_t GetRelativeTick() const;
-
     int GetUpdateIterator() const { return updateIterator_; }
     
 private:

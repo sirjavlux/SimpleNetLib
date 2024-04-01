@@ -15,7 +15,7 @@ void Net::PacketTargetData::AddPacketComponentToSend(const std::shared_ptr<Packe
     return;
   }
 
-  const uint8_t frequencyToSendAt = InCustomAssociatedData != nullptr ? InCustomAssociatedData->packetFrequency : packetComponentSettings->packetFrequency;
+  const uint16_t frequencyToSendAt = InCustomAssociatedData != nullptr ? InCustomAssociatedData->packetFrequency : packetComponentSettings->packetFrequency;
 
   const PacketFrequencyData frequencyData = { frequencyToSendAt, packetComponentSettings->handlingType }; 
   
@@ -27,7 +27,7 @@ void Net::PacketTargetData::AddPacketComponentToSendWithLod(const std::shared_pt
   const uint16_t componentIdentifier = InComponent->GetIdentifier();
   const PacketComponentAssociatedData* packetComponentSettings = SimpleNetLibCore::Get()->GetPacketComponentRegistry()->FetchPacketComponentAssociatedData(componentIdentifier);
 
-  const uint8_t frequency = GetLodedFrequency(InCustomAssociatedData != nullptr ? InCustomAssociatedData : packetComponentSettings, InDistanceSqr);
+  const uint16_t frequency = GetLodedFrequency(InCustomAssociatedData != nullptr ? InCustomAssociatedData : packetComponentSettings, InDistanceSqr);
 
   const PacketFrequencyData frequencyData = { frequency, packetComponentSettings->handlingType };
   
@@ -68,19 +68,19 @@ void Net::PacketTargetData::RemoveReturnedPacket(const uint32_t InIdentifier)
   }
 }
 
-uint8_t Net::PacketTargetData::FromPacketComponentSendFrequencySecondsToTicks(const float InFrequencySeconds)
+uint16_t Net::PacketTargetData::FromPacketComponentSendFrequencySecondsToTicks(const float InFrequencySeconds)
 {
-  const uint8_t result = static_cast<uint8_t>(FIXED_UPDATES_PER_SECOND * InFrequencySeconds);
+  const uint16_t result = static_cast<uint16_t>(FIXED_UPDATES_PER_SECOND * InFrequencySeconds);
   return result <= 0 ? 1 : result;
 }
 
-uint8_t Net::PacketTargetData::GetLodedFrequency(const PacketComponentAssociatedData* InAssociatedData, const float InDistanceSqr)
+uint16_t Net::PacketTargetData::GetLodedFrequency(const PacketComponentAssociatedData* InAssociatedData, const float InDistanceSqr)
 {
-  uint8_t frequencyToSendAt = InAssociatedData->packetFrequency;
-  const std::vector<std::pair<float, uint8_t>>& lodFrequencies = InAssociatedData->packetLodFrequencies;
+  uint16_t frequencyToSendAt = InAssociatedData->packetFrequency;
+  const std::vector<std::pair<float, uint16_t>>& lodFrequencies = InAssociatedData->packetLodFrequencies;
   
   size_t iter = 0;
-  for (const std::pair<float, uint8_t>& frequencyData : lodFrequencies)
+  for (const std::pair<float, uint16_t>& frequencyData : lodFrequencies)
   {
     ++iter;
     if (InDistanceSqr > std::powf(frequencyData.first, 2.f)
@@ -103,9 +103,30 @@ void Net::PacketTargetData::AddPacketComponentToSend(const std::shared_ptr<Packe
   }
   
   PacketToSendData& sendData = packetComponentsToSendAtCertainFrequency_.at(InFrequencyData);
-  if (InFrequencyData.handlingType != EPacketHandlingType::Ack)
+  if (InFrequencyData.handlingType != EPacketHandlingType::Ack && InPacketComponentSettings->shouldOverrideMatchingExistingComponent)
   {
-    if (InPacketComponentSettings->shouldOverrideMatchingExistingComponent && sendData.TryOverrideExistingComponent(InComponent, *InPacketComponentSettings))
+    PacketFrequencyData searchData = { 0, EPacketHandlingType::None };
+    // Remove other already existing components in other frequencies
+    if (InPacketComponentSettings->packetLodFrequencies.size() > 1)
+    {
+      for (const std::pair<float, uint16_t>& frequency : InPacketComponentSettings->packetLodFrequencies)
+      {
+        if (frequency.second == InFrequencyData.frequency)
+          continue;
+
+        searchData.frequency = frequency.second;
+
+        // Remove component if exists in frequency
+        if (packetComponentsToSendAtCertainFrequency_.find(searchData) != packetComponentsToSendAtCertainFrequency_.end())
+        {
+          PacketToSendData& sendDataOther = packetComponentsToSendAtCertainFrequency_.at(searchData);
+          sendDataOther.RemoveComponentByOverrideData(InComponent->GetOverrideDefiningData());
+        }
+      }
+    }
+    
+    // Override in current frequency if exists
+    if (sendData.TryOverrideExistingComponent(InComponent, *InPacketComponentSettings))
     {
       return;
     }
@@ -123,14 +144,13 @@ void PacketResendData::RemovePacket(const uint32_t InIdentifier)
 {
   packets_.erase(InIdentifier);
   packetIterator_ -= 1;
-  acksToResend_ -= 1;
 }
 
 void PacketResendData::ResendPackets(const sockaddr_storage& InTarget)
 {
   auto packetIterator = packets_.begin();
-  
-  const int end = packetIterator_ + PACKETS_MAX_SEND_PER_TICK > acksToResend_ ? acksToResend_ : packetIterator_ + PACKETS_MAX_SEND_PER_TICK;
+  const int packetsAmount = static_cast<int>(packets_.size());
+  const int end = packetIterator_ + acksToResendEachFrame_ >= packetsAmount ? packetsAmount : packetIterator_ + acksToResendEachFrame_;
   const int start = packetIterator_;
 
   if (start < 0)
@@ -143,6 +163,7 @@ void PacketResendData::ResendPackets(const sockaddr_storage& InTarget)
     Net::SimpleNetLibCore::Get()->GetNetHandler()->SendPacketToTarget(InTarget, packetIterator->second);
     std::advance(packetIterator, 1);
   }
+  packetIterator_ = end;
 }
 
 void PacketToSendData::AddComponent(const std::shared_ptr<Net::PacketComponent>& InComponent, const PacketComponentAssociatedData& InAssociatedData)
@@ -155,6 +176,17 @@ void PacketToSendData::AddComponent(const std::shared_ptr<Net::PacketComponent>&
   if (overrideData > 0)
   {
     overrideComponents_[overrideData] = id;
+  }
+}
+
+void PacketToSendData::RemoveComponentByOverrideData(const uint16_t InOverrideData)
+{
+  if (overrideComponents_.find(InOverrideData) != overrideComponents_.end())
+  {
+    const uint32_t id = overrideComponents_.at(InOverrideData);
+    
+    components_.erase(id);
+    overrideComponents_.erase(InOverrideData);
   }
 }
 
@@ -185,4 +217,13 @@ bool PacketToSendData::TryOverrideExistingComponent(const std::shared_ptr<Net::P
     return true;
   }
   return false;
+}
+
+uint32_t PacketToSendData::GetOverrideObjectByData(const uint16_t InOverrideData) const
+{
+  if (overrideComponents_.find(InOverrideData) != overrideComponents_.end())
+  {
+    return overrideComponents_.at(InOverrideData);
+  }
+  return 0;
 }

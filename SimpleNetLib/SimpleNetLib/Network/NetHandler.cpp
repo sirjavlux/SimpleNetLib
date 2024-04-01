@@ -391,6 +391,12 @@ void NetHandler::ProcessPackets()
         UpdateNetTarget(senderAddress);
 
         const bool bIsConnected = IsConnected(senderAddress);
+
+        // Check if checksum of packet is valid with the received packet
+        if (packet.GetCheckSum() != packet.CalculateCheckSum())
+        {
+            continue;
+        }
         
         // Send back response if of Ack type
         if (packet.GetPacketType() == EPacketHandlingType::Ack && bIsConnected)
@@ -399,11 +405,6 @@ void NetHandler::ProcessPackets()
         }
         // Check if packet has already been received
         if (connectionHandler_.HasPacketBeenReceived(senderAddress, packet.GetIdentifier()))
-        {
-            continue;
-        }
-        // Check if checksum of packet is valid with the received packet
-        if (packet.GetCheckSum() != packet.CalculateCheckSum())
         {
             continue;
         }

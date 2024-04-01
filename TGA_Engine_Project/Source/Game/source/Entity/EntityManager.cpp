@@ -546,12 +546,13 @@ void EntityManager::OnPositionUpdateReceived(const sockaddr_storage& InAddress, 
   if (entities_.find(component->entityIdentifier) != entities_.end())
   {
     Entity* entity = entities_.at(component->entityIdentifier).get();
-    if (component->positionUpdateData.bIsTeleport)
+    const Tga::Vector2f newPosition = component->positionUpdateData.GetPosition();
+    if (component->positionUpdateData.bIsTeleport) //|| Tga::Vector2f::DistanceSqr(entity->position_, newPosition) > 0.4f)
     {
-      entity->SetPosition(component->positionUpdateData.GetPosition(), component->positionUpdateData.bIsTeleport);
+      entity->SetPosition(newPosition, component->positionUpdateData.bIsTeleport);
     } else
     {
-      entity->SetTargetPosition(component->positionUpdateData.GetPosition());
+      entity->SetTargetPosition(newPosition);
     }
     entity->SetDirection(component->positionUpdateData.GetDirection());
   }
@@ -560,7 +561,7 @@ void EntityManager::OnPositionUpdateReceived(const sockaddr_storage& InAddress, 
 void EntityManager::OnSetEntityPossessedReceived(const sockaddr_storage& InAddress, const Net::PacketComponent& InComponent)
 {
   const SetEntityPossessedComponent* component = reinterpret_cast<const SetEntityPossessedComponent*>(&InComponent);
-
+  
   Entity* entity = GetEntityById(component->entityIdentifier);
   if (entity)
   {
@@ -573,7 +574,6 @@ void EntityManager::OnSetEntityPossessedReceived(const sockaddr_storage& InAddre
       }
         
       SetPossessedEntityByNetTarget(component->possessor, component->entityIdentifier);
-      
       if (component->bShouldPossess)
       {
         possessedEntity_ = entity;
@@ -804,7 +804,7 @@ void EntityManager::RegisterPacketComponents()
   const PacketComponentAssociatedData associatedDataAckComps = PacketComponentAssociatedData
   {
     false,
-    2,
+    1,
     EPacketHandlingType::Ack
   };
   
@@ -826,7 +826,7 @@ void EntityManager::RegisterPacketComponents()
   };
   Net::SimpleNetLibCore::Get()->GetPacketComponentRegistry()->RegisterPacketComponent<InputComponent, EntityManager>(associatedDataEveryTick, &EntityManager::OnInputReceived, this);
 
-  std::vector<std::pair<float, uint8_t>> packetLodFrequencies;
+  std::vector<std::pair<float, uint16_t>> packetLodFrequencies;
   packetLodFrequencies.emplace_back(1.f, 3);
   packetLodFrequencies.emplace_back(2.f, 12);
   packetLodFrequencies.emplace_back(4.f, 26);

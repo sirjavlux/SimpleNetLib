@@ -17,7 +17,6 @@ Entity::Entity()
 	
 	customAssociatedDataMovementReplication_.packetFrequency = 3;
 	customAssociatedDataMovementReplication_.packetLodFrequencies = packetLodFrequencies;
-	customAssociatedDataMovementReplication_.distanceToCullPacketComponentAt = std::powf(3.f, 2.f);
 }
 
 void Entity::NativeOnDestruction()

@@ -306,7 +306,7 @@ void ControllerComponent::UpdateInput()
     }
 
     GetCursorPosInScreenSpace(*engine.GetHWND(), lastCursorPos_);
-    const Tga::Vector2f shipScreenPos = static_cast<Tga::Vector2f>(engine.GetRenderSize()) / 2.f;
+    const Tga::Vector2f shipScreenPos = static_cast<Tga::Vector2f>(engine.GetWindowSize()) / 2.f;
     const Tga::Vector2f cursorPosVector = { static_cast<float>(lastCursorPos_.x), static_cast<float>(lastCursorPos_.y) };
     const Tga::Vector2f direction = (cursorPosVector - shipScreenPos).GetNormalized();
     inputTargetDirection_ = std::atan2(direction.y, direction.x);

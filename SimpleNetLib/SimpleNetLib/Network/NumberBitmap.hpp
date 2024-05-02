@@ -9,60 +9,55 @@
 class NumberBitmap
 {
 public:
-  NumberBitmap() : maxNumber_(NUMBER_BITMAP_START_SIZE)
-  {
-    // Calculate the size of the bitmap vector needed
-    const uint64_t size = maxNumber_ / NUMBER_BITMAP_BITSIZE_PER_STORAGE_UNIT + 1;
-    // Initialize bitmap with all zeros
-    bitmap_ = std::vector<uint64_t>(size, 0);
-  }
+    NumberBitmap() : maxNumber_(NUMBER_BITMAP_START_SIZE)
+    {
+        // Calculate the size of the bitmap vector needed
+        const uint64_t size = maxNumber_ / NUMBER_BITMAP_BITSIZE_PER_STORAGE_UNIT + 1;
+        // Initialize bitmap with all zeros
+        bitmap_ = std::vector<uint64_t>(size, 0);
+    }
 
-  void MarkSet(const uint64_t InNumber, const bool InShouldBeSet = true)
-  {
-    // If exceeds max number, grow vector
-    if (InNumber > maxNumber_)
+    void MarkSet(const uint64_t InNumber, const bool InShouldBeSet = true)
     {
-      Grow(InNumber);
-    }
-    
-    const uint64_t index = InNumber / NUMBER_BITMAP_BITSIZE_PER_STORAGE_UNIT;
-    const uint64_t bitPosition = InNumber % NUMBER_BITMAP_BITSIZE_PER_STORAGE_UNIT;
-    if (InShouldBeSet)
-    {
-      bitmap_[index] |= 1ull << bitPosition;
-    }
-    // TODO: Implement this case
-    else
-    {
-      
-    }
-  }
+        // If exceeds max number, grow vector
+        while (InNumber >= maxNumber_)
+        {
+            Grow(InNumber);
+        }
 
-  bool IsSet(const uint64_t InNumber) const
-  {
-    // If exceeds max number, grow vector
-    if (InNumber > maxNumber_)
-    {
-      return false;
+        const uint64_t index = InNumber / NUMBER_BITMAP_BITSIZE_PER_STORAGE_UNIT;
+        const uint64_t bitPosition = InNumber % NUMBER_BITMAP_BITSIZE_PER_STORAGE_UNIT;
+        if (InShouldBeSet)
+        {
+            bitmap_[index] |= 1ull << bitPosition;
+        }
+        // TODO: Implement this case
+        else
+        {
+
+        }
     }
-    
-    const uint64_t index = InNumber / NUMBER_BITMAP_BITSIZE_PER_STORAGE_UNIT;
-    const uint64_t bitPosition = InNumber % NUMBER_BITMAP_BITSIZE_PER_STORAGE_UNIT;
-    return (bitmap_[index] & 1ull << bitPosition) != 0;
-  }
+
+    bool IsSet(const uint64_t InNumber) const
+    {
+        // If exceeds max number, grow vector
+        if (InNumber >= maxNumber_)
+        {
+            return false;
+        }
+
+        const uint64_t index = InNumber / NUMBER_BITMAP_BITSIZE_PER_STORAGE_UNIT;
+        const uint64_t bitPosition = InNumber % NUMBER_BITMAP_BITSIZE_PER_STORAGE_UNIT;
+        return (bitmap_[index] & 1ull << bitPosition) != 0;
+    }
 
 private:
-  void Grow(const uint64_t InNumber)
-  {
-    // Calculate Grow Size
-      const uint64_t index = InNumber / NUMBER_BITMAP_BITSIZE_PER_STORAGE_UNIT;
-      const uint64_t indexesNeeded = static_cast<uint64_t>(floor(log2(index)));
-      const uint64_t sizeToGrowTo = static_cast<uint64_t>(pow(2, indexesNeeded + 1));
-    
-      maxNumber_ = sizeToGrowTo;
-      bitmap_.resize(maxNumber_);
-  }
-  
-  uint64_t maxNumber_;
-  std::vector<uint64_t> bitmap_;
+    void Grow(const uint64_t InNumber)
+    {
+        maxNumber_ *= 2;
+        bitmap_.resize(maxNumber_ / NUMBER_BITMAP_BITSIZE_PER_STORAGE_UNIT + 1);
+    }
+
+    uint64_t maxNumber_;
+    std::vector<uint64_t> bitmap_;
 };

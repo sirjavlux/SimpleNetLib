@@ -142,8 +142,7 @@ void PacketResendData::AddPacket(const Net::Packet& InPacket)
 
 void PacketResendData::RemovePacket(const uint32_t InIdentifier)
 {
-  packets_.erase(InIdentifier);
-  packetIterator_ -= 1;
+    packets_.erase(InIdentifier);
 }
 
 void PacketResendData::ResendPackets(const sockaddr_storage& InTarget)
@@ -151,10 +150,7 @@ void PacketResendData::ResendPackets(const sockaddr_storage& InTarget)
   auto packetIterator = packets_.begin();
   const int packetsAmount = static_cast<int>(packets_.size());
   const int end = packetIterator_ + acksToResendEachFrame_ >= packetsAmount ? packetsAmount : packetIterator_ + acksToResendEachFrame_;
-  const int start = packetIterator_;
-
-  if (start < 0)
-    return;
+  const int start = packetIterator_ > packetsAmount ? packetsAmount : packetIterator_;
   
   std::advance(packetIterator, start);
   

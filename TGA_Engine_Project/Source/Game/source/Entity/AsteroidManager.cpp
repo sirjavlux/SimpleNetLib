@@ -16,7 +16,7 @@ void AsteroidManager::Initialize()
 
 	if (Net::PacketManager::Get()->IsServer())
 	{
-		constexpr int asteroidsToSpawn = 8000;
+		constexpr int asteroidsToSpawn = 4000;
 		for (int i = 0; i < asteroidsToSpawn; ++i)
 		{
 			SpawnRandomAsteroidInMap();

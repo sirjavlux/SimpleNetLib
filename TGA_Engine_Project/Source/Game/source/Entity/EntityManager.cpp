@@ -385,6 +385,7 @@ void EntityManager::OnEntitySpawnReceived(const sockaddr_storage& InAddress, con
   Entity* entitySpawned = AddEntity(component->entityTypeHash, component->entityId);
   if (entitySpawned == nullptr)
   {
+      std::cout << "Entity has already been spawned! " << component->entityId << "\n";
     return;
   }
   

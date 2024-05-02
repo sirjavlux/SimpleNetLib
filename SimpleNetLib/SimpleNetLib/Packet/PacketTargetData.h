@@ -22,7 +22,7 @@ struct PacketResendData
 	void ResendPackets(const sockaddr_storage& InTarget);
 	
 private:
-	std::unordered_map<uint32_t, Net::Packet> packets_;
+	std::map<uint32_t, Net::Packet> packets_;
 	int packetIterator_ = 0;
 	int acksToResendEachFrame_ = 0;
 };

@@ -453,6 +453,11 @@ void EntityManager::OnEntityDespawnRequestReceived(const sockaddr_storage& InAdd
   // TODO: Nothing at the moment, needs security if implemented
 }
 
+void SortInEntityByDistance(const float InDistancePoint, std::vector<Entity*>& OutEntities, Entity* InEntity)
+{
+
+}
+
 void EntityManager::OnConnectionReceived(const sockaddr_storage& InAddress, const Net::PacketComponent& InComponent)
 {
   const ServerConnectPacketComponent component = *reinterpret_cast<const ServerConnectPacketComponent*>(&InComponent);
@@ -477,17 +482,9 @@ void EntityManager::OnConnectionReceived(const sockaddr_storage& InAddress, cons
   PlayerShipEntity* entitySpawned = dynamic_cast<PlayerShipEntity*>(SpawnEntityServer(playerTypeTag, startPosition));
   SetPossessedEntityByNetTarget(NetUtility::RetrieveIPv4AddressFromStorage(InAddress), entitySpawned->GetId());
   entitySpawned->SetUsername(username);
-
-  // Sort by distance
-  std::map<float, Entity*> entitiesByDistance;
-  for (const auto& entity : entities_)
-  {
-    Entity* entityPtr = entity.second.get();
-    entitiesByDistance.insert({ Tga::Vector2f::DistanceSqr(entityPtr->position_, startPosition), entityPtr });
-  }
   
   // Spawn existing entities
-  for (const auto& entity : entitiesByDistance)
+  for (const auto& entity : entities_)
   {
     SpawnEntityComponent spawnEntityComponent;
     spawnEntityComponent.entityId = entity.second->GetId();
